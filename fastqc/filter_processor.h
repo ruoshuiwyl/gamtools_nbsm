@@ -8,7 +8,7 @@
 #include <string>
 #include <set>
 #include <strings.h>
-#include <include/sm/options.h>
+#include <nbsm/options.h>
 #include <util/channel.h>
 #include <util/gam_thread_pool.h>
 #include "base_fastq_info.h"

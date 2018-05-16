@@ -5,7 +5,7 @@
 #include <htslib/sam.h>
 #include <util/slice.h>
 #include "gamtools_sm_impl.h"
-#include "sm/options.h"
+#include "options.h"
 #include "sharding/bam_partition_data.h"
 #include "sharding/bam_sharding_impl.h"
 #include "mkdup/gam_mark_duplicate_impl.h"
@@ -14,7 +14,7 @@
 
 namespace gamtools {
 
-    SMImpl::SMImpl(const bam_hdr_t *bam_hdr, const SmOptions &options,
+    SMImpl::SMImpl(const bam_hdr_t *bam_hdr, const SMOptions &options,
                    const std::string &bam_file, Channel<std::unique_ptr<BWAReadBuffer>> &input)
             : bam_hdr_(bam_hdr),
               options_(options),

@@ -1,13 +1,12 @@
 cmake_minimum_required(VERSION 3.5)
 project(gamtools_sm)
 
-set(CMAKE_CXX_COMPILER /usr/bin/g++-7)
-set(CMAKE_CXX_FLAGS "-DBOOST_LOG_DYN_LINK" )
-
+set(CMAKE_CXX_COMPILER /usr/local/gcc-7.1.0/bin/g++-7.1)
+#set(CMAKE_CXX_FLAGS "-DBOOST_LOG_DYN_LINK" )
+set(CMAKE_CXX_FLAGS  "-DBOOST_ALL_DYN_LINK -D_GLIBCXX_USE_CXX11_ABI=0")
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 11)
 
-set(SM_PUBLIC_INCLUDE_DIR "include/sm")
 
 
 option(SM_BUILD_TESTS "Build GAMTOOLS SM's unit tests" ON)
@@ -74,7 +73,7 @@ add_library(gam_sm ""
         nbsm/nbsm_options.h
         util/glogger.cc
         util/glogger.h
-        util/glogger_test.cc)
+        )
 target_sources(gam_sm PRIVATE
         "${PROJECT_SOURCE_DIR}/util/slice.h"
         "${PROJECT_SOURCE_DIR}/util/arena.cc"
@@ -83,15 +82,15 @@ target_sources(gam_sm PRIVATE
         "util/block.h"
         "sharding/gam_block.cc"
         "sharding/gam_block.h"
-        "${SM_PUBLIC_INCLUDE_DIR}/options.h"
-        "${PROJECT_SOURCE_DIR}/util/options.cc"
+        "nbsm/options.h"
+        "nbsm/options.cc"
         "${PROJECT_SOURCE_DIR}/nbsm/gamtools_sm_impl.h"
         "${PROJECT_SOURCE_DIR}/nbsm/gamtools_sm_impl.cc"
         "${PROJECT_SOURCE_DIR}/sharding/bam_sharding_impl.cc"
         "${PROJECT_SOURCE_DIR}/sharding/bam_sharding_impl.h"
         "sharding/bam_partition_data.h"
         "sharding/bam_partition_data.cc"
-        "${PROJECT_SOURCE_DIR}/util/options.cc"
+        "nbsm/options.cc"
         "${PROJECT_SOURCE_DIR}/mkdup/gam_mark_duplicate_impl.cc"
         "${PROJECT_SOURCE_DIR}/mkdup/gam_mark_duplicate_impl.h"
         "${PROJECT_SOURCE_DIR}/mkdup/mark_duplicate_region.h"
@@ -159,5 +158,8 @@ if(SM_BUILD_TESTS)
 
 endif(SM_BUILD_TESTS)
 
-add_executable(glogger_test util/glogger_test.cc util/glogger.h util/glogger.cc)
-target_link_libraries(glogger_test boost_log pthread boost_thread boost_system boost_log_setup)
+#add_executable(glogger_test util/glogger_test.cc util/glogger.h util/glogger.cc)
+#target_link_libraries(glogger_test boost_log pthread boost_thread boost_system boost_log_setup)
+
+add_executable(nbsm_options_test nbsm/nbsm_options_test.cc nbsm/nbsm_options.h nbsm/nbsm_options.cc util/glogger.h util/glogger.cc)
+target_link_libraries(nbsm_options_test boost_program_options boost_log pthread boost_thread boost_system boost_log_setup)

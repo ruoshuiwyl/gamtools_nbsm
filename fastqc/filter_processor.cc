@@ -6,7 +6,7 @@
 #include <iostream>
 #include <cstring>
 #include <thread>
-#include <include/sm/options.h>
+#include <nbsm/options.h>
 #include "filter_processor.h"
 #include "base_fastq_info.h"
 #include "bwa_mem/gam_read.h"

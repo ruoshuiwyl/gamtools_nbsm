@@ -14,7 +14,7 @@
 #include <htslib/bgzf.h>
 #include <htslib/hts.h>
 
-#include <sm/options.h>
+#include <nbsm/options.h>
 #include <sharding/bam_partition_data.h>
 #include <util/create_index.h>
 #include "bam_block.h"
@@ -29,7 +29,7 @@ namespace gamtools {
 
     class BAMShardingImpl {
     public:
-        explicit BAMShardingImpl(const bam_hdr_t *bam_hdr, const SmOptions &options);
+        explicit BAMShardingImpl(const bam_hdr_t *bam_hdr, const SMOptions &options);
         void InitializeSharding();
         void InitializeMergeSort(std::string &bam_filename);
         void Sharding(const Slice &slice);
@@ -53,7 +53,7 @@ namespace gamtools {
         std::vector<std::unique_ptr<BAMPartitionData>> partition_datas_;
         std::vector<std::vector<std::unique_ptr<BAMBlock>>> chunks_;
         const bam_hdr_t *bam_hdr_;
-        const SmOptions &options_;
+        const SMOptions &options_;
         htsFile *bam_file_;
     };
 }

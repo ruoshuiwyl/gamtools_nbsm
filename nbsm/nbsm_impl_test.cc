@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
     fastq_file_info.lane_id = 0;
     fastq_file_infos.push_back(fastq_file_info);
     bam_hdr_t *bam_hdr;
-    gamtools::SmOptions options;
+    gamtools::SMOptions options;
     std::string bam_file = "test.bam";
     gamtools::Channel<std::unique_ptr<gamtools::GAMReadBuffer>> output_fastq_channel;
     gamtools::Channel<std::unique_ptr<gamtools::BWAReadBuffer>> input;

@@ -13,7 +13,7 @@
 
 namespace gamtools {
 
-    BAMShardingImpl::BAMShardingImpl(const bam_hdr_t *bam_hdr, const SmOptions &options)
+    BAMShardingImpl::BAMShardingImpl(const bam_hdr_t *bam_hdr, const SMOptions &options)
             : bam_hdr_(bam_hdr),
               options_(options) {
     }

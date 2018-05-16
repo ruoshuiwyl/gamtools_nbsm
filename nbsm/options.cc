@@ -3,13 +3,13 @@
 //
 
 
-#include "sm/options.h"
+#include "nbsm/options.h"
 #include <unistd.h>
 #include <cstring>
 
 
 namespace  gamtools{
-    SmOptions::SmOptions()
+    SMOptions::SMOptions()
         :sort_region_size(1<<20),
          sort_block_size(1<<20),
          markdup_region_size(10 * (1<<20)),

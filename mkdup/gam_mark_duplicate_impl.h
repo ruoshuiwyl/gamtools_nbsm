@@ -10,17 +10,17 @@
 #include <vector>
 #include <memory>
 #include <htslib/sam.h>
-#include <include/sm/options.h>
+#include <nbsm/options.h>
 #include "mark_duplicate_region.h"
 
 
 namespace gamtools {
-    struct SmOptions;
+    struct SMOptions;
     class MarkDuplicateFragEnd;
     class GAMMarkDuplicateImpl {
     public:
 //    GAMMarkDuplicateImpl(const int chr_count, const std::string &temp_output_path);
-        GAMMarkDuplicateImpl(const bam_hdr_t *bam_hdr, const SmOptions &options);
+        GAMMarkDuplicateImpl(const bam_hdr_t *bam_hdr, const SMOptions &options);
         void InitializeSharding();
         ~GAMMarkDuplicateImpl();
 
@@ -60,7 +60,7 @@ namespace gamtools {
 //        std::vector<uint64_t> markdup_index_;
         int thread_num_;
         const bam_hdr_t *bam_hdr_;
-        const SmOptions &options_;
+        const SMOptions &options_;
         std::vector<std::unique_ptr<MarkDuplicateRegion>> markdup_regions_;
         std::vector<std::vector<int>> markdup_sharding_index_;
         std::unique_ptr<MarkDuplicateFragEnd> markdup_frag_end_;

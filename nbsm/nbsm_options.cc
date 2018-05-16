@@ -2,29 +2,33 @@
 // Created by ruoshui on 5/14/18.
 //
 
+#include <iostream>
 #include "nbsm_options.h"
+#include <string>
+#include <util/glogger.h>
 
 namespace po = boost::program_options;
 namespace gamtools {
-    NBSMOptions::NBSMOptions(): opt_des_("GAMTOOLS NBSM Version:V0.1.0"),
-                                base_des_("Basic SmOptions"),
-                                filter_des_("Filter SmOptions"),
-                                bwamem_des_("Bwa_mem SmOptions"),
-                                sort_mkdup_des_("Sort & Mark Duplicate SmOptions"){
+//    NBSMOptions::NBSMOptions(): opt_des_("GAMTOOLS NBSM Version:V0.1.0"),
+//                                base_des_("Basic SMOptions"),
+//                                filter_des_("Filter SMOptions"),
+//                                bwamem_des_("Bwa_mem SMOptions"),
+//                                sort_mkdup_des_("Sort  Mark Duplicate SMOptions"){
+    NBSMOptions::NBSMOptions() {
         base_des_.add_options()
                 // base options
-                ("help,H", "produce help message")
-                ("version,V", "print version message")
-                ("reference_file,R", po::value<std::string>(&reference_file_), "Reference sequence file Default(null)")
-                ("temp_dir,D", po::value<std::string>(&temporary_directory_), "Temporary directory Storage space size must be twice BAM file size Default(null)")
-                ("input_fastq1_lists,F", po::value<std::vector<std::string>>(&input_fastq1_lists_), "Input fastq1 file lists")
-                ("input_fastq2_lists,R", po::value<std::vector<std::string>>(&input_fastq2_lists_), "Input fastq2 file lists")
-                ("input_library_id_lists,B",po::value<std::vector<int>>(&input_library_ids_), "Input fastq file library ID" )
-                ("input_lane_id_lists,L",   po::value<std::vector<int>>(&input_lane_ids_),      "Input fastq file lane ID")
-                ("ouput_bam_file,O", po::value<std::string>(&output_bam_file_), "Output bam file name defalut(null)")
-                ("sample_name", boost::program_options::value<std::string>(&sample_name_)->default_value("Zebra"), "Sample Name Default(Zebra)")
-                ("sample_id", boost::program_options::value<std::string>(&sample_id_)->default_value("Zebra"), "Sample Name Default(Zebra)")
-                ("thread_number,T", boost::program_options::value<int>(&nbsm_thread_num)->default_value(20),"NBSM total thread Default(20)")
+                ("help,h", "produce help message")
+                ("version,v", "print version message")
+                ("reference_file,r", po::value<std::string>(&reference_file_), "Reference sequence file Default(null)")
+                ("temp_dir,d", po::value<std::string>(&temporary_directory_), "Temporary directory Storage space size must be twice BAM file size Default(null)")
+                ("input_fastq1_lists,f", po::value<std::vector<std::string>>(&input_fastq1_lists_), "Input fastq1 file lists")
+                ("input_fastq2_lists,b", po::value<std::vector<std::string>>(&input_fastq2_lists_), "Input fastq2 file lists")
+                ("input_library_id_lists,l",po::value<std::vector<int>>(&input_library_ids_), "Input fastq file library ID" )
+                ("input_lane_id_lists,a",   po::value<std::vector<int>>(&input_lane_ids_),      "Input fastq file lane ID")
+                ("output_bam_file,o", po::value<std::string>(&output_bam_file_), "Output bam file name defalut(null)")
+                ("sample_name,n", boost::program_options::value<std::string>(&sample_name_)->default_value("Zebra"), "Sample Name Default(Zebra)")
+                ("sample_id,i", boost::program_options::value<std::string>(&sample_id_)->default_value("Zebra"), "Sample Name Default(Zebra)")
+                ("thread_number,t", boost::program_options::value<int>(&nbsm_thread_num)->default_value(20),"NBSM total thread Default(20)");
 
 
             // filter fastq options
@@ -36,7 +40,7 @@ namespace gamtools {
                     ("filter_adapter2", po::value<std::string>(), "5' adapter sequence Default(AAGTCGGATCGTAGCCATGTCGTTCTGTGAGCCAAGGAGTTG)")
                     ("filter_mis_match", po::value<int>(), "the max mismatch number when match the adapter Default(1)")
                     ("filter_match_ratio", po::value<float>(), "adapter's shortest match ratio Default(0.5)")
-                    ("filter_qual_system", po::value<int>(), "quality system 1:illumina, 2:sanger Default(2:illumina)")
+                    ("filter_qual_system", po::value<int>(), "quality system 1:illumina, 2:sanger Default(2:illumina)");
             // bwa mem options
             bwamem_des_.add_options()
                     ("bwamem_thread", po::value<int>(), "bwa mem number of threads Default(nbsm thread)")
@@ -55,7 +59,7 @@ namespace gamtools {
                     ("bwamem_gap_open_penalties", po::value<int>(), "gap open penalties for deletions and insertions Default[6,6]")
                     ("bwamem_gap_extension_score", po::value<int>(), "gap extension penalty; a gap of size k cost '{-O} + {-E}*k' Default[1,1]")
                     ("bwamem_clipping_penalty", po::value<int>(), " penalty for 5'- and 3'-end clipping Default[5,5]")
-                    ("bwamem_unpair_penalty", po::value<int>(), "penalty for an unpaired read pair Default(17)")
+                    ("bwamem_unpair_penalty", po::value<int>(), "penalty for an unpaired read pair Default(17)");
 
         sort_mkdup_des_.add_options()
                 ("sm_sort_sharding_size", po::value<int>(), "Sort Sharding size Default(1M)")
@@ -65,12 +69,127 @@ namespace gamtools {
                 ("sm_block_sort_thread", po::value<int>(), "sharding stage block sort thread number Default(4)")
                 ("sm_merge_thread", po::value<int>(), "Merge sort thread num Default(4)")
                 ("sm_compress_bam_thread", po::value<int>(), "Compress bam thread number Default(4)")
-                ("sm_mkdup_thread", po::value<int>(), "Mark Duplicate thread number Default (4)")
+                ("sm_mkdup_thread", po::value<int>(), "Mark Duplicate thread number Default (4)");
+
                 opt_des_.add(base_des_).add(filter_des_).add(bwamem_des_).add(sort_mkdup_des_);
-                ;
+
     }
 
-    void NBSMOptions::ParserCommandLine(int argc, char **argv) {
+    int NBSMOptions::ParserCommandLine(int argc, char **argv) {
+        po::variables_map vm;
+        po::store(po::parse_command_line(argc, argv, opt_des_), vm);
+        po::notify(vm);
+
+        //help
+        if (vm.count("help")) {
+            std::cout << opt_des_ << std::endl;
+            return 0;
+        }
+        if (vm.count("version")) {
+            std::cout << "GAMTOOLS NBSM\nVersion: " << Version << std::endl;
+            return 0;
+        }
+
+        GLOG_INFO << "Start Parse command line";
+        if (vm.count("temp_dir")) {
+            GLOG_INFO << "Set temp dir " << temporary_directory_ ;
+        } else {
+            GLOG_ERROR << "No Set temp dir ";
+            return 1;
+        }
+
+        if (vm.count("reference_file")) {
+            GLOG_INFO << "Reference File:" << reference_file_ ;
+        } else {
+            GLOG_ERROR << "Not set reference file:";
+            return 1;
+        }
+
+        if (vm.count("input_fastq1_lists")) {
+            GLOG_INFO<< "Input Fastq1 File Lists:";
+            int file_num = 0;
+            for (auto file : input_fastq1_lists_) {
+                GLOG_INFO << "file id:" << file_num++ << ":" << file << std::endl;
+            }
+        } else {
+            GLOG_ERROR << "Not set input_fastq1_lists";
+            return 1;
+        }
+
+        if (vm.count("input_fastq2_lists")) {
+            GLOG_INFO << "Input Fastq1 File Lists:";
+            int file_num = 0;
+            for (auto file : input_fastq2_lists_) {
+                GLOG_INFO << "file id:" << file_num++ << ":" << file << std::endl;
+            }
+        } else {
+            GLOG_ERROR << "Not set input_fastq2_lists";
+            return 1;
+        }
+
+        if (vm.count("input_library_id_lists")) {
+            GLOG_INFO << "Input library id lists:";
+            for (auto id : input_library_ids_) {
+                GLOG_INFO << "file library id:" << id << std::endl;
+            }
+        } else {
+            GLOG_ERROR << "Not set input_library_id_lists";
+            return 1;
+        }
+
+        if (vm.count("input_lane_id_lists")) {
+            GLOG_INFO << "Input library id lists:";
+            for (auto id : input_lane_ids_) {
+                GLOG_INFO << "file lane id:" << id << std::endl;
+            }
+        } else {
+            GLOG_ERROR << "Not set input_lane_id_lists";
+            return 1;
+        }
+        if (input_fastq1_lists_.size() != input_fastq2_lists_.size() ||
+                input_fastq1_lists_.size() != input_library_ids_.size() ||
+                input_fastq1_lists_.size() != input_lane_ids_.size()) {
+            GLOG_ERROR << "PE-fastq file library and lane number not equal";
+            return 5;
+        }
+
+        if (vm.count("output_bam_file")) {
+            GLOG_INFO << "Set Output bam filename" << output_bam_file_;
+        } else {
+            GLOG_ERROR << "Not set output_bam_file";
+            return 1;
+        }
+
+        if (vm.count("sample_name")) {
+            GLOG_INFO << "Set Sample Name " << sample_name_;
+        } else {
+            GLOG_ERROR << "Not Set Sample Name" ;
+            return 1;
+        }
+
+        if (vm.count("sample_id")) {
+            GLOG_INFO << "Set Sample ID: " << sample_id_;
+
+        } else {
+            GLOG_ERROR << "Not Set Sample ID" ;
+            return 1;
+        }
+
+        if (vm.count("thread_number")) {
+            GLOG_INFO << "Set nbsm thread number";
+        } else {
+            GLOG_INFO << " nbsm thread number default 20";
+        }
+        // filter parameter parse
+
+        // bwa_mem parameter parse
+
+
+
+        return 0;
+
+
+
 
     }
 

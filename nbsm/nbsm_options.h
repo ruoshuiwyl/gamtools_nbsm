@@ -5,16 +5,26 @@
 #ifndef GAMTOOLS_SM_NBSM_CONFIG_H
 #define GAMTOOLS_SM_NBSM_CONFIG_H
 #include <boost/program_options.hpp>
-#include <include/sm/options.h>
+#include <nbsm/options.h>
 
 namespace gamtools {
+
+
     class NBSMOptions {
     public:
         NBSMOptions();
-
-        void ParserCommandLine(int argc, char *argv[]);
+        /*
+         * return parameter error code
+         * 0 : ok
+         * 1 : parameter must set but not set
+         * 2 : parameter number error
+         * 3 : parameter repeat
+         * 4 : unknown parameter
+         * 5 : other error
+       */
+        int ParserCommandLine(int argc, char *argv[]);
 //        BaseOptions base_options;
-        FilterOptions filter_options;
+//        FilterOptions filter_options;
 //        BWAMEMOptions bwamem_options;
 //        SORTMKDUPOptions sm_options;
     private:

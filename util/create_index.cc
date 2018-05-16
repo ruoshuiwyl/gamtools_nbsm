@@ -10,10 +10,10 @@
 
 
 #include "create_index.h"
-#include "sm/options.h"
+#include "nbsm/options.h"
 
 namespace gamtools {
-    CreateIndex::CreateIndex(const bam_hdr_t *head, const SmOptions &options, IndexType type) {
+    CreateIndex::CreateIndex(const bam_hdr_t *head, const SMOptions &options, IndexType type) {
 
         int sharding_idx = 0;
         int file_cnt = 0;

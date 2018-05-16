@@ -23,7 +23,7 @@ namespace gamtools {
 //}
 
     GAMMarkDuplicateImpl::GAMMarkDuplicateImpl(const bam_hdr_t *bam_hdr,
-                                               const gamtools::SmOptions &options)
+                                               const gamtools::SMOptions &options)
             :bam_hdr_(bam_hdr), options_(options){
         markdup_frag_end_ = std::unique_ptr<MarkDuplicateFragEnd> (new MarkDuplicateFragEnd(bam_hdr, options.directory));
     }

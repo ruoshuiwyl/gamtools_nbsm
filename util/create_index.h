@@ -32,10 +32,10 @@ namespace  gamtools {
         int sharding_id_;
         std::string filename_;
     };
-    struct SmOptions;
+    struct SMOptions;
     class CreateIndex {
     public:
-        explicit CreateIndex(const bam_hdr_t *head, const SmOptions &options, IndexType type);
+        explicit CreateIndex(const bam_hdr_t *head, const SMOptions &options, IndexType type);
         const std::vector<PartitionData>& partition_datas() const {
             return partition_datas_;
         }

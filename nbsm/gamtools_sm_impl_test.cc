@@ -5,7 +5,7 @@
 
 #include <util/slice.h>
 #include "gamtools_sm_impl.h"
-#include "sm/options.h"
+#include "options.h"
 
 
 
