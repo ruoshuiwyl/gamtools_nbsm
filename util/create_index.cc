@@ -1,0 +1,58 @@
+//
+// Created by ruoshui on 5/2/18.
+//
+
+#include <sys/types.h>
+#include <dirent.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <htslib/sam.h>
+
+
+#include "create_index.h"
+#include "sm/options.h"
+
+namespace gamtools {
+    CreateIndex::CreateIndex(const bam_hdr_t *head, const SmOptions &options, IndexType type) {
+
+        int sharding_idx = 0;
+        int file_cnt = 0;
+        int dir_cnt= 0;
+        std::string dir_name = CreateIndexDirectory(dir_cnt, type, options.directory);
+        std::string file_name;
+        int region_size = type == IndexType::SortIndex? options.sort_region_size : options.markdup_region_size;
+        sharding_index_.resize(head->n_targets);
+        for (int i = 0; i < head->n_targets; ++i) {
+            for (int j = 0; j < head->target_len[i]; j += region_size) {
+                sharding_index_[i].push_back(sharding_idx);
+                if (file_cnt >= options.max_file_size) {
+                    dir_cnt++;
+                    dir_name = CreateIndexDirectory(dir_cnt, type, options.directory);
+                    file_cnt = 0;
+                } else {
+                    file_cnt++;
+                }
+                file_name = dir_name + std::to_string(sharding_idx);
+                partition_datas_.push_back(PartitionData(sharding_idx, file_name));
+                sharding_idx++;
+            }
+        };
+        file_name = dir_name + std::to_string(sharding_idx);
+        partition_datas_.push_back(PartitionData(sharding_idx, file_name)); //add unmap read
+    }
+
+    std::string CreateIndex::CreateIndexDirectory(int dir_id, IndexType type, const std::string &store_dir) {
+        std::string dir_name;
+        if (type == IndexType::SortIndex) {
+            dir_name = store_dir + "/Sort/" + std::to_string(dir_id) + "/";
+        } else if (type == IndexType::MarkDupIndex) {
+            dir_name = store_dir + "/MarkDup/" + std::to_string(dir_id) + "/";
+        }
+        if (NULL != opendir(dir_name.c_str())) {
+            rmdir(dir_name.c_str());
+        }
+        mkdir(dir_name.c_str(),  0x0644); //read & write
+        return dir_name;
+    }
+
+}

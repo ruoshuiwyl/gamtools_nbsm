@@ -1,0 +1,8 @@
+BWA-MEM
+version 0.7.15
+modify
+1 bseq1 change gamseq1
+
+
+2 output sam to  bam
+3 add compute markdup info

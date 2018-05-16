@@ -1,0 +1,36 @@
+//
+// Created by ruoshui on 5/10/18.
+//
+
+#ifndef GAMTOOLS_SM_GAM_BWA_MEM_H
+#define GAMTOOLS_SM_GAM_BWA_MEM_H
+
+#include <cstdint>
+#include <util/channel.h>
+#include <util/gam_read_buffer.h>
+#include <lib/htslib-1.3.1/htslib/sam.h>
+#include "bwamem.h"
+
+namespace gamtools {
+    class GAMBWAMEM {
+    public:
+        explicit GAMBWAMEM(Channel<std::unique_ptr<BWAReadBuffer>> &input, Channel<std::unique_ptr<BWAReadBuffer>> &output);
+        void
+        Initilization(const mem_opt_t *opt, const char *ref_file, bam_hdr_t **bam_hdr, const char *read_group_line);
+        ~GAMBWAMEM();
+        std::thread spawn();
+        const bntseq_t* bntseq() const;
+//        GAMFastQSeq *ProcessPairEndReadMap(GAMFastQSeq *fastq_seq);
+    private:
+        void ProcessBWAMEM();
+        bwaidx_t *mem_idx_;
+        mem_pestat_t *mem_pestat_;
+        const mem_opt_t *mem_opt_ ;
+        uint64_t processed_num_;
+        Channel<std::unique_ptr<BWAReadBuffer>> &input_;
+        Channel<std::unique_ptr<BWAReadBuffer>> &output_;
+    };
+}
+
+
+#endif //GAMTOOLS_SM_GAM_BWA_MEM_H
