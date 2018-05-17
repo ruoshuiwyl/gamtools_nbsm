@@ -16,7 +16,8 @@ namespace  gamtools{
          markdup_block_size(1<<20),
          block_sort_thread_num(2),
          merge_sort_thread_num(4),
-         bam_output_thread_num(4) {
+         bam_output_thread_num(4),
+         mark_dup_thread_num(4) {
 
         char dirname[4096];
         char *dir = getcwd(dirname, 4096);

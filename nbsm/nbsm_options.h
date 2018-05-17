@@ -6,6 +6,7 @@
 #define GAMTOOLS_SM_NBSM_CONFIG_H
 #include <boost/program_options.hpp>
 #include <nbsm/options.h>
+#include <bwa_mem/bwamem.h>
 
 namespace gamtools {
 
@@ -24,9 +25,9 @@ namespace gamtools {
        */
         int ParserCommandLine(int argc, char *argv[]);
 //        BaseOptions base_options;
-//        FilterOptions filter_options;
-//        BWAMEMOptions bwamem_options;
-//        SORTMKDUPOptions sm_options;
+        FilterOptions filter_options;
+        SMOptions sm_options;
+        mem_opt_t *mem_opt;
     private:
         int nbsm_thread_num;
         std::string sample_id_;

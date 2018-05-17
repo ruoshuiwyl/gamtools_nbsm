@@ -6,6 +6,7 @@
 #include "nbsm_options.h"
 #include <string>
 #include <util/glogger.h>
+#include <bwa_mem/bwamem.h>
 
 namespace po = boost::program_options;
 namespace gamtools {
@@ -73,6 +74,9 @@ namespace gamtools {
 
                 opt_des_.add(base_des_).add(filter_des_).add(bwamem_des_).add(sort_mkdup_des_);
 
+        mem_opt = mem_opt_init();
+        mem_opt->n_threads = 8; // default mem thread number 8
+        mem_opt->flag |= MEM_F_PE; //default set pair end read
     }
 
     int NBSMOptions::ParserCommandLine(int argc, char **argv) {
@@ -180,16 +184,164 @@ namespace gamtools {
         } else {
             GLOG_INFO << " nbsm thread number default 20";
         }
-        // filter parameter parse
+        if (vm.count("filter_low_qual")) {
+            filter_options.low_qual = vm["filter_low_qual"].as<int>();
+            GLOG_INFO << "Set filter low qual" << filter_options.low_qual  ;
+        }
+        if (vm.count("filter_qual_rate")) {
+            filter_options.qual_rate = vm["filter_qual_rate"].as<float>();
+            GLOG_INFO << "Set filter qual rate" << filter_options.qual_rate;
+        }
+        if (vm.count("filter_n_nate")) {
+            filter_options.n_base_rate = vm["filter_n_nate"].as<float>();
+            GLOG_INFO << "Set filter n nate " << filter_options.n_base_rate;
+        }
+
+        if (vm.count("filter_adapter1")) {
+            filter_options.adapter1 = vm["filter_adapter1"].as<std::string>();
+            GLOG_INFO << "Set filter adapter1 " << filter_options.adapter1;
+        }
+        if (vm.count("filter_adapter2")) {
+            filter_options.adapter2 = vm["filter_adapter2"].as<std::string>();
+            GLOG_INFO << "Set filter adapter2 " << filter_options.adapter2;
+        }
+        if (vm.count("filter_mis_match")) {
+            filter_options.adapter_mis_match = vm["filter_mis_match"].as<int>();
+            GLOG_INFO << "Set filter mis match " << filter_options.adapter_mis_match;
+        }
+
+        if (vm.count("filter_match_ratio")) {
+            filter_options.adapter_match_ratio = vm["filter_match_ratio"].as<float>();
+            GLOG_INFO << "Set filter match ratio " << filter_options.adapter_match_ratio;
+        }
+
+        if (vm.count("filter_qual_system")) {
+            filter_options.qual_sys = vm["filter_qual_system"].as<int>() == 1? 33 : 64;
+            GLOG_INFO << "Set filter quality system " << filter_options.qual_sys;
+        }
 
         // bwa_mem parameter parse
+        if (vm.count("bwamem_thread")) {
+            mem_opt->n_threads = vm["bwamem_thread"].as<int>();
+            GLOG_INFO << "Set bwa mem thread " << mem_opt->n_threads;
+        }
+        if (vm.count("bawmem_min_seed")) {
+            mem_opt->min_seed_len = vm["bawmem_min_seed"].as<int>();
+            GLOG_INFO << "Set bwa mem min seed " << mem_opt->min_seed_len;
+        }
+        if (vm.count("bwamem_band_width")) {
+            mem_opt->w = vm["bwamem_band_width"].as<int>();
+            GLOG_INFO << "Set bwa mem band wider " << mem_opt->w;
+        }
+        if (vm.count("bwamem_x_dropoff")) {
+            mem_opt->zdrop = vm["bwamem_x_dropoff"].as<int>();
+            GLOG_INFO << "Set bwa mem x drop off " << mem_opt->zdrop;
+        }
+        if (vm.count("bwamem_internal_seed")) {
+            mem_opt->split_factor = vm["bwamem_internal_seed"].as<float>();
+            GLOG_INFO << "Set bwa mem internal seeds " << mem_opt->split_factor;
+        }
+        if (vm.count("bwamem_skip_number")) {
+            mem_opt->max_occ = vm["bwamem_skip_number"].as<int>();
+            GLOG_INFO << "Set bwa mem skip seeds " << mem_opt->split_factor;
+        }
+        if (vm.count("bwamem_drop_chain")) {
+            mem_opt->drop_ratio = vm["bwamem_drop_chain"].as<float>();
+            GLOG_INFO << "Set bwa mem drop chain " << mem_opt->drop_ratio;
+        }
+        if (vm.count("bwamem_discard_len")) {
+            mem_opt->min_chain_weight = vm["bwamem_discard_len"].as<int>();
+            GLOG_INFO << "Set bwa mem discard len " << mem_opt->min_chain_weight;
+
+        }
+        if (vm.count("bwamem_max_rounds")) {
+            mem_opt->max_matesw = vm["bwamem_max_rounds"].as<int>();
+            GLOG_INFO << "Set bwa mem max round " << mem_opt->max_matesw;
+
+        }
+        if (vm.count("bwamem_skip_mate_rescue")) {
+            mem_opt->flag |= MEM_F_NO_RESCUE;
+            GLOG_INFO << "Set bwamem_skip_mate_rescue";
+        }
+        if (vm.count("bwamem_skip_pairing")) {
+            mem_opt->flag |= MEM_F_NOPAIRING;;
+            GLOG_INFO << "Set bwamem_skip_mate_rescue";
+        }
+        if (vm.count("bwamem_match_score")) {
+            mem_opt->a = vm["bwamem_match_score"].as<int>();
+            GLOG_INFO << "Set bwa mem match score" << mem_opt->a;
+        }
+        if (vm.count("bwamem_minmatch_score")) {
+            mem_opt->b = vm["bwamem_minmatch_score"].as<int>();
+            GLOG_INFO << "Set bwa mem mismatch score" << mem_opt->b;
+        }
+        if (vm.count("bwamem_gap_open_penalties")) {
+            mem_opt->o_del = mem_opt->o_ins = vm["bwamem_gap_open_penalties"].as<int>();
+            GLOG_INFO << "Set bwa mem gap open penalties" << mem_opt->o_del << "\t" << mem_opt->o_del;
+        }
+        if (vm.count("bwamem_gap_extension_score")) {
+            mem_opt->e_del = mem_opt->e_ins = vm["bwamem_gap_extension_score"].as<int>();
+            GLOG_INFO << "Set bwa mem gap extension penalties" << mem_opt->e_del << "\t" << mem_opt->e_del;
+        }
+        if (vm.count("bwamem_clipping_penalty")) {
+            mem_opt->pen_clip5 = mem_opt->pen_clip5 = vm["bwamem_clipping_penalty"].as<int>();
+            GLOG_INFO << "Set bwa mem clipping penalty " << mem_opt->pen_clip3 << "\t" << mem_opt->pen_clip5;
+        }
+        if (vm.count("bwamem_unpair_penalty")) {
+            mem_opt->pen_unpaired = vm["bwamem_unpair_penalty"].as<int>();
+            GLOG_INFO << "Set bwa mem unpair_penalty " << mem_opt->pen_unpaired;
+        }
 
 
+//                ("bwamem_skip_number", po::value<int>(), "skip seeds with more than INT occurrences Default(500)")
+//                ("bwamem_drop_chain", po::value<float>(), "drop chains shorter than FLOAT fraction of the longest overlapping chain Defulat(0.50)")
+//                ("bwamem_discard_len", po::value<int>(), "discard a chain if seeded bases shorter than INT Defalut(0)")
+//                ("bwamem_max_rounds", po::value<int>(), "perform at most INT rounds of mate rescues for each read Default(50)")
+//                ("bwamem_skip_mate_rescue", po::value<int>(), "bwa mem skip mate rescue")
+//                ("bwamem_skip_pairing", po::value<int>(), "bwa mem skip pairing; mate rescue performed unless -S also in use")
+//                ("bwamem_match_score", po::value<int>(), "bwa mem score for a sequence match Default(1)")
+//                ("bwamem_minmatch_score", po::value<int>(), "bwa mem  penalty for a mismatch Default(4)")
+//                ("bwamem_gap_open_penalties", po::value<int>(), "gap open penalties for deletions and insertions Default[6,6]")
+//                ("bwamem_gap_extension_score", po::value<int>(), "gap extension penalty; a gap of size k cost '{-O} + {-E}*k' Default[1,1]")
+//                ("bwamem_clipping_penalty", po::value<int>(), " penalty for 5'- and 3'-end clipping Default[5,5]")
+//                ("bwamem_unpair_penalty", po::value<int>(), "penalty for an unpaired read pair Default(17)");
 
+        // sort markdup parameter parse
+
+        if (vm.count("sm_sort_sharding_size")) {
+            sm_options.sort_region_size = vm["sm_sort_sharding_size"].as<int>();
+            GLOG_INFO << "Set sm sort sharding size " << sm_options.sort_region_size;
+        }
+        if (vm.count("sm_sort_block_size")) {
+            sm_options.sort_block_size = vm["sm_sort_block_size"].as<int>();
+            GLOG_INFO << "Set sm sort block size " << sm_options.sort_block_size;
+        }
+        if (vm.count("sm_mkdup_sharding_size")) {
+            sm_options.markdup_region_size = vm["sm_mkdup_sharding_size"].as<int>();
+            GLOG_INFO << "Set sm mark duplicate block size " << sm_options.markdup_region_size;
+        }
+        if (vm.count("sm_mkdup_block_size")) {
+            sm_options.markdup_block_size = vm["sm_mkdup_block_size"].as<int>();
+            GLOG_INFO << "Set sm mark duplicate block size " << sm_options.markdup_block_size;
+        }
+
+        if (vm.count("sm_block_sort_thread")) {
+            sm_options.block_sort_thread_num = vm["sm_block_sort_thread"].as<int>();
+            GLOG_INFO << "Set sharding stage sm  sort block thread num " << sm_options.block_sort_thread_num;
+        }
+        if (vm.count("sm_merge_thread")) {
+            sm_options.merge_sort_thread_num = vm["sm_merge_thread"].as<int>();
+            GLOG_INFO << "Set merge stage merge thread" << sm_options.block_sort_thread_num;
+        }
+        if (vm.count("sm_compress_bam_thread")) {
+            sm_options.bam_output_thread_num = vm["sm_compress_bam_thread"].as<int>();
+            GLOG_INFO << "Set merge stage bam compress thread" << sm_options.bam_output_thread_num;
+        }
+        if (vm.count("sm_mkdup_thread")) {
+            sm_options.mark_dup_thread_num = vm["sm_mkdup_thread"].as<int>();
+            GLOG_INFO << "Set mark duplicate thread num" << std::endl;
+        }
         return 0;
-
-
-
 
     }
 
