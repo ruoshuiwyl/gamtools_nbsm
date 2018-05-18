@@ -14,7 +14,9 @@
 namespace gamtools {
     class GAMBWAMEM {
     public:
-        explicit GAMBWAMEM(Channel<std::unique_ptr<BWAReadBuffer>> &input, Channel<std::unique_ptr<BWAReadBuffer>> &output);
+        explicit GAMBWAMEM(Channel<std::unique_ptr<BWAReadBuffer>> &input,
+                           Channel<std::unique_ptr<BWAReadBuffer>> &output,
+                           const mem_opt_t *opt, bwaidx_t *mem_idx);
         void
         Initilization(const mem_opt_t *opt, const char *ref_file, bam_hdr_t **bam_hdr, const char *read_group_line);
         ~GAMBWAMEM();

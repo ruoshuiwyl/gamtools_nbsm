@@ -7,7 +7,7 @@
 
 namespace gamtools {
 
-#ifndef BOOST_LOG
+//#ifndef BOOST_LOG
     src::severity_logger_mt<gamtools::sign_severity_level> GLogger::glog ;
 
     void GLogger::SetLevel(sign_severity_level sl ) {
@@ -81,5 +81,5 @@ namespace gamtools {
         core->add_global_attribute("Scopes", attrs::named_scope());
     }
 
-#endif
+//#endif
 }

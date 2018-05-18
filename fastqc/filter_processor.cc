@@ -98,7 +98,8 @@ namespace gamtools {
                         bwa_read_buffer = std::unique_ptr<BWAReadBuffer>(new BWAReadBuffer(bwamem_batch_size_));
                     }
                 } else { // free not clean
-
+                    gam_read_destory(read1);
+                    gam_read_destory(read2);
                 }
             }
 

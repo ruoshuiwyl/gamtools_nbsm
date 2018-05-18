@@ -18,6 +18,15 @@ typedef struct {
     int32_t isize;
 } gam1_core_t;
 
+typedef struct {
+    int16_t tid:8;
+    int16_t lib_id:7;
+    int16_t orientation:1;
+    int16_t score;
+    int32_t pos;
+    uint64_t read_id;
+} read_end_t;
+
 struct GAMRead {
         int is_clean;
         int l_seq;    // read_len
@@ -31,17 +40,13 @@ struct GAMRead {
         char *seq;
         char *qual;
         char *bam;
-        char *dup;
+//        char *dup;
+        read_end_t *dup;
 };
 
-typedef struct {
-    int16_t tid:8;
-    int16_t lib_id:7;
-    int16_t orientation:1;
-    int16_t score;
-    int32_t pos;
-    uint64_t read_id;
-} read_end_t;
+void gam_read_destory( GAMRead *read);
+
+
 
 
 #endif //BWA_0_7_15_GAM_READ_H

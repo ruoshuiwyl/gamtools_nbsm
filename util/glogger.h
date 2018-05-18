@@ -5,7 +5,8 @@
 #ifndef GAMTOOLS_SM_GLOGGER_H
 #define GAMTOOLS_SM_GLOGGER_H
 
-#ifndef BOOST_LOG
+
+//#ifndef BOOST_LOG
 #include <boost/shared_ptr.hpp>
 #include <boost/make_shared.hpp>
 #include <boost/thread/thread.hpp>
@@ -36,10 +37,10 @@ namespace sinks = boost::log::sinks;
 namespace expr = boost::log::expressions;
 namespace keywords = boost::log::keywords;
 
-#endif
+//#endif
 
 namespace gamtools {
-#ifndef  BOOST_LOG
+//#ifdef  BOOST_LOG
     enum sign_severity_level {
         trace,
         debug,
@@ -79,8 +80,9 @@ namespace gamtools {
         static void InitLog(std::string &log_dir);
         static void SetLevel(sign_severity_level sl);
     };
-#endif
-#ifndef BOOST_LOG
+//#endif
+
+#ifdef BOOST_LOG
 #define GLOG_REPORT  BOOST_LOG_SEV(GLogger::glog,report)
 #define GLOG_INFO    BOOST_LOG_SEV(GLogger::glog,info)
 #define GLOG_TRACE   BOOST_LOG_SEV(GLogger::glog,trace)

@@ -7,6 +7,7 @@
 #include <string>
 #include <util/glogger.h>
 #include <bwa_mem/bwamem.h>
+#include <fastqc/gam_fastq_file.h>
 
 namespace po = boost::program_options;
 namespace gamtools {
@@ -20,17 +21,17 @@ namespace gamtools {
                 // base options
                 ("help,h", "produce help message")
                 ("version,v", "print version message")
-                ("reference_file,r", po::value<std::string>(&reference_file_), "Reference sequence file Default(null)")
+                ("reference_file,r", po::value<std::string>(&reference_file), "Reference sequence file Default(null)")
                 ("temp_dir,d", po::value<std::string>(&temporary_directory_), "Temporary directory Storage space size must be twice BAM file size Default(null)")
                 ("input_fastq1_lists,f", po::value<std::vector<std::string>>(&input_fastq1_lists_), "Input fastq1 file lists")
                 ("input_fastq2_lists,b", po::value<std::vector<std::string>>(&input_fastq2_lists_), "Input fastq2 file lists")
                 ("input_library_id_lists,l",po::value<std::vector<int>>(&input_library_ids_), "Input fastq file library ID" )
                 ("input_lane_id_lists,a",   po::value<std::vector<int>>(&input_lane_ids_),      "Input fastq file lane ID")
-                ("output_bam_file,o", po::value<std::string>(&output_bam_file_), "Output bam file name defalut(null)")
-                ("sample_name,n", boost::program_options::value<std::string>(&sample_name_)->default_value("Zebra"), "Sample Name Default(Zebra)")
-                ("sample_id,i", boost::program_options::value<std::string>(&sample_id_)->default_value("Zebra"), "Sample Name Default(Zebra)")
-                ("thread_number,t", boost::program_options::value<int>(&nbsm_thread_num)->default_value(20),"NBSM total thread Default(20)");
-
+                ("output_bam_file,o", po::value<std::string>(&output_bam_file), "Output bam file name defalut(null)")
+                ("sample_name,n", boost::program_options::value<std::string>(&sample_name)->default_value("Zebra"), "Sample Name Default(Zebra)")
+                ("sample_id,i", boost::program_options::value<std::string>(&sample_id)->default_value("Zebra"), "Sample Name Default(Zebra)")
+                ("thread_number,t", boost::program_options::value<int>(&nbsm_thread_num)->default_value(1),"NBSM total thread Default(1)")
+                ("batch_size", boost::program_options::value<int>(&batch_size)->default_value(200000), "NBSM process batch read size Default(20 * 10000000)");
 
             // filter fastq options
             filter_des_.add_options()
@@ -75,7 +76,7 @@ namespace gamtools {
                 opt_des_.add(base_des_).add(filter_des_).add(bwamem_des_).add(sort_mkdup_des_);
 
         mem_opt = mem_opt_init();
-        mem_opt->n_threads = 8; // default mem thread number 8
+        mem_opt->n_threads = 1; // default mem thread number 8
         mem_opt->flag |= MEM_F_PE; //default set pair end read
     }
 
@@ -86,12 +87,12 @@ namespace gamtools {
 
         //help
         if (vm.count("help")) {
-            std::cout << opt_des_ << std::endl;
-            return 0;
+            std::cout << opt_des_ ;
+            return 1;
         }
         if (vm.count("version")) {
-            std::cout << "GAMTOOLS NBSM\nVersion: " << Version << std::endl;
-            return 0;
+            std::cout << "GAMTOOLS NBSM\nVersion: " << Version ;
+            return 1;
         }
 
         GLOG_INFO << "Start Parse command line";
@@ -99,84 +100,92 @@ namespace gamtools {
             GLOG_INFO << "Set temp dir " << temporary_directory_ ;
         } else {
             GLOG_ERROR << "No Set temp dir ";
-            return 1;
+            return 2;
         }
 
         if (vm.count("reference_file")) {
-            GLOG_INFO << "Reference File:" << reference_file_ ;
+            GLOG_INFO << "Reference File:" << reference_file ;
         } else {
             GLOG_ERROR << "Not set reference file:";
-            return 1;
+            return 2;
         }
 
         if (vm.count("input_fastq1_lists")) {
             GLOG_INFO<< "Input Fastq1 File Lists:";
             int file_num = 0;
             for (auto file : input_fastq1_lists_) {
-                GLOG_INFO << "file id:" << file_num++ << ":" << file << std::endl;
+                GLOG_INFO << "file id:" << file_num++ << ":" << file;
             }
         } else {
             GLOG_ERROR << "Not set input_fastq1_lists";
-            return 1;
+            return 2;
         }
 
         if (vm.count("input_fastq2_lists")) {
             GLOG_INFO << "Input Fastq1 File Lists:";
             int file_num = 0;
             for (auto file : input_fastq2_lists_) {
-                GLOG_INFO << "file id:" << file_num++ << ":" << file << std::endl;
+                GLOG_INFO << "file id:" << file_num++ << ":" << file ;
             }
         } else {
             GLOG_ERROR << "Not set input_fastq2_lists";
-            return 1;
+            return 2;
         }
 
         if (vm.count("input_library_id_lists")) {
             GLOG_INFO << "Input library id lists:";
             for (auto id : input_library_ids_) {
-                GLOG_INFO << "file library id:" << id << std::endl;
+                GLOG_INFO << "file library id:" << id;
             }
         } else {
             GLOG_ERROR << "Not set input_library_id_lists";
-            return 1;
+            return 2;
         }
 
         if (vm.count("input_lane_id_lists")) {
             GLOG_INFO << "Input library id lists:";
             for (auto id : input_lane_ids_) {
-                GLOG_INFO << "file lane id:" << id << std::endl;
+                GLOG_INFO << "file lane id:" << id;
             }
         } else {
             GLOG_ERROR << "Not set input_lane_id_lists";
-            return 1;
+            return 2;
         }
         if (input_fastq1_lists_.size() != input_fastq2_lists_.size() ||
                 input_fastq1_lists_.size() != input_library_ids_.size() ||
                 input_fastq1_lists_.size() != input_lane_ids_.size()) {
             GLOG_ERROR << "PE-fastq file library and lane number not equal";
-            return 5;
+            return 6;
+        } else {
+            for (int i = 0; i < input_fastq1_lists_.size(); ++i ) {
+                GAMFastqFileInfo fastq_file_info;
+                fastq_file_info.fastq1_filename = input_fastq1_lists_[i];
+                fastq_file_info.fastq2_filename = input_fastq2_lists_[i];
+                fastq_file_info.lib_id = input_library_ids_[i];
+                fastq_file_info.lane_id = input_lane_ids_[i];
+                fastq_file_lists.push_back(fastq_file_info);
+            }
         }
 
         if (vm.count("output_bam_file")) {
-            GLOG_INFO << "Set Output bam filename" << output_bam_file_;
+            GLOG_INFO << "Set Output bam filename " << output_bam_file;
         } else {
             GLOG_ERROR << "Not set output_bam_file";
-            return 1;
+            return 2;
         }
 
         if (vm.count("sample_name")) {
-            GLOG_INFO << "Set Sample Name " << sample_name_;
+            GLOG_INFO << "Set Sample Name " << sample_name;
         } else {
             GLOG_ERROR << "Not Set Sample Name" ;
-            return 1;
+            return 2;
         }
 
         if (vm.count("sample_id")) {
-            GLOG_INFO << "Set Sample ID: " << sample_id_;
-
+            GLOG_INFO << "Set Sample ID: " << sample_id;
         } else {
             GLOG_ERROR << "Not Set Sample ID" ;
-            return 1;
+            return 2;
         }
 
         if (vm.count("thread_number")) {
@@ -184,6 +193,14 @@ namespace gamtools {
         } else {
             GLOG_INFO << " nbsm thread number default 20";
         }
+
+        if (vm.count("batch_size")) {
+            GLOG_INFO << "Set nbsm batch_size " << batch_size;
+        } else {
+            GLOG_INFO << "Default set nbsm batch_size " << batch_size;
+        }
+
+        //Filter
         if (vm.count("filter_low_qual")) {
             filter_options.low_qual = vm["filter_low_qual"].as<int>();
             GLOG_INFO << "Set filter low qual" << filter_options.low_qual  ;
@@ -343,6 +360,10 @@ namespace gamtools {
         }
         return 0;
 
+    }
+
+    void NBSMOptions::help() {
+        std::cout << opt_des_ << std::endl;
     }
 
 

@@ -24,9 +24,10 @@ namespace gamtools {
         }
     }
 
-    GAMBWAMEM::GAMBWAMEM(gamtools::Channel<std::unique_ptr<gamtools::BWAReadBuffer>> &input,
-                         gamtools::Channel<std::unique_ptr<gamtools::BWAReadBuffer>> &output)
-        : input_(input), output_(output), processed_num_(0) {
+    GAMBWAMEM::GAMBWAMEM(Channel<std::unique_ptr<BWAReadBuffer>> &input,
+                         Channel<std::unique_ptr<BWAReadBuffer>> &output,
+                         const mem_opt_t *opt, bwaidx_t *mem_idx)
+        : input_(input), output_(output), processed_num_(0), mem_opt_(opt), mem_idx_(mem_idx),mem_pestat_(nullptr) {
 
     }
     void GAMBWAMEM::Initilization(const mem_opt_t *opt, const char *ref_file, bam_hdr_t **bam_hdr, const char *read_group_line) {
@@ -67,4 +68,16 @@ namespace gamtools {
     const bntseq_t* GAMBWAMEM::bntseq() const {
         return mem_idx_->bns;
     }
+
+
+
+}
+
+void gam_read_destory( GAMRead *read) {
+    free(read->bam);
+    free(read->name);
+    free(read->seq);
+    free(read->qual);
+    free(read->dup);
+    free(read);
 }

@@ -2,6 +2,7 @@
 // Created by ruoshui on 5/7/18.
 //
 
+#include <assert.h>
 #include "gam_read_buffer.h"
 
 namespace gamtools {
@@ -34,6 +35,8 @@ namespace gamtools {
 
     BWAReadBuffer::BWAReadBuffer(int batch) : size(0), batch_size(batch) {
         seqs = (GAMRead *) malloc(batch_size * sizeof(GAMRead) );
+        assert (seqs);
+
     }
 
     BWAReadBuffer::~BWAReadBuffer() {

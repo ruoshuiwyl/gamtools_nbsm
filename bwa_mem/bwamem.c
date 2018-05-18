@@ -1138,15 +1138,23 @@ void mem_aln2bam(const mem_opt_t *opt, const bntseq_t *bns, kstring_t *str, bseq
 	free (temp_str.s);
 	if (core.tid >= 0 & !(p->flag & 0x800)) {
 	    if (s->dup == NULL) {
-            s->dup = (char *) malloc(sizeof(read_end_t));
+            s->dup = (read_end_t *) malloc(sizeof(read_end_t));
+            s->dup->tid = read_end.tid;
+            s->dup->score = read_end.score;
+            s->dup->orientation = read_end.orientation;
+            s->dup->lib_id = read_end.lib_id;
+            s->dup->pos = read_end.pos;
+            s->dup->read_id = read_end.read_id;
         }
-		int *pInt = (int*)s->dup;
-        pInt[0] = read_end.tid;
-        pInt[1] = read_end.pos;
-        pInt[2] = read_end.lib_id << 16 | read_end.orientation;
-        pInt[3] = read_end.score;
-        long *pLong = (long*)(s->dup + 128);
-        pLong[0] = read_end.read_id;
+//		int *pInt = (int*)s->dup;
+////        pInt[0] = read_end.tid;
+////        pInt[1] = read_end.pos;
+////        pInt[2] = read_end.lib_id << 16 | read_end.orientation;
+////        pInt[3] = read_end.score;
+//        pInt[0] = read_end.tid << 24 | read_end.lib_id << 17 | read_end.orientation << 16 | read_end.score;
+//        pInt[1] = read_end.pos;
+//        long *pLong = (long*)(s->dup + 8);
+//        pLong[0] = read_end.read_id;
 	}
 
 	put_bam_data(str, s, &core, &bam_data);
