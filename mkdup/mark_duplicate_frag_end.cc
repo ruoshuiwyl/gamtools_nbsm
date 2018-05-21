@@ -8,6 +8,7 @@
 #include <cstring>
 #include <algorithm>
 #include <snappy.h>
+#include <bwa_mem/gam_read.h>
 #include "mark_duplicate_frag_end.h"
 #include "gam_mark_duplicate_impl.h"
 
@@ -18,8 +19,10 @@ namespace gamtools {
             : filename_(filename),
               append_(false) {
         pair_flags_.resize(bam_hdr->n_targets);
+        negative_pair_flags_ .resize(bam_hdr->n_targets);
         for (int i = 0; i < bam_hdr->n_targets; ++i) {
             pair_flags_[i].resize(bam_hdr->target_len[i], 0);
+            negative_pair_flags_[i].resize(1024, 0);
         }
         buffer_ = new char[kBufferLen];
         compress_buffer_ = new char[kBufferLen];
@@ -31,7 +34,7 @@ namespace gamtools {
         delete [] compress_buffer_;
     }
 
-    void MarkDuplicateFragEnd::AddFragEnd(const std::shared_ptr<MarkDuplicateFragEnds> &frag_end) {
+    void MarkDuplicateFragEnd::AddFragEnd(const read_end_t *frag_end) {
         frag_ends_.push_back(frag_end);
         if (frag_ends_.size() == kFragEndsNum) {
             StoreFileFragEnds();
@@ -39,7 +42,11 @@ namespace gamtools {
     }
 
     void MarkDuplicateFragEnd::AddPairFlag(const int tid, const int pos) {
-        pair_flags_[tid][pos] = true;
+        if (pos >= 0) {
+            pair_flags_[tid][pos] = true;
+        } else {
+            negative_pair_flags_[tid][-pos] = true;
+        }
     }
 
     void MarkDuplicateFragEnd::ProcessMarkDuplicateFragEnd() {
@@ -57,10 +64,10 @@ namespace gamtools {
                 }
                 const char *buffer_ptr = buffer_;
                 while (buffer_ptr - buffer_ < uncompress_len) {
-                    std::shared_ptr<MarkDuplicateFragEnds> frag_end(new MarkDuplicateFragEnds);
+//                    std::shared_ptr<MarkDuplicateFragEnds> frag_end(new MarkDuplicateFragEnds);
 //                    ReadMarkDupFragEnds(buffer_ptr, frag_end);
-                    MarkDuplicateFragEnds freg_end;
-                    ReadMarkDupFragEnds(buffer_ptr, freg_end);
+//                    MarkDuplicateFragEnds freg_end;
+                    read_end_t * frag_end = ReadMarkDupFragEnds(buffer_ptr);
                     buffer_ptr += kFragEndLen;
                     frag_ends_.push_back(frag_end);
                 }
@@ -86,9 +93,9 @@ namespace gamtools {
         int64_t *w64 = (int64_t *) (data + 8);
         char *buffer_ptr = buffer_;
         for (auto &frag_end : frag_ends_) {
-            w32[0] = frag_end->read1_tid_ << 24 | frag_end->lib_id_ << 17 | frag_end->orientation_ << 16 | frag_end->score_;
-            w32[1] = frag_end->read1_pos_;
-            w64[0] = frag_end->name_id_;
+            w32[0] = frag_end->tid << 24 | frag_end->lib_id << 17 | frag_end->orientation << 16 | frag_end->score;
+            w32[1] = frag_end->pos;
+            w64[0] = frag_end->read_id;
             memcpy(buffer_ptr, data, kFragEndLen);
             buffer_ptr += kFragEndLen;
         }
@@ -102,14 +109,14 @@ namespace gamtools {
 
 
     void MarkDuplicateFragEnd::ComputeMarkDuplicateFragEnds() {
-        std::sort(frag_ends_.begin(), frag_ends_.end(), MarkDuplicateFragEnds::ReadEndsComparator);
-        MarkDuplicateFragEnds* next_chunk_first = nullptr;
-        std::vector<MarkDuplicateFragEnds*> next_chunk;
+        std::sort(frag_ends_.begin(), frag_ends_.end(), FragReadEndsComparator);
+        const read_end_t* next_chunk_first = nullptr;
+        std::vector<const read_end_t*> next_chunk;
         bool contains_pairs = false;
 //        bool contains_frags = false;
         for (auto &frag_end : frag_ends_) {
-            MarkDuplicateFragEnds *next = &(*frag_end);
-            if (next_chunk_first != nullptr && AreComparableForDuplicatesFragEnds(*next_chunk_first, *next)) {
+            const read_end_t *next = &(*frag_end);
+            if (next_chunk_first != nullptr && AreComparableForDuplicatesFragEnds(next_chunk_first, next)) {
                 next_chunk.push_back(next);
 //                contains_pairs = contains_pairs || next->isPaired();
 //                contains_frags = contains_frags || !next->isPaired();
@@ -120,55 +127,60 @@ namespace gamtools {
                 next_chunk.clear();
                 next_chunk.push_back(next);
                 next_chunk_first = next;
-                contains_pairs = pair_flags_[next->read1_tid_][next->read1_pos_];
+                if (next->pos >= 0) {
+                    contains_pairs = pair_flags_[next->tid][next->pos];
+                } else {
+                    contains_pairs = negative_pair_flags_[next->tid][-next->pos];
+                }
 //                contains_frags = pair_flags_[next->read1_tid_][next->read1_pos_];
             }
         }
         ComputeMarkDuplicateFragments(next_chunk, contains_pairs);
     }
 
-    bool MarkDuplicateFragEnd::AreComparableForDuplicatesFragEnds(const MarkDuplicateFragEnds &lhs,
-                                            const MarkDuplicateFragEnds &rhs) {
-        bool comparable = lhs.lib_id_ == rhs.lib_id_;
+    bool MarkDuplicateFragEnd::AreComparableForDuplicatesFragEnds(const read_end_t *lhs,
+                                                                  const read_end_t *rhs) {
+        bool comparable = lhs->lib_id == rhs->lib_id;
         if (comparable) {
-        comparable = lhs.read1_tid_ == rhs.read1_tid_
-                     && lhs.read1_pos_ == rhs.read1_pos_
-                     && lhs.orientation_ == rhs.orientation_;
+        comparable = lhs->tid == rhs->tid
+                     && lhs->pos == rhs->pos
+                     && lhs->orientation == rhs->orientation;
         }
         return comparable;
     }
 
     void
-    MarkDuplicateFragEnd::ComputeMarkDuplicateFragments(std::vector<MarkDuplicateFragEnds *> &next_chunk,
-                                                       const bool contains_pairs) {
+    MarkDuplicateFragEnd::ComputeMarkDuplicateFragments(std::vector<const read_end_t *> &next_chunk,
+                                                        const bool contains_pairs) {
         if (contains_pairs) {
             for (auto &end : next_chunk) {
-                GAMMarkDuplicateImpl::SetMarkDuplicateReadNameID(end->name_id_);
+                GAMMarkDuplicateImpl::SetMarkDuplicateReadNameID(end->read_id);
             }
         } else {
             int16_t max_score = 0;
-            MarkDuplicateFragEnds * best = nullptr;
-            for (auto &end : next_chunk) {
-                if (end->score_ > max_score || best == nullptr) {
-                    max_score = end->score_;
+            const read_end_t * best = nullptr;
+            for (auto end : next_chunk) {
+                if (end->score > max_score || best == nullptr) {
+                    max_score = end->score;
                     best = end;
                 }
             }
             for (auto &end : next_chunk) {
                 if (end != best) {
-                    GAMMarkDuplicateImpl::SetMarkDuplicateReadNameID(end->name_id_);
+                    GAMMarkDuplicateImpl::SetMarkDuplicateReadNameID(end->read_id);
                 }
             }
         }
     }
 
-    void MarkDuplicateFragEnd::ReadMarkDupFragEnds(const char *p, MarkDuplicateFragEnds &frag_end) {
+    read_end_t * MarkDuplicateFragEnd::ReadMarkDupFragEnds(const char *p) {
         int32_t *w32 = (int32_t *)p;
-        frag_end.read1_tid_ =(int8_t) (w32[0] >> 24) & 0xff;
-        frag_end.lib_id_    = (int8_t )(w32[0]>>17) & 0x7f;
-        frag_end.orientation_ = (int8_t )(w32[0]>>16 )& 0x1;
-        frag_end.score_       = (int16_t) w32[0] & 0xffff;
-        frag_end.read1_pos_ = w32[1];
-        frag_end.name_id_ = *(int64_t *)(p + 16);
+        read_end_t *frag_end = (read_end_t *) malloc(sizeof(read_end_t));
+        frag_end->tid =(int8_t) (w32[0] >> 24) & 0xff;
+        frag_end->lib_id    = (int8_t )(w32[0]>>17) & 0x7f;
+        frag_end->orientation = (int8_t )(w32[0]>>16 )& 0x1;
+        frag_end->score       = (int16_t) w32[0] & 0xffff;
+        frag_end->pos = w32[1];
+        frag_end->read_id = *(int64_t *)(p + 16);
     }
 }

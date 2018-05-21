@@ -27,7 +27,7 @@ typedef struct {
     uint64_t read_id;
 } read_end_t;
 
-struct GAMRead {
+typedef struct GAMRead {
         int is_clean;
         int l_seq;    // read_len
         int bam_num;  // bam number
@@ -42,7 +42,7 @@ struct GAMRead {
         char *bam;
 //        char *dup;
         read_end_t *dup;
-};
+}GAMRead;
 
 void gam_read_destory( GAMRead *read);
 

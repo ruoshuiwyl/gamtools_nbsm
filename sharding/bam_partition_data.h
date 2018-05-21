@@ -15,7 +15,8 @@ namespace gamtools {
     class PartitionData;
     class BAMPartitionData {
     public:
-        explicit BAMPartitionData(Channel<std::unique_ptr<GAMBlock>> &sort_channel, const PartitionData &partdata);
+        explicit BAMPartitionData(Channel <std::unique_ptr<GAMBlock>> &sort_channel, const PartitionData &partdata,
+                                          const int block_size);
         ~BAMPartitionData();
         void Add(const Slice &slice);
         void sendEof();

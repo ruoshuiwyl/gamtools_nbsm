@@ -15,7 +15,7 @@ namespace  gamtools {
         //Default : 1MB
         int sort_block_size;
         // markdup region size
-        // Default : 10M
+        // Default : 8M
         int markdup_region_size;
 
         // markdup region size
@@ -31,17 +31,17 @@ namespace  gamtools {
         std::string directory;
 
 
-        // Default : thread number 2;
+        // Default : thread number 1;
         int block_sort_thread_num;
 
 
-        // Default : thread number 4;
+        // Default : thread number 1;
         int merge_sort_thread_num;
 
-        // Default : thread number 4;
+        // Default : thread number 1;
         int bam_output_thread_num;
 
-        // Default : thread number 4;
+        // Default : thread number 1;
         int mark_dup_thread_num;
         SMOptions ();
     };

@@ -11,7 +11,7 @@
 
 namespace po = boost::program_options;
 namespace gamtools {
-//    NBSMOptions::NBSMOptions(): opt_des_("GAMTOOLS NBSM Version:V0.1.0"),
+//    NBSMOptions::NBSMOptions(): opt_des_("GAMTOOLS NBSM kNBSMVersion:V0.1.0"),
 //                                base_des_("Basic SMOptions"),
 //                                filter_des_("Filter SMOptions"),
 //                                bwamem_des_("Bwa_mem SMOptions"),
@@ -31,8 +31,8 @@ namespace gamtools {
                 ("sample_name,n", boost::program_options::value<std::string>(&sample_name)->default_value("Zebra"), "Sample Name Default(Zebra)")
                 ("sample_id,i", boost::program_options::value<std::string>(&sample_id)->default_value("Zebra"), "Sample Name Default(Zebra)")
                 ("thread_number,t", boost::program_options::value<int>(&nbsm_thread_num)->default_value(1),"NBSM total thread Default(1)")
-                ("batch_size", boost::program_options::value<int>(&batch_size)->default_value(200000), "NBSM process batch read size Default(20 * 10000000)");
-
+                ("batch_size", boost::program_options::value<int>(&batch_size)->default_value(100000), "NBSM process batch read size Default(20 * 10000000)")
+                ("read_len", boost::program_options::value<int>(&read_len)->default_value(100), "NBSM process read length Default(100)");
             // filter fastq options
             filter_des_.add_options()
                     ("filter_low_qual", po::value<int>(), "Filter Read low quality threshold Default(10)")
@@ -91,7 +91,8 @@ namespace gamtools {
             return 1;
         }
         if (vm.count("version")) {
-            std::cout << "GAMTOOLS NBSM\nVersion: " << Version ;
+            std::cout << "GAMTOOLS NBSM\tVersion: " << kNBSMVersion << std::endl;
+            std::cout << "BWA MEM\tVersion: " << kBWAMEMVersion << std::endl;
             return 1;
         }
 

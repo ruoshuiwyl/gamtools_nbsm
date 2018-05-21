@@ -10,7 +10,6 @@
 
 
 namespace gamtools {
-    static const std::string kBWAMEMVersion = "0.7.15-r1140";
     void GAMBWAMEM::ProcessBWAMEM() {
         std::unique_ptr<BWAReadBuffer> read_buffer;
         while (input_.read(read_buffer)) {
@@ -27,35 +26,10 @@ namespace gamtools {
     GAMBWAMEM::GAMBWAMEM(Channel<std::unique_ptr<BWAReadBuffer>> &input,
                          Channel<std::unique_ptr<BWAReadBuffer>> &output,
                          const mem_opt_t *opt, bwaidx_t *mem_idx)
-        : input_(input), output_(output), processed_num_(0), mem_opt_(opt), mem_idx_(mem_idx),mem_pestat_(nullptr) {
+        : input_(input), output_(output), processed_num_(0), mem_opt_(opt), mem_idx_(mem_idx), mem_pestat_(nullptr) {
 
     }
-    void GAMBWAMEM::Initilization(const mem_opt_t *opt, const char *ref_file, bam_hdr_t **bam_hdr, const char *read_group_line) {
-        mem_opt_ = opt;
-        mem_idx_ = bwa_idx_load(ref_file, BWA_IDX_ALL);
-        bam_hdr_t *bam_hdr_ptr = bam_hdr_init();
-        const bntseq_t *bns = mem_idx_->bns;
-        bam_hdr_ptr->n_targets = mem_idx_->bns->n_seqs;
-        bam_hdr_ptr->target_len = (uint32_t *) malloc(bam_hdr_ptr->n_targets * sizeof(uint32_t));
-        bam_hdr_ptr->target_name = (char **) malloc(bam_hdr_ptr->n_targets * sizeof(uint32_t));
-        char bam_header[512];
-        for (int i = 0; i < bam_hdr_ptr->n_targets; ++i) {
-            bam_hdr_ptr->target_len[i] = mem_idx_->bns->anns[i].len;
-            bam_hdr_ptr->target_name[i] = (char *) malloc (strlen(mem_idx_->bns->anns[i].name) + 1);
-            strcpy(bam_hdr_ptr->target_name[i] ,mem_idx_->bns->anns[i].name );
-            sprintf(bam_header, "@SQ\tSN:%s\tLN:%d\n", bns->anns[i].name, bns->anns[i].len);
-        }
-        char * rg_line = bwa_set_rg(read_group_line);
-        free(rg_line);
-        sprintf(bam_header, "@PG\tID:bwa\tPN:bwa\tVN:%s\tCL:%s", kBWAMEMVersion.c_str(), "");
-        sprintf(bam_header, "@PG\tID:NBSM\tPN:GAMTOOLS_NBSM\tVN:%s\n", "v0.1.0");
-        sprintf(bam_header, "%s\n", read_group_line);
 
-        bam_hdr_ptr->l_text;
-        bam_hdr_ptr->target_name;
-        *bam_hdr = bam_hdr_ptr;
-
-    }
 
     GAMBWAMEM::~GAMBWAMEM() {
 
@@ -65,9 +39,7 @@ namespace gamtools {
         return std::thread(&GAMBWAMEM::ProcessBWAMEM, this);
     }
 
-    const bntseq_t* GAMBWAMEM::bntseq() const {
-        return mem_idx_->bns;
-    }
+
 
 
 

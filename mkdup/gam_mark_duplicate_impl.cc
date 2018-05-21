@@ -6,6 +6,7 @@
 #include <fstream>
 #include <cassert>
 #include <util/create_index.h>
+#include <bwa_mem/gam_read.h>
 #include "gam_mark_duplicate_impl.h"
 #include "mark_duplicate_frag_end.h"
 //#include "nbsm/options.h"
@@ -45,52 +46,57 @@ namespace gamtools {
 
     }
 
-    std::shared_ptr<MarkDuplicateFragEnds> GAMMarkDuplicateImpl::ComputeFragEnds(const char *gbam) {
+    std::shared_ptr<MarkDuplicateFragEnds> GAMMarkDuplicateImpl::ComputeFragEnds(const read_end_t *gbam) {
         std::shared_ptr<MarkDuplicateFragEnds> frag_ends(new MarkDuplicateFragEnds);
-        uint64_t *w = (uint64_t *) (gbam + 4);
-//        frag_ends->read2_tid_ = -1;
-        frag_ends->read1_tid_ = (w[0] >> 8) & 0xff;
-        frag_ends->read1_pos_ = (w[0] >> 32) & 0xffffffff;
-        frag_ends->score_ = (w[0] >> 16) & 0xffff;
-        frag_ends->lib_id_ = (w[0] >> 1) & 0x7f;
-        frag_ends->orientation_ = w[0] & 0x1;
-        frag_ends->name_id_ = w[3];
+        frag_ends->read1_tid_ = gbam->tid;
+        frag_ends->read1_pos_ = gbam->pos;
+        frag_ends->lib_id_ = gbam->lib_id;
+        frag_ends->orientation_ = gbam->orientation;
+
+//        uint64_t *w = (uint64_t *) (gbam + 4);
+////        frag_ends->read2_tid_ = -1;
+//        frag_ends->read1_tid_ = (w[0] >> 8) & 0xff;
+//        frag_ends->read1_pos_ = (w[0] >> 32) & 0xffffffff;
+//        frag_ends->score_ = (w[0] >> 16) & 0xffff;
+//        frag_ends->lib_id_ = (w[0] >> 1) & 0x7f;
+//        frag_ends->orientation_ = w[0] & 0x1;
+//        frag_ends->name_id_ = w[3];
         return std::move(frag_ends);
     }
 
     std::shared_ptr<MarkDuplicatePairEnds>
-    GAMMarkDuplicateImpl::ComputePairEnds(const std::shared_ptr<MarkDuplicateFragEnds> &read1_frag_end,
-                                          const std::shared_ptr<MarkDuplicateFragEnds> &read2_frag_end) {
+    GAMMarkDuplicateImpl::ComputePairEnds(const read_end_t *read1_frag_end,
+                                          const read_end_t *read2_frag_end) {
 
-        assert(read1_frag_end->lib_id_ == read2_frag_end->lib_id_);
+        assert(read1_frag_end->lib_id == read2_frag_end->lib_id);
         std::shared_ptr<MarkDuplicatePairEnds> pair_read_ends(new MarkDuplicatePairEnds);
-        pair_read_ends->lib_id_ = read1_frag_end->lib_id_;
-        pair_read_ends->name_id_ = read1_frag_end->name_id_;
-        if (read2_frag_end->read1_tid_ > read1_frag_end->read1_tid_ ||
-            (read2_frag_end->read1_tid_ == read1_frag_end->read1_tid_ &&
-             read2_frag_end->read1_pos_ >= read1_frag_end->read1_pos_)) {
-            pair_read_ends->read1_tid_ = read1_frag_end->read1_tid_;
-            pair_read_ends->read1_pos_ = read1_frag_end->read1_pos_;
-            pair_read_ends->read2_tid_ = read2_frag_end->read1_tid_;
-            pair_read_ends->read2_pos_ = read2_frag_end->read1_pos_;
+        pair_read_ends->lib_id_ = read1_frag_end->lib_id;
+        pair_read_ends->name_id_ = read1_frag_end->read_id;
+        if (read2_frag_end->tid > read1_frag_end->tid ||
+            (read2_frag_end->tid == read1_frag_end->tid &&
+             read2_frag_end->pos >= read1_frag_end->pos)) {
+            pair_read_ends->read1_tid_ = read1_frag_end->tid;
+            pair_read_ends->read1_pos_ = read1_frag_end->pos;
+            pair_read_ends->read2_tid_ = read2_frag_end->tid;
+            pair_read_ends->read2_pos_ = read2_frag_end->pos;
             pair_read_ends->orientation_ = ComputeOrientationByte(
-                    read1_frag_end->orientation_ == GAMMarkDuplicateImpl::R,
-                    read2_frag_end->orientation_ == GAMMarkDuplicateImpl::R);
+                    read1_frag_end->orientation == GAMMarkDuplicateImpl::R,
+                    read2_frag_end->orientation == GAMMarkDuplicateImpl::R);
             if (pair_read_ends->read1_tid_ == pair_read_ends->read2_tid_
                 && pair_read_ends->read1_pos_ == pair_read_ends->read2_pos_
                 && pair_read_ends->orientation_ == GAMMarkDuplicateImpl::RF) {
                 pair_read_ends->orientation_ = GAMMarkDuplicateImpl::FR;
             }
-            pair_read_ends->score_ = read1_frag_end->score_ + read2_frag_end->score_;
+            pair_read_ends->score_ = read1_frag_end->score + read2_frag_end->score;
         } else {
-            pair_read_ends->read1_tid_ = read2_frag_end->read1_tid_;
-            pair_read_ends->read1_pos_ = read2_frag_end->read1_pos_;
-            pair_read_ends->read2_tid_ = read1_frag_end->read1_tid_;
-            pair_read_ends->read2_pos_ = read1_frag_end->read1_pos_;
+            pair_read_ends->read1_tid_ = read2_frag_end->tid;
+            pair_read_ends->read1_pos_ = read2_frag_end->pos;
+            pair_read_ends->read2_tid_ = read1_frag_end->tid;
+            pair_read_ends->read2_pos_ = read1_frag_end->pos;
             pair_read_ends->orientation_ = ComputeOrientationByte(
-                    read2_frag_end->orientation_ == GAMMarkDuplicateImpl::R,
-                    read1_frag_end->orientation_ == GAMMarkDuplicateImpl::R);
-            pair_read_ends->score_ = read1_frag_end->score_ + read2_frag_end->score_;
+                    read2_frag_end->orientation == GAMMarkDuplicateImpl::R,
+                    read1_frag_end->orientation == GAMMarkDuplicateImpl::R);
+            pair_read_ends->score_ = read1_frag_end->score + read2_frag_end->score;
         }
         return std::move(pair_read_ends);
     }
@@ -112,18 +118,18 @@ namespace gamtools {
         }
     }
 
-    void GAMMarkDuplicateImpl::StorePairEndRecord(const char *read1_dup, const char *read2_dup) {
+    void GAMMarkDuplicateImpl::StorePairEndRecord(const read_end_t *read1_dup, const read_end_t *read2_dup) {
         if (read1_dup != nullptr && read2_dup != nullptr) {
-            auto read1_frag_end = ComputeFragEnds(read1_dup);
-            auto read2_frag_end = ComputeFragEnds(read2_dup);
-            auto pair_end = ComputePairEnds(read1_frag_end, read2_frag_end);
+//            auto read1_frag_end = ComputeFragEnds(read1_dup);
+//            auto read2_frag_end = ComputeFragEnds(read2_dup);
+            auto pair_end = ComputePairEnds(read1_dup, read2_dup);
 //            read1_frag_end->read2_tid_ = read2_frag_end->read1_tid_;
 //            read2_frag_end->read2_tid_ = read1_frag_end->read1_tid_;
 //            int read1_index = SeekMarkDupIndex(read1_frag_end->read1_tid_, read1_frag_end->read1_pos_);
 //            int read2_index = SeekMarkDupIndex(read2_frag_end->read1_tid_, read2_frag_end->read1_pos_);
             int pair_index = SeekMarkDupIndex(pair_end->read1_tid_, pair_end->read1_pos_);
-            markdup_frag_end_->AddPairFlag(read1_frag_end->read1_tid_, read1_frag_end->read1_pos_);
-            markdup_frag_end_->AddPairFlag(read2_frag_end->read1_tid_, read2_frag_end->read1_pos_);
+            markdup_frag_end_->AddPairFlag(read1_dup->tid, read1_dup->pos);
+            markdup_frag_end_->AddPairFlag(read2_dup->tid, read2_dup->pos);
 //            assert(read1_index >= 0 && read1_index < markdup_index_.size());
 //            assert(read2_index >= 0 && read2_index < markdup_index_.size());
 //            assert(pair_index >= 0 && pair_index < markdup_index_.size());
@@ -131,13 +137,13 @@ namespace gamtools {
 //            markdup_regions_[read2_index]->AddFragEnd(read2_frag_end);
             markdup_regions_[pair_index]->AddPairEnd(pair_end);
         } else if (read1_dup != nullptr && read2_dup == nullptr) {
-            auto read1_frag_end = GAMMarkDuplicateImpl::ComputeFragEnds(read1_dup);
-            markdup_frag_end_->AddFragEnd(read1_frag_end);
+//            auto read1_frag_end = ComputeFragEnds(read1_dup);
+            markdup_frag_end_->AddFragEnd(read1_dup);
 //            int read1_index = SeekMarkDupIndex(read1_frag_end->read1_tid_, read1_frag_end->read1_pos_);
 //            markdup_regions_[read1_index]->AddFragEnd(read1_frag_end);
         } else if (read1_dup == nullptr && read2_dup != nullptr) {
-            auto read2_frag_end = ComputeFragEnds(read2_dup);
-            markdup_frag_end_->AddFragEnd(read2_frag_end);
+//            auto read2_frag_end = ComputeFragEnds(read2_dup);
+            markdup_frag_end_->AddFragEnd(read2_dup);
 //            int read2_index = SeekMarkDupIndex(read2_frag_end->read1_tid_, read2_frag_end->read1_pos_);
 //            markdup_regions_[read2_index]->AddFragEnd(read2_frag_end);
 

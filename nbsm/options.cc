@@ -10,14 +10,14 @@
 
 namespace  gamtools{
     SMOptions::SMOptions()
-        :sort_region_size(1<<20),
+        :sort_region_size(20),// 1 << 20
          sort_block_size(1<<20),
-         markdup_region_size(10 * (1<<20)),
+         markdup_region_size(23), // 1 << 23
          markdup_block_size(1<<20),
-         block_sort_thread_num(2),
-         merge_sort_thread_num(4),
-         bam_output_thread_num(4),
-         mark_dup_thread_num(4) {
+         block_sort_thread_num(1),
+         merge_sort_thread_num(1),
+         bam_output_thread_num(1),
+         mark_dup_thread_num(1) {
 
         char dirname[4096];
         char *dir = getcwd(dirname, 4096);

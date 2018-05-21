@@ -91,7 +91,7 @@ namespace gamtools {
 
             for (int i = 0; i < read_buffer->size(); ++i) {
                 auto read1 = read_buffer->read1(i);
-                auto read2 = read_buffer->read1(i);
+                auto read2 = read_buffer->read2(i);
                 if (read1->is_clean && read2->is_clean) {
                     if (!bwa_read_buffer->AddPairEndRead(read1, read2)) {
                         bwamem_channel_.write(std::move(bwa_read_buffer));

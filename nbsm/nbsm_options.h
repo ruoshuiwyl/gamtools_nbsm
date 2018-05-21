@@ -10,7 +10,9 @@
 
 namespace gamtools {
 
-    const std::string Version = "V0.1.0";
+    const std::string kNBSMVersion = "0.1.0";
+    const std::string kBWAMEMVersion = "0.7.15-r1140";
+
     class GAMFastqFileInfo;
     class NBSMOptions {
     public:
@@ -37,8 +39,10 @@ namespace gamtools {
         std::string sample_id;
         std::string sample_name;
         int batch_size;
-    private:
+        int read_len;
         int nbsm_thread_num;
+    private:
+
         std::string temporary_directory_;
         std::vector<int> input_library_ids_;
         std::vector<int> input_lane_ids_;

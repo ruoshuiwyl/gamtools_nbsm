@@ -11,6 +11,7 @@
 #include <memory>
 #include <htslib/sam.h>
 #include <nbsm/options.h>
+#include <bwa_mem/gam_read.h>
 #include "mark_duplicate_region.h"
 
 
@@ -24,7 +25,7 @@ namespace gamtools {
         void InitializeSharding();
         ~GAMMarkDuplicateImpl();
 
-        void StorePairEndRecord(const char *read1_dup, const char *read2_dup);
+        void StorePairEndRecord(const read_end_t *read1_dup, const read_end_t *read2_dup);
 
         static const bool IsMarkDuplicate(const uint64_t read_name_id);
 
@@ -38,11 +39,11 @@ namespace gamtools {
 
     private:
 
-        std::shared_ptr<MarkDuplicateFragEnds> ComputeFragEnds(const char *gbam);
+        std::shared_ptr<MarkDuplicateFragEnds> ComputeFragEnds(const read_end_t *gbam);
 
         std::shared_ptr<MarkDuplicatePairEnds>
-        ComputePairEnds(const std::shared_ptr<MarkDuplicateFragEnds> &read1_frag_end,
-                        const std::shared_ptr<MarkDuplicateFragEnds> &read2_frag_end);
+        ComputePairEnds(const read_end_t *read1_frag_end,
+                        const read_end_t *read2_frag_end);
 
         const int8_t ComputeOrientationByte(const bool read1_negative_strand, const bool read2_nagative_strand);
 
@@ -68,7 +69,7 @@ namespace gamtools {
     };
 
     inline int GAMMarkDuplicateImpl::SeekMarkDupIndex(int tid, int pos) {
-        int pos_id = pos >> options_.markdup_region_size;
+        int pos_id = pos < 0? 0 : pos >> options_.markdup_region_size;
         return markdup_sharding_index_[tid][pos_id];
     }
 }

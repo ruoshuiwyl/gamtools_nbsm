@@ -30,7 +30,7 @@ namespace gamtools {
         sharding_impl_->Sharding(slice);
     }
 
-    void SMImpl::ShardingMarkdupInfo(const char *read1_dup, const char *read2_dup) {
+    void SMImpl::ShardingMarkdupInfo(const read_end_t *read1_dup, const read_end_t *read2_dup) {
         markdup_impl_->StorePairEndRecord(read1_dup, read2_dup);
     }
 
@@ -68,8 +68,8 @@ namespace gamtools {
                     PutSortSlice(slice);
                     gam_data += gam_len;
                 }
-                const char *read1_dup = read_buffer->seqs[i].dup;
-                const char *read2_dup = read_buffer->seqs[i+1].dup;
+                const read_end_t *read1_dup = read_buffer->seqs[i].dup;
+                const read_end_t *read2_dup = read_buffer->seqs[i+1].dup;
                 ShardingMarkdupInfo(read1_dup, read2_dup);
             }
         }

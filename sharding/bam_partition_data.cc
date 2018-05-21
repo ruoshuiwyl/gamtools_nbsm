@@ -17,12 +17,14 @@
 
 namespace gamtools {
     static int BAMBlockSize = 65536;
-    BAMPartitionData::BAMPartitionData(Channel<std::unique_ptr<GAMBlock>> &sort_channel,
-                                       const PartitionData &part_data)
+    BAMPartitionData::BAMPartitionData(Channel <std::unique_ptr<GAMBlock>> &sort_channel, const PartitionData &part_data,
+                                           const int block_size)
             : append_(false),
               block_cnt_(0),
+              block_size_(block_size),
               sort_channel_(sort_channel),
               paration_data_(part_data) {
+        gam_block_ptr_ = std::unique_ptr<GAMBlock>(new GAMBlock(block_size_, append_, block_cnt_, paration_data_.filename()));
     }
 
     BAMPartitionData::~BAMPartitionData() {

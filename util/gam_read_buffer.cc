@@ -40,6 +40,9 @@ namespace gamtools {
     }
 
     BWAReadBuffer::~BWAReadBuffer() {
+//        for (int i = 0; i < size; ++i) {
+//            gam_read_destory(&seqs[i]);
+//        }
         free(seqs);
     }
 

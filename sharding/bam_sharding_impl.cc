@@ -22,7 +22,8 @@ namespace gamtools {
         sort_idx_ = std::unique_ptr<CreateIndex>( new CreateIndex(bam_hdr_, options_, IndexType::SortIndex));
         auto & parts = sort_idx_->partition_datas();
         for (auto &part : parts) {
-            std::unique_ptr<BAMPartitionData> gam_part = std::unique_ptr<BAMPartitionData>( new BAMPartitionData(sort_channel_, part));
+            std::unique_ptr<BAMPartitionData> gam_part = std::unique_ptr<BAMPartitionData>(
+                    new BAMPartitionData(sort_channel_, part, options_.sort_block_size));
             partition_datas_.push_back(std::move(gam_part));
         }
         for (int i = 0; i < options_.block_sort_thread_num; ++i) {
@@ -47,9 +48,9 @@ namespace gamtools {
     void BAMShardingImpl::Sharding(const Slice &slice) {
         int64_t key = reinterpret_cast<const int64_t *> (slice.data())[0];
         int contig_id = key >> 32;
-        int position_id = (key & 0xfffffffff) >> 20;
+        int position_id = (key & 0xffffffff) >> 20;
         auto sharding_idx = sort_idx_->sharding_index();
-        if (key != INT64_MAX ) { // map;
+        if (contig_id != -1) { // map;
             auto sharding_id = sharding_idx[contig_id][position_id];
             partition_datas_[sharding_id]->Add(slice);
         } else { //unmap

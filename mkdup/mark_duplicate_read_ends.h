@@ -7,6 +7,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <bwa_mem/gam_read.h>
 
 
 
@@ -17,6 +18,8 @@
 //    static int Compare(const MarkDuplicateInputIndex &lhs,
 //                       const MarkDuplicateInputIndex &rhs);
 //};
+
+bool FragReadEndsComparator(const read_end_t *lhs, const read_end_t *rhs);
 
 class MarkDuplicateFragEnds {
 public:
@@ -36,7 +39,7 @@ public:
 };
 
 
-class MarkDuplicatePairEnds{
+class MarkDuplicatePairEnds {
 public:
     MarkDuplicatePairEnds(){};
     MarkDuplicatePairEnds(int8_t read1_tid, int8_t read2_tid, int8_t orientation, int8_t lib_id, int16_t score,

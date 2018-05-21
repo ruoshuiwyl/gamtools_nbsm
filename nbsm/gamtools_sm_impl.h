@@ -32,7 +32,7 @@ namespace  gamtools {
         void OutputBAM();
     private:
         void PutSortSlice(const Slice &slice);
-        void ShardingMarkdupInfo(const char *read1_dup, const char *read2_dup);
+        void ShardingMarkdupInfo(const read_end_t *read1_dup, const read_end_t *read2_dup);
         const bam_hdr_t *bam_hdr_;
         std::string bam_file_;
         const SMOptions &options_;

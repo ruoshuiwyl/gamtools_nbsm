@@ -3,6 +3,7 @@
 //
 
 #include <cassert>
+#include <bwa_mem/gam_read.h>
 #include "mark_duplicate_read_ends.h"
 
 
@@ -18,6 +19,33 @@ MarkDuplicateFragEnds::MarkDuplicateFragEnds(int8_t read1_tid, int8_t read2_tid,
 //bool MarkDuplicateFragEnds::isPaired() {
 //    return read2_tid_ != -1;
 //}
+bool FragReadEndsComparator(const read_end_t *lhs, const read_end_t *rhs) {
+    const int kEqualFlag = 0;
+    int compare_difference = rhs->lib_id - lhs->lib_id;
+    if (compare_difference == kEqualFlag) {
+        compare_difference = rhs->tid - lhs->tid;
+    }
+    if (compare_difference == kEqualFlag) {
+        compare_difference = rhs->pos - lhs->pos;
+    }
+    if (compare_difference == kEqualFlag) {
+        compare_difference = rhs->orientation - lhs->orientation;
+    }
+//    if (compare_difference == kEqualFlag) {
+//        compare_difference = rhs->read2_tid_ - lhs->read2_tid_;
+//    }
+    if (compare_difference == kEqualFlag) {
+//        compare_difference = MarkDuplicateInputIndex::Compare(rhs->read1_idx_, lhs->read1_idx_);
+        compare_difference = rhs->read_id - lhs->read_id;
+    }
+//    assert(compare_difference != kEqualFlag);
+    if (compare_difference > kEqualFlag){
+        return true;
+    } else {
+        return false;
+    }
+}
+
 
 bool MarkDuplicateFragEnds::ReadEndsComparator(const std::shared_ptr<MarkDuplicateFragEnds> &lhs,
                                                const std::shared_ptr<MarkDuplicateFragEnds> &rhs) {
@@ -46,6 +74,7 @@ bool MarkDuplicateFragEnds::ReadEndsComparator(const std::shared_ptr<MarkDuplica
         return false;
     }
 }
+
 MarkDuplicatePairEnds::MarkDuplicatePairEnds(int8_t read1_tid, int8_t read2_tid, int8_t orientation, int8_t lib_id, int16_t score,
                                              int32_t read1_pos, int32_t read2_pos, int64_t name_id)
         : read1_tid_(read1_tid), read2_tid_(read2_tid), orientation_(orientation), lib_id_(lib_id),
