@@ -30,8 +30,10 @@ namespace gamtools {
     class BAMShardingImpl {
     public:
         explicit BAMShardingImpl(const bam_hdr_t *bam_hdr, const SMOptions &options);
+        void SendEof();
         void InitializeSharding();
-        void InitializeMergeSort(std::string &bam_filename);
+        void StartSharding();
+        void StartMergeSort(std::string &bam_filename);
         void Sharding(const Slice &slice);
         void FinishSharding();
         void ReadGamBlock();

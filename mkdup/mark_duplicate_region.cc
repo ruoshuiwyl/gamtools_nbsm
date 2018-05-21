@@ -61,6 +61,9 @@ namespace gamtools {
 #endif
         }
     }
+
+
+
 /*
     void MarkDuplicateRegion::ComputeMarkDuplicateFragEnds() {
         std::sort(frag_ends_.begin(), frag_ends_.end(), MarkDuplicateFragEnds::ReadEndsComparator);
@@ -111,7 +114,10 @@ namespace gamtools {
 
     }
 
-    void MarkDuplicateRegion::ProcessMarkDuplicate(const std::string &temp_markdup_path) {
+    std::thread MarkDuplicateRegion::spawn() {
+        return std::thread(&MarkDuplicateRegion::ProcessMarkDuplicate, this);
+    }
+    void MarkDuplicateRegion::ProcessMarkDuplicate() {
 //        std::string file_name = FileName();
         std::string pair_file = partition_data_.filename() + ".pair";
 
@@ -221,65 +227,8 @@ namespace gamtools {
         pair_end->read1_pos_ = w32[1];
         pair_end->read2_pos_ = w32[2];
         pair_end->name_id_ = w64[0];
-//        pair_end->read1_idx_.read_sort_idx_ = w64[1];
-//        pair_end->read1_idx_.read_input_idx_ = w64[2];
-//        pair_end->read2_idx_.read_sort_idx_ = w64[3];
-//        pair_end->read2_idx_.read_input_idx_ = w64[4];
     }
 
-    /*
-    std::string MarkDuplicateRegion::FileName() {
-//        std::string filename = GamtoolsGlobalParameter::MarkDupOutputPathname();
-        std::string filename;
-        if (filename.back() == '/') {
-            filename += std::to_string(region_id_) + ".";
-        } else {
-            filename += "/" + std::to_string(region_id_) + ".";
-        }
-        return filename;
-    }
-
-    void MarkDuplicateRegion::StoreFileFragEnds() {
-        std::string filename = FileName();
-        filename += "frag";
-        std::ofstream ofs;
-        if (frag_file_append_flag) {
-            ofs.open(filename, std::ofstream::binary | std::ofstream::out | std::ofstream::app);
-        } else {
-            ofs.open(filename, std::ofstream::binary | std::ofstream::out);
-            frag_file_append_flag = true;
-        }
-        assert(ofs.is_open());
-        assert(frag_ends_.size() == kFragEndsNum);
-        char data[36];
-        int8_t *w8 = (int8_t *) data;
-        int *w32 = (int *) (data + 4);
-        int64_t *w64 = (int64_t *) (data + 12);
-        char *buffer_ptr = buffer_;
-        for (auto &frag_end : frag_ends_) {
-            w8[0] = frag_end->read1_tid_;
-            w8[1] = frag_end->read2_tid_;
-            w8[2] = frag_end->orientation_;
-            w8[3] = frag_end->lib_id_;
-//        w32[0] = (int(frag_end->lib_id_)<<24) | (int(frag_end->orientation_) << 16)
-//                 | (int(frag_end->read2_tid_)<<8) | (int(frag_end->read1_tid_));
-            w32[0] = frag_end->score_;
-            w32[1] = frag_end->read1_pos_;
-            w64[0] = frag_end->name_id_;
-//            w64[1] = frag_end->read1_idx_.read_sort_idx_;
-//            w64[2] = frag_end->read1_idx_.read_input_idx_;
-            memcpy(buffer_ptr, data, 36);
-            buffer_ptr += 36;
-        }
-        assert(buffer_ptr - buffer_ == 113 * 36);
-        size_t compress_len;
-//        SnappyBlockCodecs::Compress(buffer_, buffer_ptr - buffer_, compress_buffer_, &compress_len);
-        ofs.write((char *) &compress_len, sizeof(size_t));
-        ofs.write(compress_buffer_, compress_len);
-        frag_ends_.clear();
-        ofs.close();
-    }
-      */
 
 
     void MarkDuplicateRegion::StoreFilePairEnds() {
@@ -314,7 +263,6 @@ namespace gamtools {
         pair_ends_.clear();
         size_t compress_len;
         snappy::RawCompress(buffer_, buffer_ptr - buffer_, compress_buffer_, &compress_len);
-
         ofs.write((char *) &compress_len, sizeof(size_t));
         ofs.write(compress_buffer_, compress_len);
         ofs.close();

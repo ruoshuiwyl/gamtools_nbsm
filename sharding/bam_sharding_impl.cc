@@ -5,6 +5,7 @@
 
 #include <lib/htslib-1.3.1/htslib/hts.h>
 #include <cassert>
+#include <util/glogger.h>
 #include "bam_sharding_impl.h"
 #include "util/slice.h"
 #include "util/create_index.h"
@@ -26,14 +27,24 @@ namespace gamtools {
                     new BAMPartitionData(sort_channel_, part, options_.sort_block_size));
             partition_datas_.push_back(std::move(gam_part));
         }
+    }
+
+    void BAMShardingImpl::SendEof() {
+        for (auto &part : partition_datas_){
+            part->sendEof();
+        }
+        output_channel_.SendEof();
+    }
+
+    void BAMShardingImpl::StartSharding() {
+        GLOG_INFO << "Start Sharding...";
         for (int i = 0; i < options_.block_sort_thread_num; ++i) {
             sort_compress_threads_.push_back(std::thread(&BAMShardingImpl::GAMBlockSortCompress, this));
         }
         output_gamblock_thread_ = std::thread(&BAMShardingImpl::OutputGAMBlock, this);
-
     }
 
-    void BAMShardingImpl::InitializeMergeSort(std::string &bam_filename) {
+    void BAMShardingImpl::StartMergeSort(std::string &bam_filename) {
         //
         sort_compress_threads_.clear();
         for (int i = 0; i < options_.block_sort_thread_num; ++i) {
@@ -84,13 +95,11 @@ namespace gamtools {
 
 
     void BAMShardingImpl::FinishSharding() {
-        for (auto &part : partition_datas_){
-            part->sendEof();
-        }
+
         for (auto &th : sort_compress_threads_) {
             th.join();
         }
-        output_channel_.SendEof();
+//        output_channel_.SendEof();
         sort_compress_threads_.clear();
         output_gamblock_thread_.join();
     }
@@ -132,7 +141,6 @@ namespace gamtools {
                 while (current_sharding_idx == finish_sharding_idxs.top()) {
                     if (chunks_[current_sharding_idx].empty()) {
                         for (auto &block: chunks_[current_sharding_idx]) {
-
                             bgzf_write(bam_file_->fp.bgzf, block->data(), block->size());
                         }
                     }

@@ -11,6 +11,9 @@
 
 #include "create_index.h"
 #include "nbsm/options.h"
+#include "glogger.h"
+
+#include "boost/filesystem.hpp"
 
 namespace gamtools {
     CreateIndex::CreateIndex(const bam_hdr_t *head, const SMOptions &options, IndexType type) {
@@ -20,7 +23,8 @@ namespace gamtools {
         int dir_cnt= 0;
         std::string dir_name = CreateIndexDirectory(dir_cnt, type, options.directory);
         std::string file_name;
-        int region_size = type == IndexType::SortIndex? options.sort_region_size : options.markdup_region_size;
+        int region_size = type == IndexType::SortIndex? 1 << options.sort_region_size : 1 << options.markdup_region_size;
+        std::string file_extension = type == IndexType::SortIndex? ".gam" : ".mk";
         sharding_index_.resize(head->n_targets);
         for (int i = 0; i < head->n_targets; ++i) {
             for (int j = 0; j < head->target_len[i]; j += region_size) {
@@ -32,7 +36,7 @@ namespace gamtools {
                 } else {
                     file_cnt++;
                 }
-                file_name = dir_name + std::to_string(sharding_idx);
+                file_name = dir_name + std::to_string(sharding_idx) + file_extension;
                 partition_datas_.push_back(PartitionData(sharding_idx, file_name));
                 sharding_idx++;
             }
@@ -44,14 +48,24 @@ namespace gamtools {
     std::string CreateIndex::CreateIndexDirectory(int dir_id, IndexType type, const std::string &store_dir) {
         std::string dir_name;
         if (type == IndexType::SortIndex) {
-            dir_name = store_dir + "/Sort/" + std::to_string(dir_id) + "/";
+            dir_name = store_dir + "/Sort/" + std::to_string(dir_id) ;
         } else if (type == IndexType::MarkDupIndex) {
-            dir_name = store_dir + "/MarkDup/" + std::to_string(dir_id) + "/";
+            dir_name = store_dir + "/MarkDup/" + std::to_string(dir_id) ;
         }
-        if (NULL != opendir(dir_name.c_str())) {
-            rmdir(dir_name.c_str());
+        boost::filesystem::path dir_path = dir_name;
+
+        if (boost::filesystem::exists(dir_path)) {
+            boost::filesystem::remove(dir_path);
+        } else {
+            boost::filesystem::create_directories(dir_path);
         }
-        mkdir(dir_name.c_str(),  0x0644); //read & write
+        bool status = boost::filesystem::create_directory(dir_path); //read & write
+
+        if (!status) {
+            GLOG_ERROR << "Create directory name failed " << dir_name;
+        } else {
+            GLOG_INFO << "Create directory " << dir_name << "OK ";
+        }
         return dir_name;
     }
 

@@ -9,6 +9,7 @@
 #include <vector>
 #include <bits/unique_ptr.h>
 #include <memory>
+#include <thread>
 #include "mark_duplicate_read_ends.h"
 
 namespace gamtools {
@@ -25,12 +26,15 @@ namespace gamtools {
 
         void AddPairEnd(const std::shared_ptr<MarkDuplicatePairEnds> &pair_end);
 
-        void ProcessMarkDuplicate(const std::string &temp_markdup_path);
+        std::thread spawn();
+
+
 //    int FragReadEndSize(){return frag_ends_.size();}
 //    int PairReadEndSize(){return pair_ends_.size();}
 //    static std::ostream & WriteMarkDupReadEnd(std::ostream &out, const std::shared_ptr<MarkDuplicateReadEnds> &read_end);
 //    static std::istream & ReadMarkDupReadEnd(std::istream &in, std::shared_ptr<MarkDuplicateReadEnds> &read_end);
     private:
+        void ProcessMarkDuplicate();
         void ReadMarkDupPairEnds(const char *data, std::shared_ptr<MarkDuplicatePairEnds> &pair_end);
 
 //        void ReadMarkDupFragEnds(const char *data, std::shared_ptr<MarkDuplicateFragEnds> &frag_end);

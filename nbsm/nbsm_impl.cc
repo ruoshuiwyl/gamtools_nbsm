@@ -72,15 +72,21 @@ namespace gamtools {
         FilterProcessor filter(nbsm_options_.filter_options, read_fastq_, input_fastq_, 1, nbsm_options_.batch_size * nbsm_options_.nbsm_thread_num);
         GAMBWAMEM bwa_mem(input_fastq_, output_gam_, nbsm_options_.mem_opt, mem_idx_);
         SMImpl sort_mkdup(bam_hdr_, nbsm_options_.sm_options, nbsm_options_.output_bam_file, output_gam_);
+
+        // Read->Filter -> Align -> Sharding
         auto read_thread = read_fastq.spawn();
         auto filter_thread = filter.spawn();
         auto bwamem_thread = bwa_mem.spawn();
-        auto sm_thread = sort_mkdup.spawn();
-
+        auto sm_thread = sort_mkdup.SpawnSharding();
         read_thread.join();
         filter_thread.join();
         bwamem_thread.join();
         sm_thread.join();
-        sort_mkdup.OutputBAM();
+        // mkdup -> merge_sort -> output_bam
+        auto sm_output_thread = sort_mkdup.SpawnSortMkdup();
+        sm_output_thread.join();
     }
+
+
+
 }

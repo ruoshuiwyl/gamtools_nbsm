@@ -48,6 +48,9 @@ namespace gamtools {
             negative_pair_flags_[tid][-pos] = true;
         }
     }
+    std::thread MarkDuplicateFragEnd::spawn() {{
+        return std::thread(&MarkDuplicateFragEnd::ProcessMarkDuplicateFragEnd, this);
+    }}
 
     void MarkDuplicateFragEnd::ProcessMarkDuplicateFragEnd() {
         //Read Mark duplicate info

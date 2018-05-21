@@ -26,7 +26,6 @@ namespace gamtools {
         if (!nbsm.ParseProgramOptions(argc, argv)) {
             nbsm.Initialization();
             nbsm.ProcessNBSM();
-            return 0;
         } else {
             return 1;
         }

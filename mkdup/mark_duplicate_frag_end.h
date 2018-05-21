@@ -9,6 +9,7 @@
 #include <vector>
 #include <lib/htslib-1.3.1/htslib/sam.h>
 #include <bwa_mem/gam_read.h>
+#include <thread>
 #include "mark_duplicate_read_ends.h"
 
 namespace gamtools {
@@ -17,9 +18,10 @@ namespace gamtools {
         explicit MarkDuplicateFragEnd(const bam_hdr_t *bam_hdr, const std::string &filename);
         void AddFragEnd(const read_end_t *frag_end);
         void AddPairFlag(const int tid, const int pos);
-        void ProcessMarkDuplicateFragEnd();
+        std::thread spawn();
         ~MarkDuplicateFragEnd();
     private:
+        void ProcessMarkDuplicateFragEnd();
         void StoreFileFragEnds();
         void ComputeMarkDuplicateFragEnds();
         bool AreComparableForDuplicatesFragEnds(const read_end_t *lhs,

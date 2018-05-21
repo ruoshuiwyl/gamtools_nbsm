@@ -47,8 +47,8 @@ namespace gamtools {
 
         const int8_t ComputeOrientationByte(const bool read1_negative_strand, const bool read2_nagative_strand);
 
-        static void ProcessMarkDuplication(std::unique_ptr<MarkDuplicateRegion> &mark_duplicate,
-                                           const std::string &temp_mark_dup_path);
+//        static void ProcessMarkDuplication(std::unique_ptr<MarkDuplicateRegion> &mark_duplicate,
+//                                           const std::string &temp_mark_dup_path);
         inline int SeekMarkDupIndex(int tid, int pos );
 
 //    int StoreFileFragEnds();

@@ -4,6 +4,8 @@
 
 #include <htslib/sam.h>
 #include <util/slice.h>
+#include <util/glogger.h>
+#include <util/nbsm_static.h>
 #include "gamtools_sm_impl.h"
 #include "options.h"
 #include "sharding/bam_partition_data.h"
@@ -19,45 +21,59 @@ namespace gamtools {
             : bam_hdr_(bam_hdr),
               options_(options),
               bam_file_(bam_file),
-              input_(input) {
+              input_(input),
+              finish_markdup_flag_(false) {
         sharding_impl_ = std::unique_ptr<BAMShardingImpl>(new BAMShardingImpl(bam_hdr, options));
         markdup_impl_ = std::unique_ptr<GAMMarkDuplicateImpl>( new GAMMarkDuplicateImpl(bam_hdr, options));
         sharding_impl_->InitializeSharding();
         markdup_impl_->InitializeSharding();
     }
-
-    void SMImpl::PutSortSlice(const Slice &slice) {
-        sharding_impl_->Sharding(slice);
-    }
-
-    void SMImpl::ShardingMarkdupInfo(const read_end_t *read1_dup, const read_end_t *read2_dup) {
-        markdup_impl_->StorePairEndRecord(read1_dup, read2_dup);
-    }
+//
+//    void SMImpl::PutSortSlice(const Slice &slice) {
+//        sharding_impl_->Sharding(slice);
+//    }
+//
+//    void SMImpl::ShardingMarkdupInfo(const read_end_t *read1_dup, const read_end_t *read2_dup) {
+//        markdup_impl_->StorePairEndRecord(read1_dup, read2_dup);
+//    }
 
 
     void SMImpl::OutputBAM() {
-        sharding_impl_->FinishSharding();
-        markdup_impl_->MarkDuplication(0);
-        sharding_impl_->InitializeMergeSort(bam_file_);
+        markdup_impl_->MarkDuplication(gTotalReadNum());
+        sharding_impl_->StartMergeSort(bam_file_);
         sharding_impl_->ReadGamBlock();
         sharding_impl_->MergeSort();
         sharding_impl_->FinishMergeSort();
     }
 
-    std::thread SMImpl::spawn() {
-        return std::thread(&SMImpl::ProcessSharding,  this);
+    std::thread SMImpl::SpawnSharding() {
+        return std::thread(&SMImpl::Sharding,  this);
+    }
+
+    std::thread SMImpl::SpawnSortMkdup() {
+        return std::thread(&SMImpl::OutputBAM, this);
+    }
+
+    void SMImpl::Sharding() {
+        sharding_impl_->StartSharding();
+        auto sharding_thread = std::thread(&SMImpl::ProcessSharding,  this);
+        sharding_thread.join();
+        sharding_impl_->FinishSharding();
     }
 
     void SMImpl::ProcessSharding() {
+        GLOG_INFO << "Process Sharing " ;
         std::unique_ptr<BWAReadBuffer> read_buffer;
         while ( input_.read(read_buffer)) {
+            GLOG_INFO << "Process sharding one batch";
             for (int i = 0; i < read_buffer->size; i += 2) {
                 int gam_len = 0;
                 const char *gam_data = read_buffer->seqs[i].bam;
                 for (int j = 0; j < read_buffer->seqs[i].bam_num; ++j) {
                     gam_len = reinterpret_cast<const int32_t *>(gam_data)[5] + 20;
                     Slice slice(gam_data, gam_len);
-                    PutSortSlice(slice);
+                    sharding_impl_->Sharding(slice);
+//                    PutSortSlice(slice);
                     gam_data += gam_len;
                 }
                 gam_len = 0;
@@ -65,13 +81,16 @@ namespace gamtools {
                 for (int j = 0; j < read_buffer->seqs[i+1].bam_num; ++j) {
                     gam_len = reinterpret_cast<const int32_t *>(gam_data)[5] + 20;
                     Slice slice(gam_data, gam_len);
-                    PutSortSlice(slice);
+                    sharding_impl_->Sharding(slice);
                     gam_data += gam_len;
                 }
                 const read_end_t *read1_dup = read_buffer->seqs[i].dup;
                 const read_end_t *read2_dup = read_buffer->seqs[i+1].dup;
-                ShardingMarkdupInfo(read1_dup, read2_dup);
+                markdup_impl_->StorePairEndRecord(read1_dup, read2_dup);
             }
+        }
+        if (input_.eof()) {
+            sharding_impl_->SendEof();
         }
     }
 }

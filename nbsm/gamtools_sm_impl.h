@@ -27,17 +27,20 @@ namespace  gamtools {
                         const std::string &bam_file, 
                         Channel<std::unique_ptr<BWAReadBuffer>> &input);
 //        void Initialize(const SMOptions &options);
-        std::thread spawn();
-        void ProcessSharding();
+        std::thread SpawnSharding();
+        void Sharding();
+        std::thread SpawnSortMkdup();
         void OutputBAM();
     private:
-        void PutSortSlice(const Slice &slice);
-        void ShardingMarkdupInfo(const read_end_t *read1_dup, const read_end_t *read2_dup);
+        void ProcessSharding();
+//        void PutSortSlice(const Slice &slice);
+//        void ShardingMarkdupInfo(const read_end_t *read1_dup, const read_end_t *read2_dup);
         const bam_hdr_t *bam_hdr_;
         std::string bam_file_;
         const SMOptions &options_;
         std::unique_ptr<BAMShardingImpl> sharding_impl_;
         std::unique_ptr<GAMMarkDuplicateImpl> markdup_impl_;
         Channel<std::unique_ptr<BWAReadBuffer>> &input_;
+        std::atomic<bool> finish_markdup_flag_;
     };
 }

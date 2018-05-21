@@ -38,10 +38,6 @@ namespace gamtools {
             markdup_regions_.push_back(std::move(mkdup_region));
         }
     }
-
-
-
-
     GAMMarkDuplicateImpl::~GAMMarkDuplicateImpl() {
 
     }
@@ -52,6 +48,7 @@ namespace gamtools {
         frag_ends->read1_pos_ = gbam->pos;
         frag_ends->lib_id_ = gbam->lib_id;
         frag_ends->orientation_ = gbam->orientation;
+
 
 //        uint64_t *w = (uint64_t *) (gbam + 4);
 ////        frag_ends->read2_tid_ = -1;
@@ -120,35 +117,19 @@ namespace gamtools {
 
     void GAMMarkDuplicateImpl::StorePairEndRecord(const read_end_t *read1_dup, const read_end_t *read2_dup) {
         if (read1_dup != nullptr && read2_dup != nullptr) {
-//            auto read1_frag_end = ComputeFragEnds(read1_dup);
-//            auto read2_frag_end = ComputeFragEnds(read2_dup);
             auto pair_end = ComputePairEnds(read1_dup, read2_dup);
-//            read1_frag_end->read2_tid_ = read2_frag_end->read1_tid_;
-//            read2_frag_end->read2_tid_ = read1_frag_end->read1_tid_;
-//            int read1_index = SeekMarkDupIndex(read1_frag_end->read1_tid_, read1_frag_end->read1_pos_);
-//            int read2_index = SeekMarkDupIndex(read2_frag_end->read1_tid_, read2_frag_end->read1_pos_);
             int pair_index = SeekMarkDupIndex(pair_end->read1_tid_, pair_end->read1_pos_);
             markdup_frag_end_->AddPairFlag(read1_dup->tid, read1_dup->pos);
             markdup_frag_end_->AddPairFlag(read2_dup->tid, read2_dup->pos);
-//            assert(read1_index >= 0 && read1_index < markdup_index_.size());
-//            assert(read2_index >= 0 && read2_index < markdup_index_.size());
-//            assert(pair_index >= 0 && pair_index < markdup_index_.size());
-//            markdup_regions_[read1_index]->AddFragEnd(read1_frag_end);
-//            markdup_regions_[read2_index]->AddFragEnd(read2_frag_end);
             markdup_regions_[pair_index]->AddPairEnd(pair_end);
         } else if (read1_dup != nullptr && read2_dup == nullptr) {
-//            auto read1_frag_end = ComputeFragEnds(read1_dup);
             markdup_frag_end_->AddFragEnd(read1_dup);
-//            int read1_index = SeekMarkDupIndex(read1_frag_end->read1_tid_, read1_frag_end->read1_pos_);
-//            markdup_regions_[read1_index]->AddFragEnd(read1_frag_end);
         } else if (read1_dup == nullptr && read2_dup != nullptr) {
-//            auto read2_frag_end = ComputeFragEnds(read2_dup);
             markdup_frag_end_->AddFragEnd(read2_dup);
-//            int read2_index = SeekMarkDupIndex(read2_frag_end->read1_tid_, read2_frag_end->read1_pos_);
-//            markdup_regions_[read2_index]->AddFragEnd(read2_frag_end);
 
         }
     }
+
 
     const bool GAMMarkDuplicateImpl::IsMarkDuplicate(const uint64_t read_name_id) {
         return mark_dup_readname_id_[read_name_id];
@@ -161,16 +142,16 @@ namespace gamtools {
         std::vector<std::thread> threads;
         for (int chr_index = 0; chr_index < markdup_regions_.size(); chr_index += thread_num_) {
             for (int i = chr_index; (i - chr_index < thread_num_) && (i < markdup_regions_.size()); ++i) {
-                threads.push_back(
-                        std::thread(GAMMarkDuplicateImpl::ProcessMarkDuplication, std::ref(markdup_regions_[i]),
-                                    std::ref(temp_mark_dup_path_)));
+                threads.push_back(markdup_regions_[i]->spawn());
             }
             for (auto &thread : threads) {
                 thread.join();
             }
             threads.clear();
         }
-        DebugOutput(true);
+        std::thread frag_mark_duplicate_thread = markdup_frag_end_->spawn();
+//        DebugOutput(true);
+        frag_mark_duplicate_thread.join();
     }
 
     void GAMMarkDuplicateImpl::SetMarkDuplicateReadNameID(const uint64_t read_name_id) {
@@ -215,12 +196,4 @@ namespace gamtools {
         markdup_file.close();
     }
 
-
-
-
-
-    void GAMMarkDuplicateImpl::ProcessMarkDuplication(std::unique_ptr<MarkDuplicateRegion> &mark_duplicate,
-                                                      const std::string &temp_mark_dup_path) {
-        mark_duplicate->ProcessMarkDuplicate(temp_mark_dup_path);
-    }
 }

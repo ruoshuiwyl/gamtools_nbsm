@@ -18,6 +18,7 @@ namespace gamtools {
         int ParseProgramOptions(int argc, char *argv[]);
         void Initialization();
         void ProcessNBSM();
+
     private:
         bwaidx_t *mem_idx_;
         bam_hdr_t *bam_hdr_;

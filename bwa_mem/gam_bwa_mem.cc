@@ -26,23 +26,19 @@ namespace gamtools {
     GAMBWAMEM::GAMBWAMEM(Channel<std::unique_ptr<BWAReadBuffer>> &input,
                          Channel<std::unique_ptr<BWAReadBuffer>> &output,
                          const mem_opt_t *opt, bwaidx_t *mem_idx)
-        : input_(input), output_(output), processed_num_(0), mem_opt_(opt), mem_idx_(mem_idx), mem_pestat_(nullptr) {
-
+        : input_(input),
+          output_(output),
+          processed_num_(0),
+          mem_opt_(opt),
+          mem_idx_(mem_idx),
+          mem_pestat_(nullptr) {
     }
-
 
     GAMBWAMEM::~GAMBWAMEM() {
-
     }
-
     std::thread GAMBWAMEM::spawn() {
         return std::thread(&GAMBWAMEM::ProcessBWAMEM, this);
     }
-
-
-
-
-
 }
 
 void gam_read_destory( GAMRead *read) {
