@@ -80,7 +80,7 @@ namespace gamtools {
     void BAMSortMkdupImpl::Decompress(std::unique_ptr<gamtools::GAMPartitionData> &gam_part) {
         std::vector<std::unique_ptr<Block>> decompress_blocks;
         char *uncompress = new char[block_size_];
-        for (auto block : gam_part->blocks) {
+        for (auto& block : gam_part->blocks) {
             size_t ulength = 0;
             if (!snappy::GetUncompressedLength(block->data(), block->size(), &ulength)) {
                 GLOG_ERROR << "Snappy get un compressed length ";

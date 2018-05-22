@@ -36,7 +36,7 @@ namespace gamtools {
         void StartMergeSort(std::string &bam_filename);
         void Sharding(const Slice &slice);
         void FinishSharding();
-        void ReadGamBlock();
+//        void ReadGamBlock();
 //        void FinishMergeSort();
     private:
         void OutputGAMBlock();

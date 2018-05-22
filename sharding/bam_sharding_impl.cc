@@ -122,25 +122,25 @@ namespace gamtools {
 
     }
 
-    void BAMShardingImpl::ReadGamBlock() {
-        GLOG_INFO << "Start Read gam block";
-        for (auto &part : partition_datas_) {
-            part->ReadGAMBlock();
-            merge_channel_.write(std::move(part));
-        }
-        merge_channel_.SendEof();
-        GLOG_INFO << "Finish Read gam block";
-    }
+//    void BAMShardingImpl::ReadGamBlock() {
+//        GLOG_INFO << "Start Read gam block";
+//        for (auto &part : partition_datas_) {
+//            part->ReadGAMBlock();
+//            merge_channel_.write(std::move(part));
+//        }
+//        merge_channel_.SendEof();
+//        GLOG_INFO << "Finish Read gam block";
+//    }
 
-    void BAMShardingImpl::MergeSort() {
-        std::unique_ptr<ShardingPartitionData> part;
-        GLOG_INFO << "Start Merge gam block";
-        while (merge_channel_.read(part)) {
-            GLOG_INFO << "Merge sort .....";
-            part->MergeSort();
-        }
-        GLOG_INFO << "Finish Merge gam block";
-    }
+//    void BAMShardingImpl::MergeSort() {
+//        std::unique_ptr<ShardingPartitionData> part;
+//        GLOG_INFO << "Start Merge gam block";
+//        while (merge_channel_.read(part)) {
+//            GLOG_INFO << "Merge sort .....";
+//            part->MergeSort();
+//        }
+//        GLOG_INFO << "Finish Merge gam block";
+//    }
 
 //    void BAMShardingImpl::FinishMergeSort() {
 //        for (auto &th : sort_compress_threads_) {
