@@ -5,6 +5,6 @@
 
 #include "nbsm_static.h"
 
-namespace {
-    int64_t sTotalReadNum = 0;
+namespace gamtools {
+    int64_t ReadID::sTotalReadID = 0;
 }

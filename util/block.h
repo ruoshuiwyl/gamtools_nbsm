@@ -17,7 +17,10 @@ namespace gamtools {
         virtual bool Insert(const char *data, int len);
         virtual bool Insert(const Slice &slice);
         virtual ~Block();
-        const std::vector<Slice> &slices() {
+        std::vector<Slice> &slices() {
+            return slices_;
+        }
+        const std::vector<Slice> &slices() const {
             return slices_;
         }
         const size_t size() const  {

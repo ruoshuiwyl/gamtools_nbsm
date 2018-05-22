@@ -10,12 +10,13 @@
 #include <lib/htslib-1.3.1/htslib/sam.h>
 #include <bwa_mem/gam_read.h>
 #include <thread>
+#include <util/create_index.h>
 #include "mark_duplicate_read_ends.h"
 
 namespace gamtools {
     class MarkDuplicateFragEnd {
     public:
-        explicit MarkDuplicateFragEnd(const bam_hdr_t *bam_hdr, const std::string &filename);
+        explicit MarkDuplicateFragEnd(const bam_hdr_t *bam_hdr, const PartitionData &partition_data);
         void AddFragEnd(const read_end_t *frag_end);
         void AddPairFlag(const int tid, const int pos);
         std::thread spawn();
@@ -31,7 +32,8 @@ namespace gamtools {
         std::vector<const read_end_t *> frag_ends_;
         std::vector<std::vector<bool>> pair_flags_;
         std::vector<std::vector<bool>> negative_pair_flags_;
-        std::string filename_;
+//        std::string filename_;
+        const PartitionData &partition_data_;
         bool append_;
         char *buffer_;
         char *compress_buffer_;

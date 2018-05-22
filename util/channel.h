@@ -30,7 +30,7 @@ namespace gamtools {
             return buffer_.empty() && eof_;
         }
 
-        size_t size() const {
+        size_t size()  {
             std::lock_guard<std::mutex> lk(lock_);
             return buffer_.size();
         }

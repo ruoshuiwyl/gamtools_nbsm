@@ -23,17 +23,18 @@ namespace gamtools {
         sort_idx_ = std::unique_ptr<CreateIndex>( new CreateIndex(bam_hdr_, options_, IndexType::SortIndex));
         auto & parts = sort_idx_->partition_datas();
         for (auto &part : parts) {
-            std::unique_ptr<BAMPartitionData> gam_part = std::unique_ptr<BAMPartitionData>(
-                    new BAMPartitionData(sort_channel_, part, options_.sort_block_size));
+            std::unique_ptr<ShardingPartitionData> gam_part = std::unique_ptr<ShardingPartitionData>(
+                    new ShardingPartitionData(sort_channel_, bam_channel_, part, options_.sort_block_size));
             partition_datas_.push_back(std::move(gam_part));
         }
+        chunks_.resize(parts.size());
     }
 
     void BAMShardingImpl::SendEof() {
         for (auto &part : partition_datas_){
             part->sendEof();
         }
-        output_channel_.SendEof();
+        sort_channel_.SendEof();
     }
 
     void BAMShardingImpl::StartSharding() {
@@ -46,14 +47,24 @@ namespace gamtools {
 
     void BAMShardingImpl::StartMergeSort(std::string &bam_filename) {
         //
+        GLOG_INFO << "Start merge and mark duplicate ";
+        bam_file_ = hts_open_format(bam_filename.c_str(), "wb", nullptr);
+        hts_set_threads(bam_file_, options_.bam_output_thread_num);
+        bam_hdr_write(bam_file_->fp.bgzf, bam_hdr_);
+
+        std::thread read_gbam_thread = std::thread(&BAMShardingImpl::ReadGamBlock, this);
         sort_compress_threads_.clear();
         for (int i = 0; i < options_.block_sort_thread_num; ++i) {
             sort_compress_threads_.push_back(std::thread(&BAMShardingImpl::MergeSort, this));
         }
         output_gamblock_thread_ = std::thread(&BAMShardingImpl::OutputBAM, this);
-        bam_file_ = hts_open_format(bam_filename.c_str(), "wb", nullptr);
-        hts_set_threads(bam_file_, options_.bam_output_thread_num);
-        bam_hdr_write(bam_file_->fp.bgzf, bam_hdr_);
+        read_gbam_thread.join();
+
+        for (auto &th : sort_compress_threads_) {
+            th.join();
+        }
+        bam_channel_.SendEof();
+        output_gamblock_thread_.join();
     }
 
     void BAMShardingImpl::Sharding(const Slice &slice) {
@@ -76,18 +87,24 @@ namespace gamtools {
     void BAMShardingImpl::OutputGAMBlock() {
         std::unique_ptr<GAMBlock> gbam_block;
         while (output_channel_.read(gbam_block)) {
+            GLOG_INFO << "Sharding stage write gbam block ";
             gbam_block->Write();
         }
+        GLOG_INFO << "Sharding stage finish gbam block";
         assert (output_channel_.eof());
     }
 
     void BAMShardingImpl::GAMBlockSortCompress() {
         std::unique_ptr<GAMBlock> gam_block;
         while(sort_channel_.read(gam_block)) {
+            GLOG_INFO << "Sharding stage start block sort and compress ; sort channel size: " << sort_channel_.size();
             auto sort_block = gam_block->BlockSort();
             sort_block->Compress();
             output_channel_.write(std::move(sort_block));
+            GLOG_INFO << "Sharding stage output compress gam block data; output channel size: " << output_channel_.size();
+
         }
+        GLOG_INFO << "Finish Sharding stage block sort and compress";
     }
 
 
@@ -99,49 +116,68 @@ namespace gamtools {
         for (auto &th : sort_compress_threads_) {
             th.join();
         }
-//        output_channel_.SendEof();
+        output_channel_.SendEof();
         sort_compress_threads_.clear();
         output_gamblock_thread_.join();
+
     }
 
     void BAMShardingImpl::ReadGamBlock() {
-        //Read GAMBlock
+        GLOG_INFO << "Start Read gam block";
         for (auto &part : partition_datas_) {
             part->ReadGAMBlock();
             merge_channel_.write(std::move(part));
         }
         merge_channel_.SendEof();
+        GLOG_INFO << "Finish Read gam block";
     }
 
     void BAMShardingImpl::MergeSort() {
-        std::unique_ptr<BAMPartitionData> part;
+        std::unique_ptr<ShardingPartitionData> part;
+        GLOG_INFO << "Start Merge gam block";
         while (merge_channel_.read(part)) {
+            GLOG_INFO << "Merge sort .....";
             part->MergeSort();
         }
+        GLOG_INFO << "Finish Merge gam block";
     }
 
-    void BAMShardingImpl::FinishMergeSort() {
-        for (auto &th : sort_compress_threads_) {
-            th.join();
-        }
-        output_channel_.SendEof();
-        output_gamblock_thread_.join();
-    }
+//    void BAMShardingImpl::FinishMergeSort() {
+//        for (auto &th : sort_compress_threads_) {
+//            th.join();
+//        }
+//        output_channel_.MergeSendEof();
+//        output_gamblock_thread_.join();
+//    }
 
     void BAMShardingImpl::OutputBAM() {
         std::unique_ptr<BAMBlock> bam_block;
         int current_sharding_idx = 0;
         std::priority_queue<int> finish_sharding_idxs;
-
         while(bam_channel_.read(bam_block)) {
             auto sharding_idx = bam_block->sharding_idx();
+            bool eof = bam_block->eof();
             chunks_[sharding_idx].push_back(std::move(bam_block));
-            if (bam_block->eof()) {
+            if (eof) {
                 finish_sharding_idxs.push(sharding_idx);
                 while (current_sharding_idx == finish_sharding_idxs.top()) {
-                    if (chunks_[current_sharding_idx].empty()) {
+                    if (!chunks_[current_sharding_idx].empty()) {
                         for (auto &block: chunks_[current_sharding_idx]) {
-                            bgzf_write(bam_file_->fp.bgzf, block->data(), block->size());
+                            auto &slices = block->slices();
+                            for (auto it = slices.begin(); it != slices.end(); ++it) {
+                                int block_len = it->size();
+                                int ok = (bgzf_flush_try(bam_file_->fp.bgzf, it->size() + 4) >= 0);
+                                if (ok) {
+                                    ok = bgzf_write(bam_file_->fp.bgzf, (char *)&block_len  ,4); // write bam length
+                                }
+                                if (ok) {
+                                    ok = bgzf_write(bam_file_->fp.bgzf, block->data() + 4, 32); // write bam core data 32B
+                                }
+                                if (ok) {
+                                    // write bam data variant length
+                                    ok = bgzf_write(bam_file_->fp.bgzf, block->data() + 36, block_len - 32);
+                                }
+                            }
                         }
                     }
                     current_sharding_idx++;

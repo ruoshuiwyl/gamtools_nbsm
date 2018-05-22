@@ -73,16 +73,19 @@ add_library(gam_sm ""
         nbsm/nbsm_options.h
         util/glogger.cc
         util/glogger.h
-        nbsm/options.h)
+        nbsm/options.h sharding/bam_sort_mkdup_impl.cc sharding/bam_sort_mkdup_impl.h)
 
 target_sources(gam_sm PRIVATE
         "${PROJECT_SOURCE_DIR}/util/slice.h"
         "${PROJECT_SOURCE_DIR}/util/arena.cc"
         "${PROJECT_SOURCE_DIR}/util/arena.h"
-        "util/block.cc"
-        "util/block.h"
-        "sharding/gam_block.cc"
-        "sharding/gam_block.h"
+        "${PROJECT_SOURCE_DIR}/util/block.cc"
+        "${PROJECT_SOURCE_DIR}/util/block.h"
+        "${PROJECT_SOURCE_DIR}/sharding/gam_block.cc"
+        "${PROJECT_SOURCE_DIR}/sharding/gam_block.h"
+        "${PROJECT_SOURCE_DIR}/sharding/bam_block.cc"
+        "${PROJECT_SOURCE_DIR}/sharding/bam_block.h"
+
 
         "${PROJECT_SOURCE_DIR}/sharding/bam_sharding_impl.cc"
         "${PROJECT_SOURCE_DIR}/sharding/bam_sharding_impl.h"

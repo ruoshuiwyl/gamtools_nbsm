@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <memory.h>
 #include <snappy.h>
+#include <util/glogger.h>
 #include "mark_duplicate_region.h"
 #include "gam_mark_duplicate_impl.h"
 #include "util/create_index.h"
@@ -119,11 +120,16 @@ namespace gamtools {
     }
     void MarkDuplicateRegion::ProcessMarkDuplicate() {
 //        std::string file_name = FileName();
-        std::string pair_file = partition_data_.filename() + ".pair";
+        std::string pair_file = partition_data_.filename();
 
 //        GAMProfileCPUTimer gam_profile_timer;
         if (pair_file_append_flag) {
             std::ifstream if_pair(pair_file, std::ifstream::in | std::ifstream::binary);
+            if (if_pair.is_open()) {
+                GLOG_INFO << "Open file :" << pair_file ;
+            } else {
+                GLOG_ERROR << "Open file :" << pair_file;
+            }
             size_t compress_len;
             size_t uncompress_len;
             while (if_pair.read((char *) &compress_len, sizeof(size_t))) {
@@ -232,7 +238,7 @@ namespace gamtools {
 
 
     void MarkDuplicateRegion::StoreFilePairEnds() {
-        std::string filename = partition_data_.filename() + ".pair" ;
+        std::string filename = partition_data_.filename();
 //        filename += "pair";
         std::ofstream ofs;
         if (pair_file_append_flag) {

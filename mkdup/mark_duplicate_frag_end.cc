@@ -9,14 +9,15 @@
 #include <algorithm>
 #include <snappy.h>
 #include <bwa_mem/gam_read.h>
+#include <util/glogger.h>
 #include "mark_duplicate_frag_end.h"
 #include "gam_mark_duplicate_impl.h"
 
 
 namespace gamtools {
 
-    MarkDuplicateFragEnd::MarkDuplicateFragEnd(const bam_hdr_t *bam_hdr, const std::string &filename)
-            : filename_(filename),
+    MarkDuplicateFragEnd::MarkDuplicateFragEnd(const bam_hdr_t *bam_hdr, const PartitionData &partition_data)
+            : partition_data_(partition_data),
               append_(false) {
         pair_flags_.resize(bam_hdr->n_targets);
         negative_pair_flags_ .resize(bam_hdr->n_targets);
@@ -54,8 +55,9 @@ namespace gamtools {
 
     void MarkDuplicateFragEnd::ProcessMarkDuplicateFragEnd() {
         //Read Mark duplicate info
+        GLOG_INFO << "Start process mark duplicate sing end mapped";
         if (append_) {
-            std::string frag_file = filename_ + "markdup.frag";
+            std::string frag_file = partition_data_.filename();
             std::ifstream if_frag(frag_file, std::ifstream::in | std::ifstream::binary);
             size_t compress_len;
             size_t uncompress_len;
@@ -78,10 +80,11 @@ namespace gamtools {
             if_frag.close();
         }
         ComputeMarkDuplicateFragEnds();
+        GLOG_INFO << "Finish process mark duplicate sing end mapped";
     }
 
     void MarkDuplicateFragEnd::StoreFileFragEnds() {
-        std::string filename = filename_ + "markdup.frag";
+        std::string filename = partition_data_.filename();
         std::ofstream ofs;
         if (append_) {
             ofs.open(filename, std::ofstream::binary | std::ofstream::out | std::ofstream::app);

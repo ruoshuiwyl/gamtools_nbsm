@@ -7,6 +7,7 @@
 #include <cassert>
 #include <util/create_index.h>
 #include <bwa_mem/gam_read.h>
+#include <util/glogger.h>
 #include "gam_mark_duplicate_impl.h"
 #include "mark_duplicate_frag_end.h"
 //#include "nbsm/options.h"
@@ -25,19 +26,22 @@ namespace gamtools {
 
     GAMMarkDuplicateImpl::GAMMarkDuplicateImpl(const bam_hdr_t *bam_hdr,
                                                const gamtools::SMOptions &options)
-            :bam_hdr_(bam_hdr), options_(options){
-        markdup_frag_end_ = std::unique_ptr<MarkDuplicateFragEnd> (new MarkDuplicateFragEnd(bam_hdr, options.directory));
+            :bam_hdr_(bam_hdr), options_(options), thread_num_(options.mark_dup_thread_num){
+
     }
 
     void GAMMarkDuplicateImpl::InitializeSharding() {
-        auto markdup_idx_ = std::unique_ptr<CreateIndex>( new CreateIndex(bam_hdr_, options_, IndexType::SortIndex));
+        markdup_idx_ = std::unique_ptr<CreateIndex>( new CreateIndex(bam_hdr_, options_, IndexType::MarkDupIndex));
         markdup_sharding_index_ = markdup_idx_->sharding_index();
         auto & parts = markdup_idx_->partition_datas();
-        for (auto &part : parts) {
-            auto mkdup_region = std::unique_ptr<MarkDuplicateRegion>(new MarkDuplicateRegion(part));
+        for (int part_idx = 0; part_idx < parts.size() - 1; ++part_idx) {
+            auto mkdup_region = std::unique_ptr<MarkDuplicateRegion>(new MarkDuplicateRegion(parts[part_idx]));
             markdup_regions_.push_back(std::move(mkdup_region));
         }
+        markdup_frag_end_ = std::unique_ptr<MarkDuplicateFragEnd> (new MarkDuplicateFragEnd(bam_hdr_, parts[parts.size() - 1]));
     }
+
+
     GAMMarkDuplicateImpl::~GAMMarkDuplicateImpl() {
 
     }
@@ -121,7 +125,11 @@ namespace gamtools {
             int pair_index = SeekMarkDupIndex(pair_end->read1_tid_, pair_end->read1_pos_);
             markdup_frag_end_->AddPairFlag(read1_dup->tid, read1_dup->pos);
             markdup_frag_end_->AddPairFlag(read2_dup->tid, read2_dup->pos);
-            markdup_regions_[pair_index]->AddPairEnd(pair_end);
+            if (pair_index < markdup_regions_.size()) {
+                markdup_regions_[pair_index]->AddPairEnd(pair_end);
+            } else {
+                GLOG_ERROR << __FUNCTION__ <<  "Mark duplicate stage pair_index out of markdup_regions_";
+            }
         } else if (read1_dup != nullptr && read2_dup == nullptr) {
             markdup_frag_end_->AddFragEnd(read1_dup);
         } else if (read1_dup == nullptr && read2_dup != nullptr) {
@@ -132,6 +140,7 @@ namespace gamtools {
 
 
     const bool GAMMarkDuplicateImpl::IsMarkDuplicate(const uint64_t read_name_id) {
+        assert(read_name_id < mark_dup_readname_id_.size());
         return mark_dup_readname_id_[read_name_id];
     }
 
@@ -139,8 +148,10 @@ namespace gamtools {
         total_read_name_ids_ = total_read_name_id;
         assert(mark_dup_readname_id_.empty());
         mark_dup_readname_id_.resize(total_read_name_id, false);
-        std::vector<std::thread> threads;
+
+        std::thread frag_mark_duplicate_thread = markdup_frag_end_->spawn();
         for (int chr_index = 0; chr_index < markdup_regions_.size(); chr_index += thread_num_) {
+            std::vector<std::thread> threads;
             for (int i = chr_index; (i - chr_index < thread_num_) && (i < markdup_regions_.size()); ++i) {
                 threads.push_back(markdup_regions_[i]->spawn());
             }
@@ -149,7 +160,6 @@ namespace gamtools {
             }
             threads.clear();
         }
-        std::thread frag_mark_duplicate_thread = markdup_frag_end_->spawn();
 //        DebugOutput(true);
         frag_mark_duplicate_thread.join();
     }

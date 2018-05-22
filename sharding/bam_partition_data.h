@@ -11,26 +11,38 @@
 
 namespace gamtools {
     class Slice;
-    class Block;
+//    class Block;
+    class BAMBlock;
     class PartitionData;
-    class BAMPartitionData {
+    class ShardingPartitionData {
     public:
-        explicit BAMPartitionData(Channel <std::unique_ptr<GAMBlock>> &sort_channel, const PartitionData &partdata,
-                                          const int block_size);
-        ~BAMPartitionData();
+        explicit ShardingPartitionData(Channel<std::unique_ptr<GAMBlock>> &sort_channel,
+                                  Channel <std::unique_ptr<BAMBlock>> &output_bam_channel,
+                                  const PartitionData &partdata,
+                                  const int block_size);
+        ~ShardingPartitionData();
         void Add(const Slice &slice);
+        const PartitionData &partition_data() {
+            return partition_data_;
+        }
         void sendEof();
-        void MergeSort();
-        void ReadGAMBlock();
+        const int block_cnt() {
+            return block_cnt_;
+        }
     private:
-        bool InsertBAMSlice(Slice &bam_slice);
+//        void MergeSort();
+//        void ReadGAMBlock();
+//        bool InsertBAMSlice(Slice &bam_slice);
+//        void MergeSendEof();
         bool append_;
         int block_cnt_;
         int block_size_;
-        const PartitionData &paration_data_;
+        int bam_block_idx_;
+        const PartitionData &partition_data_;
         Channel<std::unique_ptr<GAMBlock>> &sort_channel_;
+        Channel<std::unique_ptr<BAMBlock>> &output_bam_channel_;
         std::unique_ptr<GAMBlock> gam_block_ptr_;
-        std::unique_ptr<Block> bam_block_ptr_;
+        std::unique_ptr<BAMBlock> bam_block_ptr_;
         std::vector<std::unique_ptr<GAMBlock>> gam_blocks_;
     };
 }

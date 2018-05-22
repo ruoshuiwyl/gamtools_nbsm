@@ -14,7 +14,7 @@ namespace gamtools {
     public:
         explicit BAMBlock(size_t block_size, int sharding_idx, int block_idx, bool eof);
         ~BAMBlock();
-        bool Insert(Slice &slice);
+//        bool Insert(Slice &slice);
         const bool eof() const {
             return eof_;
         }
@@ -23,6 +23,9 @@ namespace gamtools {
         }
         const int sharding_idx() const {
             return sharding_idx_;
+        }
+        void SendEof() {
+            eof_ = true;
         }
     private:
         bool eof_;

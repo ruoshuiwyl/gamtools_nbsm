@@ -9,13 +9,23 @@
 
 namespace gamtools {
     //Count Read int a Sample
-    static int64_t sTotalReadNum;
-    inline int64_t gTotalReadNum() {
-        return sTotalReadNum;
-    }
-    inline void gIncreamReadNum() {
-        sTotalReadNum++;
-    }
+    struct ReadID{
+        static int64_t sTotalReadID;
+        static int64_t gTotalReadID(){
+            return sTotalReadID;
+        }
+        static void gIncreamReadID() {
+            sTotalReadID++;
+        }
+
+    };
+//    static int64_t sTotalReadNum;
+//    int64_t ReadID::gTotalReadNum() {
+//        return sTotalReadNum;
+//    }
+//    inline void ReadID::gIncreamReadNum() {
+//        sTotalReadNum++;
+//    }
 }
 
 #endif //GAMTOOLS_SM_NBSM_STATIC_H

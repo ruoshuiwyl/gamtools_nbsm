@@ -36,12 +36,12 @@ namespace gamtools {
                 } else {
                     file_cnt++;
                 }
-                file_name = dir_name + std::to_string(sharding_idx) + file_extension;
+                file_name = dir_name + "/sharding_" + std::to_string(sharding_idx) + file_extension;
                 partition_datas_.push_back(PartitionData(sharding_idx, file_name));
                 sharding_idx++;
             }
         };
-        file_name = dir_name + std::to_string(sharding_idx);
+        file_name = dir_name + "/sharding_" +  std::to_string(sharding_idx) + file_extension;
         partition_datas_.push_back(PartitionData(sharding_idx, file_name)); //add unmap read
     }
 
@@ -55,7 +55,7 @@ namespace gamtools {
         boost::filesystem::path dir_path = dir_name;
 
         if (boost::filesystem::exists(dir_path)) {
-            boost::filesystem::remove(dir_path);
+            boost::filesystem::remove_all(dir_path);
         } else {
             boost::filesystem::create_directories(dir_path);
         }
@@ -64,7 +64,7 @@ namespace gamtools {
         if (!status) {
             GLOG_ERROR << "Create directory name failed " << dir_name;
         } else {
-            GLOG_INFO << "Create directory " << dir_name << "OK ";
+            GLOG_INFO << "Create directory " << dir_name << "\tOK ";
         }
         return dir_name;
     }

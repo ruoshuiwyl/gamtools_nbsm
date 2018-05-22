@@ -17,6 +17,7 @@
 
 namespace gamtools {
     struct SMOptions;
+    class CreateIndex;
     class MarkDuplicateFragEnd;
     class GAMMarkDuplicateImpl {
     public:
@@ -65,6 +66,7 @@ namespace gamtools {
         std::vector<std::unique_ptr<MarkDuplicateRegion>> markdup_regions_;
         std::vector<std::vector<int>> markdup_sharding_index_;
         std::unique_ptr<MarkDuplicateFragEnd> markdup_frag_end_;
+        std::unique_ptr<CreateIndex> markdup_idx_;
 
     };
 

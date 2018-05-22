@@ -12,6 +12,8 @@ namespace gamtools {
              sharding_idx_(sharding_idx),
              block_idx_(block_idx),
              eof_(eof) {
+    }
+    BAMBlock::~BAMBlock() {
 
     }
 

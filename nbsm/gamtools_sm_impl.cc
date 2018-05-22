@@ -39,11 +39,11 @@ namespace gamtools {
 
 
     void SMImpl::OutputBAM() {
-        markdup_impl_->MarkDuplication(gTotalReadNum());
+        markdup_impl_->MarkDuplication(ReadID::gTotalReadID());
         sharding_impl_->StartMergeSort(bam_file_);
-        sharding_impl_->ReadGamBlock();
-        sharding_impl_->MergeSort();
-        sharding_impl_->FinishMergeSort();
+//        sharding_impl_->ReadGamBlock();
+//        sharding_impl_->MergeSort();
+//        sharding_impl_->FinishMergeSort();
     }
 
     std::thread SMImpl::SpawnSharding() {
@@ -89,6 +89,7 @@ namespace gamtools {
                 markdup_impl_->StorePairEndRecord(read1_dup, read2_dup);
             }
         }
+        GLOG_INFO << "Finish Sharding";
         if (input_.eof()) {
             sharding_impl_->SendEof();
         }

@@ -11,7 +11,11 @@
 namespace gamtools {
 
     Block::Block(const size_t block_size)
-            :full_(false), block_size_(block_size),  alloc_ptr_(nullptr), alloc_bytes_remaining_(block_size), block_len_(0) {
+            :full_(false),
+             block_size_(block_size),
+             alloc_ptr_(nullptr),
+             alloc_bytes_remaining_(block_size),
+             block_len_(0) {
         assert(block_size > 0);
         block_data_ = new char[block_size];
     }
@@ -36,7 +40,6 @@ namespace gamtools {
             alloc_ptr_ += slice.size();
             alloc_bytes_remaining_ -= slice.size();
             block_len_ += slice.size();
-
         } else {
             alloc_bytes_remaining_ = 0;
             full_ = true;

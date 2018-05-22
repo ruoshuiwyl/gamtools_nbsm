@@ -8,6 +8,7 @@
 #include <snappy.h>
 #include <iostream>
 #include <algorithm>
+#include <util/glogger.h>
 #include "util/slice.h"
 
 namespace gamtools {
@@ -68,24 +69,29 @@ namespace gamtools {
         } else {
             ofs.open(file_name_, std::ofstream::out );
         }
+        if (!ofs.is_open()) {
+            GLOG_ERROR << "Open file\t" << file_name_ ;
+        } else {
+            GLOG_INFO << "Open file\t " << file_name_;
+        }
         size_t block_size = size();
-        ofs.write(reinterpret_cast<char *>(block_size), sizeof(size_t));
+        ofs.write((char *)(&block_size), sizeof(size_t));
         ofs.write(data(), block_size);
         ofs.close();
+        GLOG_INFO << "Finish write file " << file_name_;
     }
 
     bool GAMComparator(const Slice &a, const Slice &b)  {
         bool r;
         auto a_key = reinterpret_cast<const int64_t *>(a.data())[0];
         auto b_key = reinterpret_cast<const int64_t *>(b.data())[0];
-
+        auto a_read_id = reinterpret_cast<const int64_t  *>(a.data())[1];
+        auto b_read_id = reinterpret_cast<const int64_t  *>(b.data())[1];
         if (a_key < b_key) {
             r = true;
         } else if (a_key > b_key) {
             r = false;
         } else {
-            auto a_read_id = reinterpret_cast<const int64_t  *>(a.data())[1];
-            auto b_read_id = reinterpret_cast<const int64_t  *>(b.data())[1];
             if (a_read_id < b_read_id) {
                 r = true;
             } else {

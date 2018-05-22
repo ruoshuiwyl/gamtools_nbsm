@@ -31,9 +31,9 @@ namespace gamtools {
             GAMRead* read1 = ReadOneFastq(fastq_1_file_);
             GAMRead* read2 = ReadOneFastq(fastq_2_file_);
             if (read1 && read2) {
-                read1->read_id = gTotalReadNum();
-                read2->read_id = gTotalReadNum();
-                gIncreamReadNum();
+                read1->read_id = ReadID::gTotalReadID();
+                read2->read_id = ReadID::gTotalReadID();
+                ReadID::gIncreamReadID();
                 read_buffer->AddPERead(read1, read2);
                 current_size += read1->l_seq + read2->l_seq;
             } else {

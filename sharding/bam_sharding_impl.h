@@ -37,22 +37,22 @@ namespace gamtools {
         void Sharding(const Slice &slice);
         void FinishSharding();
         void ReadGamBlock();
-        void FinishMergeSort();
-        void MergeSort();
+//        void FinishMergeSort();
     private:
         void OutputGAMBlock();
         void GAMBlockSortCompress();
+        void MergeSort();
         void OutputBAM();
 
 //        typedef Channel<std::unique_ptr<GAMBlock>> GAMBlockChannel;
         Channel<std::unique_ptr<GAMBlock>> sort_channel_;
         Channel<std::unique_ptr<GAMBlock>> output_channel_;
-        Channel<std::unique_ptr<BAMPartitionData>> merge_channel_;
+        Channel<std::unique_ptr<ShardingPartitionData>> merge_channel_;
         Channel<std::unique_ptr<BAMBlock>> bam_channel_;
         std::unique_ptr<CreateIndex> sort_idx_;
         std::thread output_gamblock_thread_;
         std::vector<std::thread> sort_compress_threads_;
-        std::vector<std::unique_ptr<BAMPartitionData>> partition_datas_;
+        std::vector<std::unique_ptr<ShardingPartitionData>> partition_datas_;
         std::vector<std::vector<std::unique_ptr<BAMBlock>>> chunks_;
         const bam_hdr_t *bam_hdr_;
         const SMOptions &options_;
