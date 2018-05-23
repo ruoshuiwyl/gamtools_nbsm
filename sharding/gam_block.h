@@ -12,12 +12,18 @@
 #include <memory>
 #include <util/skiplist.h>
 
+#ifdef DEBUG
+#include <htslib/sam.h>
+#endif
+
 namespace gamtools {
     class Slice;
     bool GAMComparator(const Slice &a, const Slice &b);
     class GAMBlock : public Block {
     public:
         explicit GAMBlock(size_t block_size, bool append, int block_id, std::string file_name);
+
+
         ~GAMBlock();
         void Compress();
         bool Decompress();

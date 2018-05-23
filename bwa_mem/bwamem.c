@@ -895,11 +895,17 @@ static void put_bam_data(kstring_t *bam, const bseq1_t *s, const gam1_core_t *co
     kputsn_(&s->read_id, sizeof(int64_t), bam);
     kputsn_(&s->lib_id, sizeof(int), bam);
     kputsn_(&block_len, sizeof(uint32_t), bam);
-    kputsn_(&pos, sizeof(uint64_t), bam);
-    kputsn_(&block_len, sizeof(uint32_t), bam);
+//    kputsn_(&pos, sizeof(uint64_t), bam);
+//    kputsn_(&block_len, sizeof(uint32_t), bam);
     kputsn_(&x, 8 * sizeof(uint32_t), bam);
     kputsn_(bam_data->s, bam_data->l, bam);
+
+
+
 }
+
+
+static int bam_seq_int[5] = {1, 2, 4, 8, 15};
 
 void mem_aln2bam(const mem_opt_t *opt, const bntseq_t *bns, kstring_t *str, bseq1_t *s, int n, const mem_aln_t *list, int which, const mem_aln_t *m_)
 {
@@ -919,7 +925,7 @@ void mem_aln2bam(const mem_opt_t *opt, const bntseq_t *bns, kstring_t *str, bseq
 	p->flag |= m && m->is_rev? 0x20 : 0; // is mate on the reverse strand
 
 	// print up to CIGAR
-	l_name = strlen(s->name);
+	l_name = strlen(s->name) + 1;
 	ks_resize(str, str->l + s->l_seq + l_name + (s->qual? s->l_seq : 0) + 20);
 	gam1_core_t core;
 	kstring_t bam_data = {0, 0, NULL};
@@ -1022,7 +1028,7 @@ void mem_aln2bam(const mem_opt_t *opt, const bntseq_t *bns, kstring_t *str, bseq
 		memset(t, 0, seq_len);
 		for (i = qb; i < qe; ++i) {
 			int idx = i - qb;
-			t[idx>>1] |= (int)s->seq[i] << ((~idx&1)<<2);
+			t[idx>>1] |= bam_seq_int[s->seq[i]] << ((~idx&1)<<2);
 		}
 
 //		for (i = qb; i < qe; ++i) str->s[str->l++] = "ACGTN"[(int)s->seq[i]];
@@ -1054,7 +1060,7 @@ void mem_aln2bam(const mem_opt_t *opt, const bntseq_t *bns, kstring_t *str, bseq
 		for (i = qe-1; i >= qb; --i) {
 //			str->s[str->l++] = "TGCAN"[(int)s->seq[i]];
 			int idx = i - qb;
-			t[idx>>1] |= (int)s->seq[i] << ((~idx&1)<<2);
+			t[idx>>1] |= (int)bam_seq_int[s->seq[i]] << ((~idx&1)<<2);
 //			bam_data
 		}
 //		ks_resize(str, str->l + (qe - qb) + 1);
@@ -1104,7 +1110,6 @@ void mem_aln2bam(const mem_opt_t *opt, const bntseq_t *bns, kstring_t *str, bseq
 			if (i != which && !(list[i].flag&0x100)) break;
 		if (i < n) { // there are other primary hits; output them
 //			kputsn("\tSA:Z:", 6, str);
-
 			for (i = 0; i < n; ++i) {
 				const mem_aln_t *r = &list[i];
 				int k;

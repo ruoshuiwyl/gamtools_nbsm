@@ -16,10 +16,8 @@ namespace gamtools {
     class PartitionData;
     class ShardingPartitionData {
     public:
-        explicit ShardingPartitionData(Channel<std::unique_ptr<GAMBlock>> &sort_channel,
-                                  Channel <std::unique_ptr<BAMBlock>> &output_bam_channel,
-                                  const PartitionData &partdata,
-                                  const int block_size);
+        explicit ShardingPartitionData(Channel <std::unique_ptr<GAMBlock>> &sort_channel, const PartitionData &partdata,
+                                               const int block_size);
         ~ShardingPartitionData();
         void Add(const Slice &slice);
         const PartitionData &partition_data() {
@@ -37,12 +35,12 @@ namespace gamtools {
         bool append_;
         int block_cnt_;
         int block_size_;
-        int bam_block_idx_;
+//        int bam_block_idx_;
         const PartitionData &partition_data_;
         Channel<std::unique_ptr<GAMBlock>> &sort_channel_;
-        Channel<std::unique_ptr<BAMBlock>> &output_bam_channel_;
+//        Channel<std::unique_ptr<BAMBlock>> &output_bam_channel_;
         std::unique_ptr<GAMBlock> gam_block_ptr_;
-        std::unique_ptr<BAMBlock> bam_block_ptr_;
+//        std::unique_ptr<BAMBlock> bam_block_ptr_;
         std::vector<std::unique_ptr<GAMBlock>> gam_blocks_;
     };
 }

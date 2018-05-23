@@ -29,8 +29,9 @@ namespace  gamtools {
 //        void Initialize(const SMOptions &options);
         std::thread SpawnSharding();
         void Sharding();
-        std::thread SpawnSortMkdup();
-        void OutputBAM();
+//        std::thread SpawnSortMkdup();
+//        void OutputBAM();
+        void ProcessMarkDuplicate();
     private:
         void ProcessSharding();
 //        void PutSortSlice(const Slice &slice);

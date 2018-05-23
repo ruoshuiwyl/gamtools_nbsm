@@ -3,7 +3,7 @@ project(gamtools_sm)
 
 set(CMAKE_CXX_COMPILER /usr/bin/g++-7)
 #set(CMAKE_CXX_FLAGS "-DBOOST_LOG_DYN_LINK" )
-set(CMAKE_CXX_FLAGS  "-DBOOST_ALL_DYN_LINK -D_GLIBCXX_USE_CXX11_ABI=0")
+set(CMAKE_CXX_FLAGS  "-DBOOST_ALL_DYN_LINK -D_GLIBCXX_USE_CXX11_ABI=0 -DDEBUG")
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 11)
 
@@ -73,7 +73,11 @@ add_library(gam_sm ""
         nbsm/nbsm_options.h
         util/glogger.cc
         util/glogger.h
-        nbsm/options.h sharding/bam_sort_mkdup_impl.cc sharding/bam_sort_mkdup_impl.h)
+        nbsm/options.h
+        sharding/bam_sort_mkdup_impl.cc
+        sharding/bam_sort_mkdup_impl.h
+        util/debug_util.cc
+        util/debug_util.h)
 
 target_sources(gam_sm PRIVATE
         "${PROJECT_SOURCE_DIR}/util/slice.h"
@@ -165,8 +169,8 @@ if(SM_BUILD_TESTS)
 
 endif(SM_BUILD_TESTS)
 
-#add_executable(glogger_test util/glogger_test.cc util/glogger.h util/glogger.cc)
-#target_link_libraries(glogger_test boost_log pthread boost_thread boost_system boost_log_setup)
+add_executable(glogger_test util/glogger_test.cc util/glogger.h util/glogger.cc)
+target_link_libraries(glogger_test boost_log pthread boost_thread boost_system boost_log_setup)
 
 #add_executable(nbsm_options_test nbsm/nbsm_options_test.cc nbsm/nbsm_options.h nbsm/nbsm_options.cc util/glogger.h util/glogger.cc)
 #target_link_libraries(nbsm_options_test boost_program_options boost_log pthread boost_thread boost_system boost_log_setup)

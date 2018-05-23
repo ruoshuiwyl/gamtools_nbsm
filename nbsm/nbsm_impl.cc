@@ -7,6 +7,7 @@
 
 #include <htslib/kstring.h>
 #include <htslib/sam.h>
+#include <sharding/bam_sort_mkdup_impl.h>
 
 #include "bwa_mem/gam_bwa_mem.h"
 #include "bwa_mem/bwa.h"
@@ -18,6 +19,10 @@
 #include "gamtools_sm_impl.h"
 #include "mkdup/gam_mark_duplicate_impl.h"
 #include "fastqc/gam_fastq_file.h"
+
+#ifdef DEBUG
+#include "util/debug_util.h"
+#endif
 
 namespace gamtools {
 
@@ -36,6 +41,13 @@ namespace gamtools {
         return 0;
     }
     void NBSMImpl::Initialization() {
+        InitBwaIdxBamHdr();
+        GLogger::InitLog(nbsm_options_.temporary_directory);
+
+
+    }
+
+    void NBSMImpl::InitBwaIdxBamHdr() {
         mem_idx_ = bwa_idx_load(nbsm_options_.reference_file.c_str(), BWA_IDX_ALL);
         const bntseq_t *bns = mem_idx_->bns;
         bam_hdr_ = bam_hdr_init();
@@ -65,6 +77,9 @@ namespace gamtools {
         kputsn(bam_header, strlen(bam_header), &str);
         bam_hdr_->l_text = str.l;
         bam_hdr_->text = str.s;
+#ifdef DEBUG
+        g_bam_hdr = bam_hdr_;
+#endif
     }
 
     void NBSMImpl::ProcessNBSM() {
@@ -83,8 +98,11 @@ namespace gamtools {
         bwamem_thread.join();
         sm_thread.join();
         // mkdup -> merge_sort -> output_bam
-        auto sm_output_thread = sort_mkdup.SpawnSortMkdup();
-        sm_output_thread.join();
+//        auto sm_output_thread = sort_mkdup.SpawnSortMkdup();
+//        sm_output_thread.join();
+
+        sort_mkdup.ProcessMarkDuplicate();
+
     }
 
 

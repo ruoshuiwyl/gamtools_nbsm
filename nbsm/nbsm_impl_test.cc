@@ -19,11 +19,13 @@
 //#include "boost/program_options.hpp"
 #include "nbsm/nbsm_impl.h"
 #include <fastqc/gam_fastq_file.h>
+#include <util/glogger.h>
 
 namespace gamtools {
     int nbsm_impl_test(int argc, char *argv[]) {
         NBSMImpl nbsm;
         if (!nbsm.ParseProgramOptions(argc, argv)) {
+
             nbsm.Initialization();
             nbsm.ProcessNBSM();
         } else {

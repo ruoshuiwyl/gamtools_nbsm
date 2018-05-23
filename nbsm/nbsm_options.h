@@ -41,9 +41,10 @@ namespace gamtools {
         int batch_size;
         int read_len;
         int nbsm_thread_num;
+        std::string temporary_directory;
     private:
 
-        std::string temporary_directory_;
+
         std::vector<int> input_library_ids_;
         std::vector<int> input_lane_ids_;
         std::vector<std::string> input_fastq1_lists_;

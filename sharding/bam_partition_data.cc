@@ -18,15 +18,12 @@
 
 namespace gamtools {
     const static int kBAMBlockSize = 65536;
-    ShardingPartitionData::ShardingPartitionData(Channel<std::unique_ptr<GAMBlock>> &sort_channel,
-                                       Channel <std::unique_ptr<BAMBlock>> &output_bam_channel,
-                                       const PartitionData &part_data,
-                                       const int block_size)
+    ShardingPartitionData::ShardingPartitionData(Channel <std::unique_ptr<GAMBlock>> &sort_channel, const PartitionData &part_data,
+                                                     const int block_size)
             : append_(false),
               block_cnt_(0),
               block_size_(block_size),
               sort_channel_(sort_channel),
-              output_bam_channel_(output_bam_channel),
               partition_data_(part_data) {
         gam_block_ptr_ = std::unique_ptr<GAMBlock>(new GAMBlock(block_size_, append_, block_cnt_, partition_data_.filename()));
         block_cnt_++;
@@ -50,6 +47,8 @@ namespace gamtools {
     void ShardingPartitionData::sendEof() {
         if (!gam_block_ptr_->empty()) {
             sort_channel_.write(std::move(gam_block_ptr_));
+        } else {
+            block_cnt_--;
         }
     }
 

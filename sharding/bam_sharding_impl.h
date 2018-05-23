@@ -33,30 +33,33 @@ namespace gamtools {
         void SendEof();
         void InitializeSharding();
         void StartSharding();
-        void StartMergeSort(std::string &bam_filename);
+//        void StartMergeSort(std::string &bam_filename);
         void Sharding(const Slice &slice);
         void FinishSharding();
+        std::vector<std::unique_ptr<ShardingPartitionData>>& partition_datas() {
+            return  partition_datas_;
+        }
 //        void ReadGamBlock();
 //        void FinishMergeSort();
     private:
         void OutputGAMBlock();
         void GAMBlockSortCompress();
-        void MergeSort();
-        void OutputBAM();
+//        void MergeSort();
+//        void OutputBAM();
 
 //        typedef Channel<std::unique_ptr<GAMBlock>> GAMBlockChannel;
         Channel<std::unique_ptr<GAMBlock>> sort_channel_;
         Channel<std::unique_ptr<GAMBlock>> output_channel_;
-        Channel<std::unique_ptr<ShardingPartitionData>> merge_channel_;
-        Channel<std::unique_ptr<BAMBlock>> bam_channel_;
+//        Channel<std::unique_ptr<ShardingPartitionData>> merge_channel_;
+//        Channel<std::unique_ptr<BAMBlock>> bam_channel_;
         std::unique_ptr<CreateIndex> sort_idx_;
         std::thread output_gamblock_thread_;
         std::vector<std::thread> sort_compress_threads_;
         std::vector<std::unique_ptr<ShardingPartitionData>> partition_datas_;
-        std::vector<std::vector<std::unique_ptr<BAMBlock>>> chunks_;
+//        std::vector<std::vector<std::unique_ptr<BAMBlock>>> chunks_;
         const bam_hdr_t *bam_hdr_;
         const SMOptions &options_;
-        htsFile *bam_file_;
+//        htsFile *bam_file_;
     };
 }
 

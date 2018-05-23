@@ -7,6 +7,8 @@
 
 #include <cstdint>
 
+
+
 namespace gamtools {
     //Count Read int a Sample
     struct ReadID{
@@ -19,6 +21,8 @@ namespace gamtools {
         }
 
     };
+
+
 //    static int64_t sTotalReadNum;
 //    int64_t ReadID::gTotalReadNum() {
 //        return sTotalReadNum;

@@ -6,6 +6,7 @@
 #include <util/slice.h>
 #include <util/glogger.h>
 #include <util/nbsm_static.h>
+#include <sharding/bam_sort_mkdup_impl.h>
 #include "gamtools_sm_impl.h"
 #include "options.h"
 #include "sharding/bam_partition_data.h"
@@ -14,6 +15,10 @@
 #include "util/gam_read_buffer.h"
 #include "bwa_mem/gam_read.h"
 
+
+#ifdef DEBUG
+#include "util/debug_util.h"
+#endif
 namespace gamtools {
 
     SMImpl::SMImpl(const bam_hdr_t *bam_hdr, const SMOptions &options,
@@ -38,20 +43,26 @@ namespace gamtools {
 //    }
 
 
-    void SMImpl::OutputBAM() {
-        markdup_impl_->MarkDuplication(ReadID::gTotalReadID());
-        sharding_impl_->StartMergeSort(bam_file_);
-//        sharding_impl_->ReadGamBlock();
-//        sharding_impl_->MergeSort();
-//        sharding_impl_->FinishMergeSort();
-    }
+//    void SMImpl::OutputBAM() {
+//        markdup_impl_->MarkDuplication(ReadID::gTotalReadID());
+//        sharding_impl_->StartMergeSort(bam_file_);
+////        sharding_impl_->ReadGamBlock();
+////        sharding_impl_->MergeSort();
+////        sharding_impl_->FinishMergeSort();
+//    }
 
     std::thread SMImpl::SpawnSharding() {
         return std::thread(&SMImpl::Sharding,  this);
     }
 
-    std::thread SMImpl::SpawnSortMkdup() {
-        return std::thread(&SMImpl::OutputBAM, this);
+//    std::thread SMImpl::SpawnSortMkdup() {
+//        return std::thread(&SMImpl::OutputBAM, this);
+//    }
+
+    void SMImpl::ProcessMarkDuplicate() {
+        markdup_impl_->MarkDuplication(ReadID::gTotalReadID());
+        BAMSortMkdupImpl sort_mkdup_impl(sharding_impl_->partition_datas(), options_, bam_hdr_, bam_file_);
+        sort_mkdup_impl.ProcessSortMkdup();
     }
 
     void SMImpl::Sharding() {
@@ -70,8 +81,11 @@ namespace gamtools {
                 int gam_len = 0;
                 const char *gam_data = read_buffer->seqs[i].bam;
                 for (int j = 0; j < read_buffer->seqs[i].bam_num; ++j) {
-                    gam_len = reinterpret_cast<const int32_t *>(gam_data)[5] + 20;
+                    gam_len = reinterpret_cast<const int32_t *>(gam_data)[5] + 24;
                     Slice slice(gam_data, gam_len);
+#ifdef DEBUG
+                    DebugGAMSlice(slice);
+#endif
                     sharding_impl_->Sharding(slice);
 //                    PutSortSlice(slice);
                     gam_data += gam_len;
@@ -79,7 +93,7 @@ namespace gamtools {
                 gam_len = 0;
                 gam_data = read_buffer->seqs[i+1].bam;
                 for (int j = 0; j < read_buffer->seqs[i+1].bam_num; ++j) {
-                    gam_len = reinterpret_cast<const int32_t *>(gam_data)[5] + 20;
+                    gam_len = reinterpret_cast<const int32_t *>(gam_data)[5] + 24;
                     Slice slice(gam_data, gam_len);
                     sharding_impl_->Sharding(slice);
                     gam_data += gam_len;

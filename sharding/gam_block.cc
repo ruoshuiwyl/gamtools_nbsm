@@ -9,6 +9,7 @@
 #include <iostream>
 #include <algorithm>
 #include <util/glogger.h>
+#include <lib/htslib-1.3.1/htslib/sam.h>
 #include "util/slice.h"
 
 namespace gamtools {
@@ -83,10 +84,10 @@ namespace gamtools {
 
     bool GAMComparator(const Slice &a, const Slice &b)  {
         bool r;
-        auto a_key = reinterpret_cast<const int64_t *>(a.data())[0];
-        auto b_key = reinterpret_cast<const int64_t *>(b.data())[0];
-        auto a_read_id = reinterpret_cast<const int64_t  *>(a.data())[1];
-        auto b_read_id = reinterpret_cast<const int64_t  *>(b.data())[1];
+        uint64_t a_key = reinterpret_cast<const uint64_t *>(a.data())[0];
+        uint64_t b_key = reinterpret_cast<const uint64_t *>(b.data())[0];
+        int64_t a_read_id = reinterpret_cast<const int64_t  *>(a.data())[1];
+        int64_t b_read_id = reinterpret_cast<const int64_t  *>(b.data())[1];
         if (a_key < b_key) {
             r = true;
         } else if (a_key > b_key) {
@@ -115,5 +116,7 @@ namespace gamtools {
     GAMBlock::~GAMBlock() {
 //        delete Block::block_data_;
     }
+
+
 
 }

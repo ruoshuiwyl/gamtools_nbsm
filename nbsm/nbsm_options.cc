@@ -8,6 +8,7 @@
 #include <util/glogger.h>
 #include <bwa_mem/bwamem.h>
 #include <fastqc/gam_fastq_file.h>
+#include <boost/filesystem.hpp>
 
 namespace po = boost::program_options;
 namespace gamtools {
@@ -22,7 +23,7 @@ namespace gamtools {
                 ("help,h", "produce help message")
                 ("version,v", "print version message")
                 ("reference_file,r", po::value<std::string>(&reference_file), "Reference sequence file Default(null)")
-                ("temp_dir,d", po::value<std::string>(&temporary_directory_), "Temporary directory Storage space size must be twice BAM file size Default(null)")
+                ("temp_dir,d", po::value<std::string>(&temporary_directory), "Temporary directory Storage space size must be twice BAM file size Default(null)")
                 ("input_fastq1_lists,f", po::value<std::vector<std::string>>(&input_fastq1_lists_), "Input fastq1 file lists")
                 ("input_fastq2_lists,b", po::value<std::vector<std::string>>(&input_fastq2_lists_), "Input fastq2 file lists")
                 ("input_library_id_lists,l",po::value<std::vector<int>>(&input_library_ids_), "Input fastq file library ID" )
@@ -98,7 +99,25 @@ namespace gamtools {
 
         GLOG_INFO << "Start Parse command line";
         if (vm.count("temp_dir")) {
-            GLOG_INFO << "Set temp dir " << temporary_directory_ ;
+            if (temporary_directory.back() == '/') { // skip last directory separator
+                temporary_directory.pop_back();
+            }
+            GLOG_INFO << "Set temp dir " << temporary_directory ;
+            boost::filesystem::path temp_path(temporary_directory);
+            if (boost::filesystem::exists(temp_path)) {
+                if (boost::filesystem::is_directory(temp_path)) {
+                    boost::filesystem::remove_all(temp_path);
+                } else {
+                    GLOG_WARNING << "temporary_directory is not directory; please reset temp directory";
+                }
+            } else {
+                GLOG_INFO << "temp directory not exist; create new temp directory";
+                if (boost::filesystem::create_directories(temp_path)) {
+                    GLOG_INFO << "Create temp directory OK";
+                } else {
+                    GLOG_ERROR << "Create temp directory failed";
+                }
+            }
         } else {
             GLOG_ERROR << "No Set temp dir ";
             return 2;

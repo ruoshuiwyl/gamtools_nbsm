@@ -61,7 +61,7 @@ using  namespace gamtools;
 
 int main(int, char*[]) {
     std::string log_dir = "/home/ruoshui/work/gamtools_sm/cmake-build-debug";
-//    GLogger::InitLog(log_dir);
+    GLogger::InitLog(log_dir);
     BOOST_LOG_FUNCTION();
     GLOG_DEBUG << "A debug severity message";
     GLOG_INFO << "A info  severity message";

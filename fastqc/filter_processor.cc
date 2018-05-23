@@ -96,7 +96,10 @@ namespace gamtools {
                     if (!bwa_read_buffer->AddPairEndRead(read1, read2)) {
                         bwamem_channel_.write(std::move(bwa_read_buffer));
                         bwa_read_buffer = std::unique_ptr<BWAReadBuffer>(new BWAReadBuffer(bwamem_batch_size_));
+                        bwa_read_buffer->AddPairEndRead(read1, read2);
                     }
+                    free(read1);
+                    free(read2);
                 } else { // free not clean
                     gam_read_destory(read1);
                     gam_read_destory(read2);

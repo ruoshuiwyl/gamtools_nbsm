@@ -20,6 +20,7 @@ namespace gamtools {
         void ProcessNBSM();
 
     private:
+        void InitBwaIdxBamHdr();
         bwaidx_t *mem_idx_;
         bam_hdr_t *bam_hdr_;
         NBSMOptions nbsm_options_;
