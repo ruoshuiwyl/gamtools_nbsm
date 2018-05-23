@@ -22,7 +22,7 @@ namespace gamtools {
         pair_flags_.resize(bam_hdr->n_targets);
         negative_pair_flags_ .resize(bam_hdr->n_targets);
         for (int i = 0; i < bam_hdr->n_targets; ++i) {
-            pair_flags_[i].resize(bam_hdr->target_len[i], 0);
+            pair_flags_[i].resize(bam_hdr->target_len[i] + 256, 0);
             negative_pair_flags_[i].resize(1024, 0);
         }
         buffer_ = new char[kBufferLen];
@@ -44,8 +44,10 @@ namespace gamtools {
 
     void MarkDuplicateFragEnd::AddPairFlag(const int tid, const int pos) {
         if (pos >= 0) {
+            assert(tid < pair_flags_.size() && pos < pair_flags_[tid].size());
             pair_flags_[tid][pos] = true;
         } else {
+            assert(tid < pair_flags_.size() && -pos < pair_flags_[tid].size());
             negative_pair_flags_[tid][-pos] = true;
         }
     }

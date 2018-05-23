@@ -26,7 +26,7 @@ namespace gamtools {
         void InitializeSharding();
         ~GAMMarkDuplicateImpl();
 
-        void StorePairEndRecord(const read_end_t *read1_dup, const read_end_t *read2_dup);
+        void StorePairEndRecord(read_end_t *read1_dup, read_end_t *read2_dup);
 
         static const bool IsMarkDuplicate(const uint64_t read_name_id);
 

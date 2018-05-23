@@ -58,7 +58,7 @@ namespace gamtools {
         b->data = (uint8_t *)malloc(b->l_data);
         memcpy(b->data, slice.data() + 36, b->l_data);
         sam_format1(g_bam_hdr, b, &str);
-        GLOG_DEBUG << str.s;
+        GLOG_DEBUG << "BAMSlice:" << str.s;
         free(b->data);
         free(str.s);
         free(b);

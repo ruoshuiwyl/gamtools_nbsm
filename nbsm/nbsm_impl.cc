@@ -97,6 +97,8 @@ namespace gamtools {
         filter_thread.join();
         bwamem_thread.join();
         sm_thread.join();
+
+        bwa_idx_destroy(mem_idx_);
         // mkdup -> merge_sort -> output_bam
 //        auto sm_output_thread = sort_mkdup.SpawnSortMkdup();
 //        sm_output_thread.join();

@@ -17,6 +17,10 @@
 #include "sharding/bam_partition_data.h"
 #include "sharding/bam_block.h"
 
+#ifdef DEBUG
+#include "util/debug_util.h"
+#endif
+
 
 
 namespace gamtools {
@@ -107,9 +111,11 @@ namespace gamtools {
     void BAMSortMkdupImpl::PartitonDecompressMerge() {
         std::unique_ptr<GAMPartitionData> partition_data_ptr;
         while (gam_part_channel_.read(partition_data_ptr)) {
+            GLOG_INFO << "Start merge one sharding";
             Decompress(partition_data_ptr);
             MergePartition(partition_data_ptr);
         }
+        GLOG_INFO << "Finish merge sharding ";
     }
 
     void BAMSortMkdupImpl::Decompress(std::unique_ptr<gamtools::GAMPartitionData> &gam_part) {
@@ -135,6 +141,9 @@ namespace gamtools {
             while (use_len < dblock->size()) {
                 int  bam_size = reinterpret_cast<const int *>(alloc_ptr_)[5] + 24;
                 Slice slice(alloc_ptr_, bam_size);
+#ifdef DEBUG
+                DebugGAMSlice(slice);
+#endif
                 slices.push_back(slice);
                 alloc_ptr_ += bam_size;
                 use_len += bam_size;
@@ -219,8 +228,15 @@ namespace gamtools {
     void BAMSortMkdupImpl::OutputBAM() {
         GLOG_INFO << "Start write bam ";
         bam_file_ = hts_open_format(bam_filename_.c_str(), "wb", nullptr);
-        hts_set_threads(bam_file_, sm_options_.bam_output_thread_num);
-        bam_hdr_write(bam_file_->fp.bgzf, bam_hdr_);
+        if (bam_file_ == nullptr) {
+            GLOG_ERROR << "Write bam open bam file failed " ;
+        }
+        if (!hts_set_threads(bam_file_, sm_options_.bam_output_thread_num)) {
+            GLOG_ERROR << "Write bam set compress thread failed " ;
+        }
+        if (!bam_hdr_write(bam_file_->fp.bgzf, bam_hdr_)) {
+            GLOG_ERROR << "Write bam head failed";
+        }
         std::unique_ptr<BAMBlock> bam_block;
         int current_sharding_idx = 0;
         std::priority_queue<int> finish_sharding_idxs;
@@ -257,6 +273,9 @@ namespace gamtools {
                 auto &slices = block->slices();
                 for (auto it = slices.begin(); it != slices.end(); ++it) {
                     int block_len = it->size() - 4;
+#ifdef DEBUG
+                    DebugBAMSlice(*it);
+#endif
                     int ok = (bgzf_flush_try(bam_file_->fp.bgzf, it->size()) >= 0);
                     if (ok) {
                         ok = bgzf_write(bam_file_->fp.bgzf, (char *)&(block_len)  ,4); // write bam length

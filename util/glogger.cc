@@ -21,7 +21,7 @@ namespace gamtools {
 
         //init
         auto console_sink = logging::add_console_log(std::cout,
-                                 keywords::filter = expr::attr<sign_severity_level>("Severity") >= warning,
+                                 keywords::filter = expr::attr<sign_severity_level>("Severity") >= info,
                                  keywords::format = ">> %Message%" );
 //        core->add_sink(console_sink);
 

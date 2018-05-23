@@ -870,7 +870,7 @@ static void bam_put_aux(const char *tag, const char type, const aux_value_t *val
 	} else if (type == 'Z' || type == 'H') {
 		kputc_(type, str);
 //		kputsn_(q, p - q, &str); // note that this include the trailing NULL
-		kputsn_(value->str, strlen(value->str), str);
+		kputsn_(value->str, strlen(value->str) + 1, str);
 //	} else if (type == 'B') {
 	} else {
 		fprintf(stderr, "unrecognized type");

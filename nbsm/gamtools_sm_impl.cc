@@ -83,9 +83,7 @@ namespace gamtools {
                 for (int j = 0; j < read_buffer->seqs[i].bam_num; ++j) {
                     gam_len = reinterpret_cast<const int32_t *>(gam_data)[5] + 24;
                     Slice slice(gam_data, gam_len);
-#ifdef DEBUG
-                    DebugGAMSlice(slice);
-#endif
+
                     sharding_impl_->Sharding(slice);
 //                    PutSortSlice(slice);
                     gam_data += gam_len;
@@ -98,8 +96,8 @@ namespace gamtools {
                     sharding_impl_->Sharding(slice);
                     gam_data += gam_len;
                 }
-                const read_end_t *read1_dup = read_buffer->seqs[i].dup;
-                const read_end_t *read2_dup = read_buffer->seqs[i+1].dup;
+                read_end_t *read1_dup = read_buffer->seqs[i].dup;
+                read_end_t *read2_dup = read_buffer->seqs[i+1].dup;
                 markdup_impl_->StorePairEndRecord(read1_dup, read2_dup);
             }
         }
@@ -107,5 +105,6 @@ namespace gamtools {
         if (input_.eof()) {
             sharding_impl_->SendEof();
         }
+
     }
 }

@@ -119,9 +119,10 @@ namespace gamtools {
         }
     }
 
-    void GAMMarkDuplicateImpl::StorePairEndRecord(const read_end_t *read1_dup, const read_end_t *read2_dup) {
+    void GAMMarkDuplicateImpl::StorePairEndRecord(read_end_t *read1_dup, read_end_t *read2_dup) {
         if (read1_dup != nullptr && read2_dup != nullptr) {
             auto pair_end = ComputePairEnds(read1_dup, read2_dup);
+
             int pair_index = SeekMarkDupIndex(pair_end->read1_tid_, pair_end->read1_pos_);
             markdup_frag_end_->AddPairFlag(read1_dup->tid, read1_dup->pos);
             markdup_frag_end_->AddPairFlag(read2_dup->tid, read2_dup->pos);
@@ -130,6 +131,8 @@ namespace gamtools {
             } else {
                 GLOG_ERROR << __FUNCTION__ <<  "Mark duplicate stage pair_index out of markdup_regions_";
             }
+            free(read1_dup);
+            free(read2_dup);
         } else if (read1_dup != nullptr && read2_dup == nullptr) {
             markdup_frag_end_->AddFragEnd(read1_dup);
         } else if (read1_dup == nullptr && read2_dup != nullptr) {
