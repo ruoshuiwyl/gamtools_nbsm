@@ -77,7 +77,7 @@ add_library(gam_sm ""
         sharding/bam_sort_mkdup_impl.cc
         sharding/bam_sort_mkdup_impl.h
         util/debug_util.cc
-        util/debug_util.h)
+        util/debug_util.h fastqc/fastq_info_statistics.cc fastqc/fastq_info_statistics.h)
 
 target_sources(gam_sm PRIVATE
         "${PROJECT_SOURCE_DIR}/util/slice.h"

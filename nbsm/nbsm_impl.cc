@@ -13,12 +13,17 @@
 #include "bwa_mem/bwa.h"
 
 #include "util/glogger.h"
+
+#include "fastqc/gam_fastq_file.h"
 #include "fastqc/gam_fastq_read_impl.h"
+#include "fastqc/fastq_info_statistics.h"
 #include "fastqc/filter_processor.h"
+#include "mkdup/gam_mark_duplicate_impl.h"
+
 #include "nbsm_impl.h"
 #include "gamtools_sm_impl.h"
-#include "mkdup/gam_mark_duplicate_impl.h"
-#include "fastqc/gam_fastq_file.h"
+
+
 
 #ifdef DEBUG
 #include "util/debug_util.h"
@@ -84,7 +89,14 @@ namespace gamtools {
 
     void NBSMImpl::ProcessNBSM() {
         GAMFastqReadImpl read_fastq(nbsm_options_.fastq_file_lists, read_fastq_, nbsm_options_.batch_size * nbsm_options_.read_len );
-        FilterProcessor filter(nbsm_options_.filter_options, read_fastq_, input_fastq_, 1, nbsm_options_.batch_size * nbsm_options_.nbsm_thread_num);
+        std::unique_ptr<FastqInfoStatistics> fastq_info_stats(
+                new FastqInfoStatistics(nbsm_options_.fastq_file_lists.size(),
+                                        nbsm_options_.statistics_file,
+                                        nbsm_options_.fastq_file_lists)
+        );
+
+        FilterProcessor filter(nbsm_options_.filter_options, read_fastq_, input_fastq_, 1,
+                               nbsm_options_.batch_size * nbsm_options_.nbsm_thread_num, std::move(fastq_info_stats));
         GAMBWAMEM bwa_mem(input_fastq_, output_gam_, nbsm_options_.mem_opt, mem_idx_);
         SMImpl sort_mkdup(bam_hdr_, nbsm_options_.sm_options, nbsm_options_.output_bam_file, output_gam_);
 

@@ -191,6 +191,8 @@ namespace gamtools {
 
         if (vm.count("output_bam_file")) {
             GLOG_INFO << "Set Output bam filename " << output_bam_file;
+            statistics_file = output_bam_file + ".qc";
+            GLOG_INFO << "Set output QC filename " << statistics_file;
         } else {
             GLOG_ERROR << "Not set output_bam_file";
             return 2;

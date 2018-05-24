@@ -41,10 +41,11 @@ namespace gamtools {
         uint64_t  total_n_excess_num;
         uint64_t  total_low_qual_num;
         void Add(const BaseFqInfo &base_fq_info);
-
     };
 
-    std::string PrintBaseFqInfo(const std::string &head, const BaseFqInfo *fq_info1, const BaseFqInfo *fq_info2);
+
+
+    std::string PrintBaseFqInfo(const BaseFqInfo *fq_info1, const BaseFqInfo *fq_info2);
 }
 
 

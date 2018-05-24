@@ -24,6 +24,15 @@ namespace gamtools {
         }
         ~GAMReadBuffer();
         void AddFastqInfo(BaseFqInfo &fq_info1, BaseFqInfo &fq_info2);
+        const BaseFqInfo& fq_info1() const {
+            return fq_info1_;
+        };
+        const BaseFqInfo& fq_info2() const {
+            return fq_info1_;
+        };
+        const int lane_id() const {
+            return lane_id_;
+        }
     private:
         int size_;
         int lane_id_;
