@@ -35,6 +35,7 @@ namespace gamtools {
 
     }
     int NBSMImpl::ParseProgramOptions(int argc, char **argv) {
+        GLogger::InitLog(nbsm_options_.temporary_directory);
         int type = nbsm_options_.ParserCommandLine(argc, argv);
         if (type >= 2) {
             GLOG_ERROR << "Parser Parameter Error" ;
@@ -47,7 +48,7 @@ namespace gamtools {
     }
     void NBSMImpl::Initialization() {
         InitBwaIdxBamHdr();
-        GLogger::InitLog(nbsm_options_.temporary_directory);
+
 
 
     }

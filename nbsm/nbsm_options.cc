@@ -108,7 +108,7 @@ namespace gamtools {
             boost::filesystem::path temp_path(temporary_directory);
             if (boost::filesystem::exists(temp_path)) {
                 if (boost::filesystem::is_directory(temp_path)) {
-                    boost::filesystem::remove_all(temp_path);
+//                    boost::filesystem::remove_file(temp_path);
                 } else {
                     GLOG_WARNING << "temporary_directory is not directory; please reset temp directory";
                 }
@@ -191,7 +191,9 @@ namespace gamtools {
 
         if (vm.count("output_bam_file")) {
             GLOG_INFO << "Set Output bam filename " << output_bam_file;
-            statistics_file = output_bam_file + ".qc";
+            boost::filesystem::path output_bam_path(output_bam_file);
+            boost::filesystem::path qc_path = boost::filesystem::change_extension(output_bam_path, "qc");
+            statistics_file = qc_path.string();
             GLOG_INFO << "Set output QC filename " << statistics_file;
         } else {
             GLOG_ERROR << "Not set output_bam_file";
