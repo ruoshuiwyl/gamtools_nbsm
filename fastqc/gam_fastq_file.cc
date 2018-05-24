@@ -64,8 +64,8 @@ namespace gamtools {
         } else {
             data[l_name] = 0;
         }
-        read->name = (char *) malloc (l_name + 1);
-        memcpy(read->name, data + 1, l_name - 1);
+        read->name = (char *) malloc (l_name);
+        memcpy(read->name, data + 1, l_name);
         assert(gzgets(fastq_file, data, kMaxLineLength)) ; // read seq
         read->l_seq = strlen(data) - 1;
         data[read->l_seq] = 0;

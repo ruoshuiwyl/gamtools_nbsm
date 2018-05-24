@@ -24,13 +24,15 @@
 namespace gamtools {
     int nbsm_impl_test(int argc, char *argv[]) {
         NBSMImpl nbsm;
+        int err_code;
         if (!nbsm.ParseProgramOptions(argc, argv)) {
-
             nbsm.Initialization();
             nbsm.ProcessNBSM();
+            err_code = 0;
         } else {
-            return 1;
+            err_code = 1;
         }
+        return err_code;
     }
 }
 

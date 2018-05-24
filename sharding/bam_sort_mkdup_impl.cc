@@ -177,11 +177,11 @@ namespace gamtools {
                 int64_t read_id = reinterpret_cast<const int64_t *>(data.slice_itr_->data())[1];
                 const bool markdup_flag = GAMMarkDuplicateImpl::IsMarkDuplicate(read_id); // Markdup read
                 const char *bam = data.slice_itr_->data() + 20;
-                if (markdup_flag) { // flag add mark dup flag 0x400
+                if (markdup_flag) { // flag add mark dup flag 0x400 1024
                     int bam_flag = reinterpret_cast< const int *>(bam)[4] | (0x400 << 16);
                     reinterpret_cast< int *>(const_cast<char *> (bam))[4] = bam_flag;
                 }
-                Slice slice(bam, reinterpret_cast<const int *>(bam)[0]);
+                Slice slice(bam, reinterpret_cast<const int *>(bam)[0] + 4);
                 InsertBAMSlice(slice, bam_block_ptr);
                 ++data.slice_itr_;
                 bam_heap.pop();
@@ -200,7 +200,7 @@ namespace gamtools {
                     int bam_flag = reinterpret_cast< const int *>(bam)[4] | (0x400 << 16);
                     reinterpret_cast< int *>(const_cast<char *> (bam))[4] = bam_flag;
                 }
-                Slice slice(bam, reinterpret_cast<const int *>(bam)[0]);
+                Slice slice(bam, reinterpret_cast<const int *>(bam)[0] + 4);
                 InsertBAMSlice(slice, bam_block_ptr);
             }
         }
@@ -263,8 +263,11 @@ namespace gamtools {
         }
         assert(finish_sharding_idxs.empty());
         if (output_bam_channel_.eof()) {
-            bgzf_close(bam_file_->fp.bgzf);
+            hts_close(bam_file_);
+        } else {
+            GLOG_ERROR << "close bam file failed";
         }
+
     }
 
     void BAMSortMkdupImpl::OutputShardingBAM(int current_sharding_idx) {
@@ -281,11 +284,11 @@ namespace gamtools {
                         ok = bgzf_write(bam_file_->fp.bgzf, (char *)&(block_len)  ,4); // write bam length
                     }
                     if (ok) {
-                        ok = bgzf_write(bam_file_->fp.bgzf, block->data() + 4, 32); // write bam core data 32B
+                        ok = bgzf_write(bam_file_->fp.bgzf, it->data() + 4, 32); // write bam core data 32B
                     }
                     if (ok) {
             // write bam data variant length
-                        ok = bgzf_write(bam_file_->fp.bgzf, block->data() + 36, block_len - 32);
+                        ok = bgzf_write(bam_file_->fp.bgzf, it->data() + 36, block_len - 32);
                     }
                     if (!ok) {
                         GLOG_ERROR << "Write BAM";

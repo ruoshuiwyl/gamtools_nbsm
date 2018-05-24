@@ -80,7 +80,9 @@ namespace gamtools {
         mem_opt->n_threads = 1; // default mem thread number 8
         mem_opt->flag |= MEM_F_PE; //default set pair end read
     }
-
+    NBSMOptions::~NBSMOptions() {
+        free (mem_opt);
+    }
     int NBSMOptions::ParserCommandLine(int argc, char **argv) {
         po::variables_map vm;
         po::store(po::parse_command_line(argc, argv, opt_des_), vm);

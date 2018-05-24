@@ -17,6 +17,7 @@ namespace gamtools {
     class NBSMOptions {
     public:
         NBSMOptions();
+        ~NBSMOptions();
         /*
          * return parameter error code
          * 0 : ok

@@ -906,6 +906,7 @@ static void put_bam_data(kstring_t *bam, const bseq1_t *s, const gam1_core_t *co
 
 
 static int bam_seq_int[5] = {1, 2, 4, 8, 15};
+static int bam_cigar_int[5] = {0, 1, 2, 4, 5};
 
 void mem_aln2bam(const mem_opt_t *opt, const bntseq_t *bns, kstring_t *str, bseq1_t *s, int n, const mem_aln_t *list, int which, const mem_aln_t *m_)
 {
@@ -951,7 +952,7 @@ void mem_aln2bam(const mem_opt_t *opt, const bntseq_t *bns, kstring_t *str, bseq
 				if (!(opt->flag&MEM_F_SOFTCLIP) && !p->is_alt && (c == 3 || c == 4)) {
 					c = which ? 4 : 3; // use hard clipping for supplementary alignments
 				}
-				cigar_ = cigar_ | c;
+				cigar_ = cigar_ | bam_cigar_int[c];
 				kputsn((char*)&cigar_, sizeof(uint32_t), &bam_data);
 ////				kputw(p->cigar[i]>>4, str); kputc("MIDSH"[c], str);
 //
@@ -1163,6 +1164,7 @@ void mem_aln2bam(const mem_opt_t *opt, const bntseq_t *bns, kstring_t *str, bseq
 	}
 
 	put_bam_data(str, s, &core, &bam_data);
+	free(bam_data.s);
 
 
 	// no comment

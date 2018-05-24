@@ -98,6 +98,8 @@ namespace gamtools {
                 }
                 read_end_t *read1_dup = read_buffer->seqs[i].dup;
                 read_end_t *read2_dup = read_buffer->seqs[i+1].dup;
+                read_buffer->seqs[i].dup = nullptr;
+                read_buffer->seqs[i].dup = nullptr;
                 markdup_impl_->StorePairEndRecord(read1_dup, read2_dup);
             }
         }
