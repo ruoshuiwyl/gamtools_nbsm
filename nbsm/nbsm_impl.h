@@ -16,9 +16,9 @@ namespace gamtools {
     public:
         NBSMImpl();
         int ParseProgramOptions(int argc, char *argv[]);
+
         void Initialization();
         void ProcessNBSM();
-
     private:
         void InitBwaIdxBamHdr();
         bwaidx_t *mem_idx_;

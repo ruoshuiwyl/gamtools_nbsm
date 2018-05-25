@@ -35,22 +35,11 @@ namespace gamtools {
 
     }
     int NBSMImpl::ParseProgramOptions(int argc, char **argv) {
-        GLogger::InitLog(nbsm_options_.temporary_directory);
-        int type = nbsm_options_.ParserCommandLine(argc, argv);
-        if (type >= 2) {
-            GLOG_ERROR << "Parser Parameter Error" ;
-            nbsm_options_.help();
-            return 1;
-        } else if (type == 1){
-            return 1;
-        }
-        return 0;
+        return nbsm_options_.ParserCommandLine(argc, argv);
     }
     void NBSMImpl::Initialization() {
+        GLogger::InitLog(nbsm_options_.temporary_directory);
         InitBwaIdxBamHdr();
-
-
-
     }
 
     void NBSMImpl::InitBwaIdxBamHdr() {
@@ -73,7 +62,7 @@ namespace gamtools {
         sprintf(bam_header, "@RG\tID:%s\tSM:%s", nbsm_options_.sample_id.c_str(), nbsm_options_.sample_name.c_str());
         char * rg_line = bwa_set_rg(bam_header);
 
-        sprintf(bam_header, "@PG\tID:bwa\tPN:bwa\tVN:%s\tCL:%s", "v0.7.15","gamtools" );
+        sprintf(bam_header, "@PG\tID:bwa\tPN:bwa\tVN:%s\tCL:%s\n", "v0.7.15","gamtools" );
         kputsn(bam_header, strlen(bam_header), &str);
         sprintf(bam_header, "@PG\tID:NBSM\tPN:GAMTOOLS_NBSM\tVN:%s\n", "v0.1.0");
         kputsn(bam_header, strlen(bam_header), &str);

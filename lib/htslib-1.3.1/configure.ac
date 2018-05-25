@@ -24,7 +24,7 @@
 
 dnl Process this file with autoconf to produce a configure script
 AC_INIT([HTSlib], m4_esyscmd_s([make print-version]),
-        [samtools-help@lists.sourceforge.net], [], [http://www.htslib.org/])
+        [samtools-CheckHelp@lists.sourceforge.net], [], [http://www.htslib.org/])
 AC_PREREQ(2.63)  dnl This version introduced 4-argument AC_CHECK_HEADER
 AC_CONFIG_SRCDIR(hts.c)
 AC_CONFIG_HEADERS(config.h)

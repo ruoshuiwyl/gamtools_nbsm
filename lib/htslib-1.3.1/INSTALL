@@ -85,7 +85,7 @@ a fixed 'htslib' subdirectory under the specified .../include location.)
 
 You can specify a different location to install HTSlib by configuring
 with --prefix=DIR or specify locations for particular parts of HTSlib by
-configuring with --libdir=DIR and so on.  Type './configure --help' for
+configuring with --libdir=DIR and so on.  Type './configure --CheckHelp' for
 the full list of such install directory options.
 
 Alternatively you can specify different locations at install time by

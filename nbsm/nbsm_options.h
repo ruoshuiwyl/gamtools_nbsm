@@ -21,7 +21,7 @@ namespace gamtools {
         /*
          * return parameter error code
          * 0 : ok
-         * 1 : return help or version
+         * 1 : return CheckHelp or version
          * 2 : parameter must set but not set
          * 3 : parameter number error
          * 4 : parameter repeat
@@ -29,7 +29,7 @@ namespace gamtools {
          * 6 : other error
        */
         int ParserCommandLine(int argc, char *argv[]);
-        void help();
+        int CheckHelp();
 //        BaseOptions base_options;
         FilterOptions filter_options;
         SMOptions sm_options;
@@ -45,8 +45,12 @@ namespace gamtools {
         int nbsm_thread_num;
         std::string temporary_directory;
     private:
+        int ParserBasicParameters();
+        int ParserFilterParameter();
+        int ParserBWAMEMParameter();
+        int ParserSortMkdupParameter();
 
-
+        boost::program_options::variables_map vm;
         std::vector<int> input_library_ids_;
         std::vector<int> input_lane_ids_;
         std::vector<std::string> input_fastq1_lists_;
