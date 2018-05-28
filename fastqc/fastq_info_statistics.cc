@@ -18,6 +18,7 @@ namespace gamtools {
 
     void FastqInfoStatistics::AddBatchFastqInfo(int lane_id, const BaseFqInfo &baseFqInfo1,
                                                 const BaseFqInfo &baseFqInfo2) {
+
         if (lane_id < lane_cnt_) {
             fastq_infos_[lane_id].first.Add(baseFqInfo1);
             fastq_infos_[lane_id].second.Add(baseFqInfo2);

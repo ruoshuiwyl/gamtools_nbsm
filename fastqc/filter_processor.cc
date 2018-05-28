@@ -72,24 +72,11 @@ namespace gamtools {
     }
 
     void FilterProcessor::Filter() {
+
         std::unique_ptr<GAMReadBuffer> read_buffer;
         std::unique_ptr<BWAReadBuffer> bwa_read_buffer(new BWAReadBuffer(bwamem_batch_size_));
         while (fastq_channel_.read(read_buffer)) {
-            std::vector<std::thread> filter_thread;
-            int batch_size = read_buffer->size() / thread_num_;
-            int index = 0;
-            for (int i = 0; i < thread_num_; ++i) {
-                int start = index;
-                int end = index + batch_size > read_buffer->size()? read_buffer->size() : index + batch_size;
-                index = end;
-//                filter_thread.push_back(std::thread(&FilterProcessor::BatchFilter, this, read_buffer, start, end));
-                filter_thread.push_back(std::thread([&]{BatchFilter(read_buffer, start, end);}));
-
-            }
-            for (auto &th : filter_thread) {
-                th.join();
-            }
-
+            BatchFilter(read_buffer, 0, read_buffer->size());
             fastq_info_stats_->AddBatchFastqInfo(read_buffer->lane_id(), read_buffer->fq_info1(),read_buffer->fq_info2());
             for (int i = 0; i < read_buffer->size(); ++i) {
                 auto read1 = read_buffer->read1(i);
@@ -109,12 +96,12 @@ namespace gamtools {
             }
 
         }
+
         if (fastq_channel_.eof()) {
             bwamem_channel_.write(std::move(bwa_read_buffer));
             bwamem_channel_.SendEof();
             fastq_info_stats_->OutputFastqInfo();
         }
-
     }
 
 

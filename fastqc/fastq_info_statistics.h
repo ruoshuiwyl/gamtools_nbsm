@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <string>
+#include <mutex>
 
 namespace gamtools {
     struct BaseFqInfo;
@@ -22,6 +23,7 @@ namespace gamtools {
         std::vector<GAMFastqFileInfo> &fastq_file_lists_;
         std::string file_name_;
         int lane_cnt_;
+        std::mutex mtx;
     };
 }
 
