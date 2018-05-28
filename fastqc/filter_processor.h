@@ -56,11 +56,9 @@ namespace gamtools {
     class FastqInfoStatistics;
     class FilterProcessor {
     public:
-        explicit FilterProcessor(const FilterOptions &filter_options,
-                                 Channel <std::unique_ptr<GAMReadBuffer>> &fastq_channel,
-                                 Channel <std::unique_ptr<BWAReadBuffer>> &bwamem_channel, int thread_num,
-                                 const int bwamem_batch_size,
-                                 std::unique_ptr<FastqInfoStatistics> &&fastq_info_stats);
+        explicit FilterProcessor(const FilterOptions &filter_options, Channel <std::unique_ptr<GAMReadBuffer>> &fastq_channel,
+                                         Channel <std::unique_ptr<BWAReadBuffer>> &bwamem_channel, const int bwamem_batch_size,
+                                         std::unique_ptr<FastqInfoStatistics> &&fastq_info_stats);
 
         std::thread spawn();
         void Filter();

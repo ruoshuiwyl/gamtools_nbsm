@@ -75,6 +75,10 @@ namespace  gamtools {
         // Default : 0.5
         float adapter_match_ratio;
 
+        // Filter thread num
+        // Default : 2
+        int filter_thread_num;
+
         FilterOptions();
     };
 }

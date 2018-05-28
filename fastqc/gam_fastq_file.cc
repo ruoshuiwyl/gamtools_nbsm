@@ -26,7 +26,7 @@ namespace gamtools {
 
     std::unique_ptr<GAMReadBuffer> GAMFastqFile::ReadFastq(int batch_size) {
         int current_size = 0;
-        std::unique_ptr<GAMReadBuffer> read_buffer(new GAMReadBuffer(0));
+        std::unique_ptr<GAMReadBuffer> read_buffer(new GAMReadBuffer(fq_info_.lane_id));
         while (current_size < batch_size) {
             GAMRead* read1 = ReadOneFastq(fastq_1_file_);
             GAMRead* read2 = ReadOneFastq(fastq_2_file_);
@@ -35,7 +35,7 @@ namespace gamtools {
                 read2->read_id = ReadID::gTotalReadID();
                 ReadID::gIncreamReadID();
                 read_buffer->AddPERead(read1, read2);
-                current_size += read1->l_seq + read2->l_seq;
+                current_size += 2;
             } else {
                 if (read_buffer->size() > 0) {
                     return read_buffer;

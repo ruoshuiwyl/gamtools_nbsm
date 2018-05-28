@@ -35,6 +35,7 @@ namespace  gamtools{
                qual_rate(0.05),
                adapter_mis_match(1),
                adapter_match_ratio(0.5),
+               filter_thread_num(2),
                adapter1("AAGTCGGAGGCCAAGCGGTCTTAGGAAGACAA"),
                adapter2("AAGTCGGATCGTAGCCATGTCGTTCTGTGAGCCAAGGAGTTG") {
 
