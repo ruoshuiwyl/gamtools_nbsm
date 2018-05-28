@@ -75,7 +75,7 @@ namespace gamtools {
     void BAMShardingImpl::Sharding(const Slice &slice) {
         int64_t key = reinterpret_cast<const int64_t *> (slice.data())[0];
         int contig_id = key >> 32;
-        int position_id = (key & 0xffffffff) >> 20;
+        int position_id = ((key & 0xffffffff) >> 1 ) >> (options_.sort_region_size);
         auto &sharding_idx = sort_idx_->sharding_index();
 #ifdef DEBUG
         DebugGAMSlice(slice);
