@@ -177,7 +177,7 @@ endif(SM_BUILD_TESTS)
 
 #add_executable(nbsm_options_test nbsm/nbsm_options_test.cc nbsm/nbsm_options.h nbsm/nbsm_options.cc util/glogger.h util/glogger.cc)
 #target_link_libraries(nbsm_options_test boost_program_options boost_log pthread boost_thread boost_system boost_log_setup)
-target_link_libraries(nbsm_impl_test boost_program_options boost_log pthread boost_thread boost_system boost_log_setup boost_filesystem)
+#target_link_libraries(nbsm_impl_test boost_program_options boost_log pthread boost_thread boost_system boost_log_setup boost_filesystem)
 
 
 add_executable(nbsm_tools nbsm/main.cc )

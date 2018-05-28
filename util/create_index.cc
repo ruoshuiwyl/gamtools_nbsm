@@ -62,9 +62,10 @@ namespace gamtools {
         bool status = boost::filesystem::create_directory(dir_path); //read & write
 
         if (!status) {
-            GLOG_ERROR << "Create directory name failed " << dir_name;
+            GLOG_ERROR << "Create directory name  " << dir_name << " failed" ;
+            exit(1);
         } else {
-            GLOG_INFO << "Create directory " << dir_name << "\tOK ";
+            GLOG_INFO << "Create directory name" << dir_name << "\tOK ";
         }
         return dir_name;
     }

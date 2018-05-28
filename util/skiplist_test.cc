@@ -7,7 +7,7 @@
 #include "util/arena.h"
 #include "util/skiplist.h"
 
-namespace gamtools_sm {
+namespace gamtools{
     class SkipTest {
     };
 

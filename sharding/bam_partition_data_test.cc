@@ -7,13 +7,8 @@
 #include "bam_partition_data.h"
 #include "gam_block.h"
 
-namespace gamtools_sm {
+namespace gamtools {
 
-    TEST(PartitionDataTest, MergeSort) {
-        Channel<std::unique_ptr<GAMBlock>> sort_channel;
-        std::string filename;
-        BAMPartitionData partition_data(sort_channel, filename);
-    }
 
 
 }
