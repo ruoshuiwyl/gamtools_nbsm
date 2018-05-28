@@ -5,7 +5,7 @@ set(CMAKE_CXX_COMPILER /usr/bin/g++-7)
 #set(CMAKE_CXX_FLAGS "-DBOOST_LOG_DYN_LINK" )
 #set(CMAKE_CXX_FLAGS  "-DBOOST_ALL_DYN_LINK -D_GLIBCXX_USE_CXX11_ABI=0 -DDEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0 -DBOOST_ALL_DYN_LINK -D_GLIBCXX_USE_CXX11_ABI=0 -DDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "DBOOST_ALL_DYN_LINK -D_GLIBCXX_USE_CXX11_ABI=0 -O2 -finline-limit=1000 -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "-DBOOST_ALL_DYN_LINK -D_GLIBCXX_USE_CXX11_ABI=0 -O2 -finline-limit=1000 -DNDEBUG")
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 11)
 
@@ -15,7 +15,6 @@ option(SM_BUILD_TESTS "Build GAMTOOLS SM's unit tests" ON)
 
 include_directories(
         "${PROJECT_SOURCE_DIR}"
-        "${PROJECT_SOURCE_DIR}/include"
         "${PROJECT_SOURCE_DIR}/lib/htslib-1.3.1"
 #        "${PROJECT_SOURCE_DIR}/lib/bwa-0.7.15"
 )
@@ -79,7 +78,9 @@ add_library(gam_sm ""
         sharding/bam_sort_mkdup_impl.cc
         sharding/bam_sort_mkdup_impl.h
         util/debug_util.cc
-        util/debug_util.h fastqc/fastq_info_statistics.cc fastqc/fastq_info_statistics.h)
+        util/debug_util.h
+        fastqc/fastq_info_statistics.cc
+        fastqc/fastq_info_statistics.h)
 
 target_sources(gam_sm PRIVATE
         "${PROJECT_SOURCE_DIR}/util/slice.h"
@@ -95,8 +96,8 @@ target_sources(gam_sm PRIVATE
 
         "${PROJECT_SOURCE_DIR}/sharding/bam_sharding_impl.cc"
         "${PROJECT_SOURCE_DIR}/sharding/bam_sharding_impl.h"
-        "sharding/bam_partition_data.h"
-        "sharding/bam_partition_data.cc"
+        "${PROJECT_SOURCE_DIR}/sharding/bam_partition_data.h"
+        "${PROJECT_SOURCE_DIR}/sharding/bam_partition_data.cc"
         "${PROJECT_SOURCE_DIR}/mkdup/gam_mark_duplicate_impl.cc"
         "${PROJECT_SOURCE_DIR}/mkdup/gam_mark_duplicate_impl.h"
         "${PROJECT_SOURCE_DIR}/mkdup/mark_duplicate_region.h"
@@ -171,9 +172,15 @@ if(SM_BUILD_TESTS)
 
 endif(SM_BUILD_TESTS)
 
-add_executable(glogger_test util/glogger_test.cc util/glogger.h util/glogger.cc)
-target_link_libraries(glogger_test boost_log pthread boost_thread boost_system boost_log_setup)
+#add_executable(glogger_test util/glogger_test.cc util/glogger.h util/glogger.cc)
+#target_link_libraries(glogger_test boost_log pthread boost_thread boost_system boost_log_setup)
 
 #add_executable(nbsm_options_test nbsm/nbsm_options_test.cc nbsm/nbsm_options.h nbsm/nbsm_options.cc util/glogger.h util/glogger.cc)
 #target_link_libraries(nbsm_options_test boost_program_options boost_log pthread boost_thread boost_system boost_log_setup)
 target_link_libraries(nbsm_impl_test boost_program_options boost_log pthread boost_thread boost_system boost_log_setup boost_filesystem)
+
+
+add_executable(nbsm_tools nbsm/main.cc )
+
+target_link_libraries(nbsm_tools gam_sm boost_program_options boost_log pthread
+        boost_thread boost_system boost_log_setup boost_filesystem ${PROJECT_SOURCE_DIR}/lib/htslib-1.3.1/libhts.a z snappy )

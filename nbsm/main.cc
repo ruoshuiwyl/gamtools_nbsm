@@ -7,14 +7,11 @@
 #include "gamtools_sm_impl.h"
 #include "nbsm/nbsm_impl.h"
 
-using  gamtools;
+using  namespace gamtools;
 int main(int argc, char *argv[] ) {
     NBSMImpl nbsm;
     int err_code;
     if (!nbsm.ParseProgramOptions(argc, argv)) {
-        nbsm.CheckHelp();
-        nbsm.CkeckVersion();
-
         nbsm.Initialization();
         nbsm.ProcessNBSM();
         err_code = 0;
