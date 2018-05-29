@@ -64,6 +64,10 @@ namespace gamtools {
 
     }
 
+    bool BWAReadBuffer::empty() {
+        return size == 0;
+    }
+
     void BWAReadBuffer::GAMReadCopy(GAMRead *dst, const GAMRead *src) {
         dst->is_clean = src->is_clean;
         dst->l_seq = src->l_seq;    // read_len

@@ -49,7 +49,8 @@ namespace gamtools {
               bam_filename_(bam_filename),
               sm_options_(sm_opt) {
         block_size_ = sm_opt.sort_block_size;
-        chunks_.resize(bam_hdr->n_targets + 1);
+//        chunks_.resize(bam_hdr->n_targets + 1);
+        chunks_.resize(partition_datas.size());
 
     }
 

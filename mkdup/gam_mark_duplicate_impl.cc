@@ -8,6 +8,8 @@
 #include <util/create_index.h>
 #include <bwa_mem/gam_read.h>
 #include <util/glogger.h>
+
+#include "util/boost/threadpool.hpp"
 #include "gam_mark_duplicate_impl.h"
 #include "mark_duplicate_frag_end.h"
 //#include "nbsm/options.h"
@@ -153,17 +155,24 @@ namespace gamtools {
         mark_dup_readname_id_.resize(total_read_name_id, false);
 
         std::thread frag_mark_duplicate_thread = markdup_frag_end_->spawn();
+        boost::threadpool::pool pl(thread_num_);
         for (int chr_index = 0; chr_index < markdup_regions_.size(); chr_index += thread_num_) {
-            std::vector<std::thread> threads;
+//            std::vector<std::thread> threads;
+
             for (int i = chr_index; (i - chr_index < thread_num_) && (i < markdup_regions_.size()); ++i) {
-                threads.push_back(markdup_regions_[i]->spawn());
+//                threads.push_back(markdup_regions_[i]->spawn());
+                pl.schedule([&]{
+                    markdup_regions_[i]->ProcessMarkDuplicate();
+                });
             }
-            for (auto &thread : threads) {
-                thread.join();
-            }
-            threads.clear();
+            pl.wait();
+//            for (auto &thread : threads) {
+//                thread.join();
+//            }
+//            threads.clear();
         }
 //        DebugOutput(true);
+        pl.clear();
         frag_mark_duplicate_thread.join();
     }
 

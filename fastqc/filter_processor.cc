@@ -6,6 +6,9 @@
 #include <iostream>
 #include <cstring>
 #include <thread>
+
+#include "util/boost/threadpool.hpp"
+
 #include <nbsm/options.h>
 #include "filter_processor.h"
 #include "base_fastq_info.h"
@@ -14,6 +17,8 @@
 
 #include "fastqc/fastq_info_statistics.h"
 #include "fastqc/gam_fastq_file.h"
+
+
 
 
 using namespace std;
@@ -72,11 +77,27 @@ namespace gamtools {
     }
 
     void FilterProcessor::Filter() {
-
         std::unique_ptr<GAMReadBuffer> read_buffer;
         std::unique_ptr<BWAReadBuffer> bwa_read_buffer(new BWAReadBuffer(bwamem_batch_size_));
+        boost::threadpool::pool pl(thread_num_);
         while (fastq_channel_.read(read_buffer)) {
-            BatchFilter(read_buffer, 0, read_buffer->size());
+            int batch_size = read_buffer->size() / thread_num_;
+            int index = 0;
+            for (int i = 0; i < thread_num_; ++i) {
+                int start = index;
+                int end = index + batch_size > read_buffer->size()? read_buffer->size() : index + batch_size;
+                index = end;
+//                filter_thread.push_back(std::thread(&FilterProcessor::BatchFilter, this, read_buffer, start, end));
+//                filter_thread.push_back(std::thread([&]{BatchFilter(read_buffer, start, end);}));
+//                auto batch_filter = std::bind(&FilterProcessor::BatchFilter, this, read_buffer, start, end);
+//                pool.submit(std::bind(&FilterProcessor::BatchFilter, this, read_buffer, start, end));
+                pl.schedule([&] { BatchFilter(read_buffer, start, end); });
+//                pl.schedule(std::bind(&FilterProcessor::BatchFilter, this, read_buffer, start, end));
+            }
+//            for (auto &th : filter_thread) {
+//                th.join();
+//            }
+            pl.wait();
             fastq_info_stats_->AddBatchFastqInfo(read_buffer->lane_id(), read_buffer->fq_info1(),read_buffer->fq_info2());
             for (int i = 0; i < read_buffer->size(); ++i) {
                 auto read1 = read_buffer->read1(i);
@@ -96,12 +117,13 @@ namespace gamtools {
             }
 
         }
-
         if (fastq_channel_.eof()) {
             bwamem_channel_.write(std::move(bwa_read_buffer));
             bwamem_channel_.SendEof();
             fastq_info_stats_->OutputFastqInfo();
         }
+        pl.clear();
+
     }
 
 

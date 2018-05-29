@@ -382,6 +382,8 @@ namespace gamtools {
 
         if (vm.count("sm_block_sort_thread")) {
             sm_options.block_sort_thread_num = vm["sm_block_sort_thread"].as<int>();
+        } else {
+            sm_options.block_sort_thread_num = nbsm_thread_num / 5 > 1 ? nbsm_thread_num / 5 : 1 ;
         }
         if (vm.count("sm_merge_thread")) {
             sm_options.merge_sort_thread_num = vm["sm_merge_thread"].as<int>();
@@ -399,6 +401,7 @@ namespace gamtools {
             sm_options.mark_dup_thread_num = nbsm_thread_num;
         }
         sm_options.directory = temporary_directory;
+        GLOG_INFO << "Set block sort thread number " << sm_options.block_sort_thread_num;
         GLOG_INFO << "Set intermediate  file" << sm_options.directory;
         GLOG_INFO << "Set sm mark duplicate block size " << sm_options.markdup_block_size;
         GLOG_INFO << "Set sharding stage sm  sort block thread num " << sm_options.block_sort_thread_num;

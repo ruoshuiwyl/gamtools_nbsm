@@ -46,6 +46,7 @@ namespace gamtools {
         BWAReadBuffer(int batch);
         ~BWAReadBuffer();
         bool AddPairEndRead(GAMRead *read1, GAMRead *read2);
+        bool empty();
         void GAMReadCopy(GAMRead *dst, const GAMRead *src);
         int size;
         int batch_size;
