@@ -8,7 +8,7 @@ namespace  gamtools {
     struct SMOptions {
 
         // sort region size shift size, actually 1 << shift_size
-        // Default : 20 (1M)
+        // Default : 22 (4M)
         int sort_region_size;
 
         //sort region buffer size to save gam record;

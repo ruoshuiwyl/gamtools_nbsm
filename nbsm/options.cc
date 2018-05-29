@@ -10,7 +10,7 @@
 
 namespace  gamtools{
     SMOptions::SMOptions()
-        :sort_region_size(20),// 1 << 20
+        :sort_region_size(22),// 1 << 20
          sort_block_size(1<<20),
          markdup_region_size(23), // 1 << 23
          markdup_block_size(1<<20),
