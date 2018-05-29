@@ -281,6 +281,7 @@ namespace gamtools {
             filter_options.qual_sys = vm["filter_qual_system"].as<int>() == 1? 33 : 64;
             GLOG_INFO << "Set filter quality system " << filter_options.qual_sys;
         }
+        filter_options.filter_thread_num = nbsm_thread_num / 5 > 1 ? nbsm_thread_num / 5 : 1;
         return 0;
     }
 

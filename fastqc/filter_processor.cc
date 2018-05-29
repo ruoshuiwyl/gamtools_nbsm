@@ -10,6 +10,8 @@
 #include "util/boost/threadpool.hpp"
 
 #include <nbsm/options.h>
+#include <util/glogger.h>
+#include <util/thread_pool.h>
 #include "filter_processor.h"
 #include "base_fastq_info.h"
 #include "bwa_mem/gam_read.h"
@@ -80,6 +82,7 @@ namespace gamtools {
         std::unique_ptr<GAMReadBuffer> read_buffer;
         std::unique_ptr<BWAReadBuffer> bwa_read_buffer(new BWAReadBuffer(bwamem_batch_size_));
         boost::threadpool::pool pl(thread_num_);
+//        ThreadPool pool(thread_num_);
         while (fastq_channel_.read(read_buffer)) {
             int batch_size = read_buffer->size() / thread_num_;
             int index = 0;
@@ -90,10 +93,12 @@ namespace gamtools {
 //                filter_thread.push_back(std::thread(&FilterProcessor::BatchFilter, this, read_buffer, start, end));
 //                filter_thread.push_back(std::thread([&]{BatchFilter(read_buffer, start, end);}));
 //                auto batch_filter = std::bind(&FilterProcessor::BatchFilter, this, read_buffer, start, end);
-//                pool.submit(std::bind(&FilterProcessor::BatchFilter, this, read_buffer, start, end));
-                pl.schedule([&] { BatchFilter(read_buffer, start, end); });
-//                pl.schedule(std::bind(&FilterProcessor::BatchFilter, this, read_buffer, start, end));
+                pl.schedule([&, start, end]{
+                    BatchFilter(read_buffer, start, end);
+                });
+
             }
+            GLOG_DEBUG << "....." ;
 //            for (auto &th : filter_thread) {
 //                th.join();
 //            }
@@ -123,12 +128,12 @@ namespace gamtools {
             fastq_info_stats_->OutputFastqInfo();
         }
         pl.clear();
-
     }
 
 
 
     void FilterProcessor::BatchFilter(std::unique_ptr<GAMReadBuffer> &read_buffer, int start, int end) {
+        GLOG_DEBUG << "Start batch filter " << start << ":" << end;
         BaseFqInfo info1, info2;
         for (int idx = start; idx < end; ++idx) {
             auto read1 = read_buffer->read1(idx);
