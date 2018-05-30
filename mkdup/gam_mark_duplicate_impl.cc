@@ -126,6 +126,12 @@ namespace gamtools {
             auto pair_end = ComputePairEnds(read1_dup, read2_dup);
 
             int pair_index = SeekMarkDupIndex(pair_end->read1_tid_, pair_end->read1_pos_);
+
+#ifdef DEBUG
+            GLOG_DEBUG << "sharind_idx:"<<  pair_index << "\tpair_end:" << (int)pair_end->read1_tid_ << ":" << pair_end->read1_pos_
+                    << "\t read1_dup:" << (int)read1_dup->tid << ":" << read1_dup->pos << "\t read2_dup " << (int)read2_dup->tid
+                    << ":" << read2_dup->pos;
+#endif
             markdup_frag_end_->AddPairFlag(read1_dup->tid, read1_dup->pos);
             markdup_frag_end_->AddPairFlag(read2_dup->tid, read2_dup->pos);
             if (pair_index < markdup_regions_.size()) {

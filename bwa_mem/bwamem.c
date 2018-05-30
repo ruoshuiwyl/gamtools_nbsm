@@ -958,8 +958,8 @@ void mem_aln2bam(const mem_opt_t *opt, const bntseq_t *bns, kstring_t *str, bseq
 //
 //
 			}
+			read_end.pos = p->pos;
 			if (p->is_rev) {
-				read_end.pos = p->pos;
 				for (i = 0; i < p->n_cigar; ++i) {
 					int c = p->cigar[i]&0xf;
 					if (c == 0 || c == 2){
