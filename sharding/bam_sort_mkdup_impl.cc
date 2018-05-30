@@ -230,24 +230,25 @@ namespace gamtools {
         GLOG_INFO << "Start write bam ";
         bam_file_ = hts_open_format(bam_filename_.c_str(), "wb", nullptr);
         if (bam_file_ == nullptr) {
-            GLOG_ERROR << "Write bam open bam file failed " ;
+            GLOG_ERROR << "Write bam open bam file failed ";
         }
         if (!hts_set_threads(bam_file_, sm_options_.bam_output_thread_num)) {
-            GLOG_ERROR << "Write bam set compress thread failed " ;
+            GLOG_ERROR << "Write bam set compress thread failed ";
         }
         if (!bam_hdr_write(bam_file_->fp.bgzf, bam_hdr_)) {
             GLOG_ERROR << "Write bam head failed";
         }
         std::unique_ptr<BAMBlock> bam_block;
         int current_sharding_idx = 0;
-        std::priority_queue<int> finish_sharding_idxs;
-        while(output_bam_channel_.read(bam_block)) {
+        std::priority_queue<int, std::vector<int>, std::greater<int>> finish_sharding_idxs;
+        while (output_bam_channel_.read(bam_block)) {
             auto sharding_idx = bam_block->sharding_idx();
             bool eof = bam_block->eof();
             chunks_[sharding_idx].push_back(std::move(bam_block));
             if (eof) {
                 finish_sharding_idxs.push(sharding_idx);
                 while (current_sharding_idx == finish_sharding_idxs.top()) {
+                    GLOG_TRACE << "Output BAM sharding idx " << current_sharding_idx;
                     OutputShardingBAM(current_sharding_idx);
                     ++current_sharding_idx;
                     finish_sharding_idxs.pop();
@@ -262,7 +263,9 @@ namespace gamtools {
                 finish_sharding_idxs.pop();
             }
         }
-        assert(finish_sharding_idxs.empty());
+        if (!finish_sharding_idxs.empty()) {
+            GLOG_ERROR << "finish sharding should be empty";
+        }
         if (output_bam_channel_.eof()) {
             hts_close(bam_file_);
         } else {
@@ -295,6 +298,7 @@ namespace gamtools {
                         GLOG_ERROR << "Write BAM";
                     }
                 }
+                block.release();
             }
         }
     }
