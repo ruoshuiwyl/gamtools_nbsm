@@ -17,7 +17,7 @@ namespace gamtools {
     void DebugGAMSlice(const Slice &slice) {
         bam1_t *b = (bam1_t * ) calloc(1, sizeof(bam1_t));
         kstring_t str = {0, 0, nullptr};
-        uint64_t pos = ((const uint64_t *)slice.data() )[0] ;
+        uint64_t pos = ((const uint64_t *)slice.data() )[0] >> 1 ;
         int64_t read_id = ((const int64_t *)slice.data() )[1];
         int32_t lib_id = ((const int *)slice.data())[4];
         int32_t bam_len = ((const int *)slice.data())[5];
