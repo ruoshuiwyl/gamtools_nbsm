@@ -167,7 +167,7 @@ namespace gamtools {
 
             for (int i = chr_index; (i - chr_index < thread_num_) && (i < markdup_regions_.size()); ++i) {
 //                threads.push_back(markdup_regions_[i]->spawn());
-                pl.schedule([&]{
+                pl.schedule([&, i]{
                     markdup_regions_[i]->ProcessMarkDuplicate();
                 });
             }
