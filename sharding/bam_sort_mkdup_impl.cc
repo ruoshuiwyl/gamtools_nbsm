@@ -178,7 +178,7 @@ namespace gamtools {
                 BAMSlice bam_slice;
                 bam_slice.block_idx = i;
                 bam_slice.slice_idx = 0;
-                if (bam_slice.slice_idx != gam_blocks[i]->slices().size())) {
+                if (bam_slice.slice_idx != gam_blocks[i]->slices().size()) {
                     bam_heap.push(bam_slice);
                 }
             }
