@@ -181,7 +181,7 @@ namespace gamtools {
                     int64_t read_id = reinterpret_cast<const int64_t *>(gam_data)[1];
                     int tid = sort_pos>>32;
                     int pos = (sort_pos & 0xffffffff )>> 1;
-//                    GLOG_TRACE << "Sharding id:" << gam_part->sharding_idx << "\t" << read_id << ":" << tid << "_" << pos ;
+                    GLOG_TRACE << "before merge sharding id:" << gam_part->sharding_idx <<"_"<< i << "\t" << read_id << ":" << tid << "_" << pos ;
                 }
             }
             for (int i = 0; i < gam_blocks.size(); ++i) {
@@ -206,7 +206,7 @@ namespace gamtools {
                 Slice slice(bam, reinterpret_cast<const int *>(bam)[0] + 4);
                 int tid = sort_pos>>32;
                 int pos = (sort_pos & 0xffffffff )>> 1;
-                GLOG_TRACE << "Sharding id:" << gam_part->sharding_idx << "\t" << read_id << ":" << tid << "_" << pos ;
+                GLOG_TRACE << " after merge sharding id:" << gam_part->sharding_idx << "\t" <<  tid << "_" << pos << "\t" << sort_pos <<" " <<  read_id ;
                 InsertBAMSlice(slice, bam_block_ptr);
                 bam_heap.pop();
                 ++data.slice_idx;
