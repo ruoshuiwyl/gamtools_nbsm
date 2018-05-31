@@ -128,12 +128,12 @@ namespace gamtools {
         for (auto& block : gam_part->blocks) {
             size_t ulength = 0;
             if (!snappy::GetUncompressedLength(block->data(), block->size(), &ulength)) {
-                GLOG_ERROR << "Snappy get un compressed length ";
+                GLOG_ERROR << "Snappy get un compressed length Error";
             }
             assert(block_size_ >= ulength);
             std::unique_ptr<Block> dblock(new Block(block_size_));
             if (!snappy::RawUncompress(block->data(), block->size(), uncompress)){
-                GLOG_ERROR << "Snappy  uncompressed ";
+                GLOG_ERROR << "Snappy  uncompressed Error";
             }
             dblock->Insert(uncompress, ulength);
 
@@ -181,7 +181,7 @@ namespace gamtools {
                     int64_t read_id = reinterpret_cast<const int64_t *>(gam_data)[1];
                     int tid = sort_pos>>32;
                     int pos = (sort_pos & 0xffffffff )>> 1;
-                    GLOG_TRACE << "Sharding id:" << gam_part->sharding_idx << "\t" << read_id << ":" << tid << "_" << pos ;
+//                    GLOG_TRACE << "Sharding id:" << gam_part->sharding_idx << "\t" << read_id << ":" << tid << "_" << pos ;
                 }
             }
             for (int i = 0; i < gam_blocks.size(); ++i) {
@@ -204,6 +204,9 @@ namespace gamtools {
                     reinterpret_cast< int *>(const_cast<char *> (bam))[4] = bam_flag;
                 }
                 Slice slice(bam, reinterpret_cast<const int *>(bam)[0] + 4);
+                int tid = sort_pos>>32;
+                int pos = (sort_pos & 0xffffffff )>> 1;
+                GLOG_TRACE << "Sharding id:" << gam_part->sharding_idx << "\t" << read_id << ":" << tid << "_" << pos ;
                 InsertBAMSlice(slice, bam_block_ptr);
                 bam_heap.pop();
                 ++data.slice_idx;
