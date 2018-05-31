@@ -26,14 +26,17 @@
 namespace gamtools {
 
     struct BAMSlice {
-        int block_idx_;
-        std::vector< Slice>::const_iterator slice_itr_;
+        int block_idx;
+        int slice_idx;
+        uint64_t pos;
+        int64_t read_id;
+//        std::vector< Slice>::const_iterator slice_itr_;
     };
 
     class BAMSliceComparator {
     public:
         bool operator() (const BAMSlice &a, const BAMSlice &b) {
-            return GAMComparator(*a.slice_itr_, *b.slice_itr_);
+            return a.pos < b.pos || (a.pos == b.pos && a.read_id < b.read_id);
         }
     };
 
@@ -150,14 +153,20 @@ namespace gamtools {
                 use_len += bam_size;
             }
             decompress_blocks.push_back(std::move(dblock));
+
         }
-        swap(gam_part->blocks, decompress_blocks);
+        int block_cnt = decompress_blocks.size();
+        for (int i = 0; i < block_cnt; ++i) {
+            gam_part->blocks[i].swap(decompress_blocks[i]);
+        }
+//        swap(gam_part->blocks, decompress_blocks);
+
         delete [] uncompress;
     }
 
     void  BAMSortMkdupImpl::MergePartition(std::unique_ptr<GAMPartitionData> &gam_part){
         auto bam_block_ptr = std::unique_ptr<BAMBlock>( new BAMBlock(kBAMBlockSize, gam_part->sharding_idx, 0 ,false));
-                auto &gam_blocks = gam_part->blocks;
+        auto &gam_blocks = gam_part->blocks;
         if (gam_blocks.empty()) {
             bam_block_ptr->SendEof();
             output_bam_channel_.write(std::move(bam_block_ptr));
@@ -167,26 +176,28 @@ namespace gamtools {
             std::priority_queue<BAMSlice, std::vector<BAMSlice>, BAMSliceComparator> bam_heap;
             for (int i = 0; i < gam_blocks.size(); ++i) {
                 BAMSlice bam_slice;
-                bam_slice.block_idx_ = i;
-                bam_slice.slice_itr_ = gam_blocks[i]->slices().begin();
-                if (bam_slice.slice_itr_ != gam_blocks[i]->slices().end()) {
+                bam_slice.block_idx = i;
+                bam_slice.slice_idx = 0;
+                if (bam_slice.slice_idx != gam_blocks[i]->slices().size())) {
                     bam_heap.push(bam_slice);
                 }
             }
             while (!bam_heap.empty()) {
                 auto data = bam_heap.top();
-                int64_t read_id = reinterpret_cast<const int64_t *>(data.slice_itr_->data())[1];
+                const char *gam_data = gam_blocks[data.block_idx]->slices()[data.slice_idx].data();
+                uint64_t sort_pos = reinterpret_cast<const uint64_t *>(gam_data)[0];
+                int64_t read_id = reinterpret_cast<const int64_t *>(gam_data)[1];
                 const bool markdup_flag = GAMMarkDuplicateImpl::IsMarkDuplicate(read_id); // Markdup read
-                const char *bam = data.slice_itr_->data() + 20;
+                const char *bam = gam_data + 20;
                 if (markdup_flag) { // flag add mark dup flag 0x400 1024
                     int bam_flag = reinterpret_cast< const int *>(bam)[4] | (0x400 << 16);
                     reinterpret_cast< int *>(const_cast<char *> (bam))[4] = bam_flag;
                 }
                 Slice slice(bam, reinterpret_cast<const int *>(bam)[0] + 4);
                 InsertBAMSlice(slice, bam_block_ptr);
-                ++data.slice_itr_;
+                ++data.slice_idx;
                 bam_heap.pop();
-                if (data.slice_itr_ != gam_blocks[data.block_idx_]->slices().end()) {
+                if (data.slice_idx != gam_blocks[data.block_idx]->slices().size()) {
                     bam_heap.push(data);
                 }
             }
@@ -215,9 +226,9 @@ namespace gamtools {
 #ifdef DEBUG
 //        DebugBAMSlice(slice);
 #endif
-        int tid = reinterpret_cast<const int *>(slice.data())[1];
-        int pos = reinterpret_cast<const int *>(slice.data())[2];
-        std::cerr << "sharding_idx" << bam_block_ptr->sharding_idx() << ":" << tid << "_" << pos << std::endl;
+//        int tid = reinterpret_cast<const int *>(slice.data())[1];
+//        int pos = reinterpret_cast<const int *>(slice.data())[2];
+//        std::cerr << "sharding_idx" << bam_block_ptr->sharding_idx() << ":" << tid << "_" << pos << std::endl;
 
         if (!bam_block_ptr->Insert(slice)) {
             if (bam_block_ptr->full()) {

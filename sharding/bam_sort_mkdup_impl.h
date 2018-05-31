@@ -17,7 +17,7 @@ namespace gamtools {
     class BAMBlock;
 
     struct GAMPartitionData {
-        GAMPartitionData(int idx): sharding_idx(idx){}
+        explicit GAMPartitionData(int idx): sharding_idx(idx){}
         int sharding_idx;
         std::vector<std::unique_ptr<Block>>  blocks;
     };
