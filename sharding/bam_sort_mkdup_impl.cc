@@ -195,8 +195,10 @@ namespace gamtools {
                 }
                 Slice slice(bam, reinterpret_cast<const int *>(bam)[0] + 4);
                 InsertBAMSlice(slice, bam_block_ptr);
-                ++data.slice_idx;
                 bam_heap.pop();
+                ++data.slice_idx;
+                data.read_id = read_id;
+                data.pos = sort_pos;
                 if (data.slice_idx != gam_blocks[data.block_idx]->slices().size()) {
                     bam_heap.push(data);
                 }
