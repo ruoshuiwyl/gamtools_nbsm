@@ -175,6 +175,16 @@ namespace gamtools {
         if (gam_blocks.size() > 1) {
             std::priority_queue<BAMSlice, std::vector<BAMSlice>, BAMSliceComparator> bam_heap;
             for (int i = 0; i < gam_blocks.size(); ++i) {
+                for (int j = 0; j < gam_blocks[i]->slices().size(); ++ j){
+                    const char *gam_data = gam_blocks[i]->slices()[j].data();
+                    uint64_t sort_pos = reinterpret_cast<const uint64_t *>(gam_data)[0];
+                    int64_t read_id = reinterpret_cast<const int64_t *>(gam_data)[1];
+                    int tid = sort_pos>>32;
+                    int pos = (sort_pos & 0xffffffff )>> 1;
+                    GLOG_TRACE << "Sharding Merge:" << read_id << ":" << tid << "_" << pos ;
+                }
+            }
+            for (int i = 0; i < gam_blocks.size(); ++i) {
                 BAMSlice bam_slice;
                 bam_slice.block_idx = i;
                 bam_slice.slice_idx = 0;
