@@ -181,7 +181,7 @@ namespace gamtools {
                     int64_t read_id = reinterpret_cast<const int64_t *>(gam_data)[1];
                     int tid = sort_pos>>32;
                     int pos = (sort_pos & 0xffffffff )>> 1;
-                    GLOG_TRACE << "before merge sharding id:" << gam_part->sharding_idx <<"_"<< i << "\t" << read_id << ":" << tid << "_" << pos ;
+                    GLOG_TRACE << "before merge sharding id:" << gam_part->sharding_idx << "_" << i << "\t" <<  tid << "_" << pos << "\t" << sort_pos <<" " <<  read_id ;
                 }
             }
             for (int i = 0; i < gam_blocks.size(); ++i) {
@@ -189,6 +189,11 @@ namespace gamtools {
                 bam_slice.block_idx = i;
                 bam_slice.slice_idx = 0;
                 if (bam_slice.slice_idx != gam_blocks[i]->slices().size()) {
+                    const char *gam_data = gam_blocks[bam_slice.block_idx]->slices()[bam_slice.slice_idx].data();
+                    uint64_t sort_pos = reinterpret_cast<const uint64_t *>(gam_data)[0];
+                    int64_t read_id = reinterpret_cast<const int64_t *>(gam_data)[1];
+                    bam_slice.read_id = read_id;
+                    bam_slice.pos = sort_pos;
                     bam_heap.push(bam_slice);
                 }
             }
@@ -210,9 +215,12 @@ namespace gamtools {
                 InsertBAMSlice(slice, bam_block_ptr);
                 bam_heap.pop();
                 ++data.slice_idx;
-                data.read_id = read_id;
-                data.pos = sort_pos;
                 if (data.slice_idx != gam_blocks[data.block_idx]->slices().size()) {
+                    const char *gam_data = gam_blocks[data.block_idx]->slices()[data.slice_idx].data();
+                    uint64_t sort_pos = reinterpret_cast<const uint64_t *>(gam_data)[0];
+                    int64_t read_id = reinterpret_cast<const int64_t *>(gam_data)[1];
+                    data.read_id = read_id;
+                    data.pos = sort_pos;
                     bam_heap.push(data);
                 }
             }
