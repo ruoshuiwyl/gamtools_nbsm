@@ -73,7 +73,7 @@ namespace gamtools {
     void BAMSortMkdupImpl::ReadGAMPartitionData() {
         GLOG_INFO << "Start Read gam block";
         for (auto &part : partition_datas_) {
-            GLOG_INFO << "Start Read one sharding";
+            GLOG_INFO << "Start Read one sharding idx:" << part->partition_data().sharding_id();
             ReadGAMBlock(part);
         }
         gam_part_channel_.SendEof();
