@@ -181,7 +181,7 @@ namespace gamtools {
                     int64_t read_id = reinterpret_cast<const int64_t *>(gam_data)[1];
                     int tid = sort_pos>>32;
                     int pos = (sort_pos & 0xffffffff )>> 1;
-                    GLOG_TRACE << "Sharding Merge:" << read_id << ":" << tid << "_" << pos ;
+                    GLOG_TRACE << "Sharding id:" << gam_part->sharding_idx << "\t" << read_id << ":" << tid << "_" << pos ;
                 }
             }
             for (int i = 0; i < gam_blocks.size(); ++i) {
