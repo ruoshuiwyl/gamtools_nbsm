@@ -181,7 +181,10 @@ namespace gamtools {
                     int64_t read_id = reinterpret_cast<const int64_t *>(gam_data)[1];
                     int tid = sort_pos>>32;
                     int pos = (sort_pos & 0xffffffff )>> 1;
-                    GLOG_TRACE << "before_merge_sharding_id:" << gam_part->sharding_idx << "_" << i << "\t" <<  tid << "_" << pos << "\t" << sort_pos <<" " <<  read_id ;
+                    if (gam_part->sharding_idx == 0) {
+                        GLOG_TRACE << "before_merge_sharding_id:" << gam_part->sharding_idx << "_" << i << "\t" << tid
+                                   << "_" << pos << "\t" << sort_pos << " " << read_id;
+                    }
                 }
             }
             for (int i = 0; i < gam_blocks.size(); ++i) {
@@ -202,6 +205,8 @@ namespace gamtools {
                 const char *gam_data = gam_blocks[data.block_idx]->slices()[data.slice_idx].data();
                 uint64_t sort_pos = reinterpret_cast<const uint64_t *>(gam_data)[0];
                 int64_t read_id = reinterpret_cast<const int64_t *>(gam_data)[1];
+                assert(sort_pos == data.pos);
+                assert(read_id == data.read_id);
                 const bool markdup_flag = GAMMarkDuplicateImpl::IsMarkDuplicate(read_id); // Markdup read
                 const char *bam = gam_data + 20;
                 if (markdup_flag) { // flag add mark dup flag 0x400 1024
@@ -211,7 +216,10 @@ namespace gamtools {
                 Slice slice(bam, reinterpret_cast<const int *>(bam)[0] + 4);
                 int tid = sort_pos>>32;
                 int pos = (sort_pos & 0xffffffff )>> 1;
-                GLOG_TRACE << "after_merge_sharding_id:" << gam_part->sharding_idx << "_" << data.block_idx << "\t" <<  tid << "_" << pos << "\t" << sort_pos <<" " <<  read_id ;
+                if (gam_part->sharding_idx == 0) {
+                    GLOG_TRACE << "after_merge_sharding_id:" << gam_part->sharding_idx << "_" << data.block_idx << "\t"
+                               << tid << "_" << pos << "\t" << sort_pos << " " << read_id;
+                }
                 InsertBAMSlice(slice, bam_block_ptr);
                 bam_heap.pop();
                 ++data.slice_idx;
@@ -221,6 +229,12 @@ namespace gamtools {
                     int64_t read_id = reinterpret_cast<const int64_t *>(gam_data)[1];
                     data.read_id = read_id;
                     data.pos = sort_pos;
+                    if (gam_part->sharding_idx == 0) {
+                        GLOG_TRACE << "add_merge_sharding_id:" << gam_part->sharding_idx << "_" << data.block_idx
+                                   << "\t" <<
+                                   (data.pos >> 32) << "_" << ((pos & 0xffffffff) >> 1) << "\t" << data.pos << " "
+                                   << read_id;
+                    }
                     bam_heap.push(data);
                 }
             }
