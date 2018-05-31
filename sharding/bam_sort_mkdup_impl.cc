@@ -112,7 +112,7 @@ namespace gamtools {
     void BAMSortMkdupImpl::PartitonDecompressMerge() {
         std::unique_ptr<GAMPartitionData> partition_data_ptr;
         while (gam_part_channel_.read(partition_data_ptr)) {
-            GLOG_INFO << "Start merge one sharding";
+            GLOG_INFO << "Start merge one sharding idx:" << partition_data_ptr->sharding_idx ;
             Decompress(partition_data_ptr);
             MergePartition(partition_data_ptr);
         }

@@ -65,7 +65,7 @@ namespace gamtools {
                 ("bwamem_unpair_penalty", po::value<int>(), "penalty for an unpaired read pair Default(17)");
 
         sort_mkdup_des_.add_options()
-                ("sm_sort_sharding_size", po::value<int>(), "Sort Sharding size Default(1M)")
+                ("sm_sort_sharding_size", po::value<int>(), "Sort Sharding size Default(4M)")
                 ("sm_sort_block_size", po::value<int>(), "sort region buffer size to save gam record Default(1M)")
                 ("sm_mkdup_sharding_size", po::value<int>(), "Mark Duplicate Sharding size Default(8M)")
                 ("sm_mkdup_block_size", po::value<int>(), "Mark Duplicate block buffer size for to save mkdup info Default(1M)")
