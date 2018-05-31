@@ -242,7 +242,7 @@ namespace gamtools {
             filter_options.low_qual = vm["filter_low_qual"].as<int>();
             GLOG_INFO << "Set filter low qual" << filter_options.low_qual  ;
         } else {
-            GLOG_INFO << "Default set filter low qual" << filter_options.low_qual  ;
+
         }
         if (vm.count("filter_qual_rate")) {
             filter_options.qual_rate = vm["filter_qual_rate"].as<float>();
@@ -259,13 +259,13 @@ namespace gamtools {
 
         if (vm.count("filter_adapter1")) {
             filter_options.adapter1 = vm["filter_adapter1"].as<std::string>();
-            GLOG_INFO << "Set filter adapter1 " << filter_options.adapter1;
+//            GLOG_INFO << "Set filter adapter1 " << filter_options.adapter1;
         } else {
-            GLOG_INFO << "Default set filter adapter1 " << filter_options.adapter1;
+//            GLOG_INFO << "Default set filter adapter1 " << filter_options.adapter1;
         }
         if (vm.count("filter_adapter2")) {
             filter_options.adapter2 = vm["filter_adapter2"].as<std::string>();
-            GLOG_INFO << "Set filter adapter2 " << filter_options.adapter2;
+//            GLOG_INFO << "Set filter adapter2 " << filter_options.adapter2;
         }
         if (vm.count("filter_mis_match")) {
             filter_options.adapter_mis_match = vm["filter_mis_match"].as<int>();
@@ -282,6 +282,9 @@ namespace gamtools {
             GLOG_INFO << "Set filter quality system " << filter_options.qual_sys;
         }
         filter_options.filter_thread_num = nbsm_thread_num / 5 > 1 ? nbsm_thread_num / 5 : 1;
+        GLOG_INFO << "filter options low qual set " << filter_options.low_qual  ;
+        GLOG_INFO << "filter options filter adapter1 set " << filter_options.adapter1;
+        GLOG_INFO << "filter options filter adapter2 set " << filter_options.adapter2;
         return 0;
     }
 

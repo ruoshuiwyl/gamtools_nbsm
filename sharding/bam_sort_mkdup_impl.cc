@@ -211,6 +211,14 @@ namespace gamtools {
 
     void
     BAMSortMkdupImpl::InsertBAMSlice(gamtools::Slice &slice, std::unique_ptr<BAMBlock> &bam_block_ptr) {
+
+#ifdef DEBUG
+//        DebugBAMSlice(slice);
+#endif
+        int tid = reinterpret_cast<const int *>(slice.data())[1];
+        int pos = reinterpret_cast<const int *>(slice.data())[2];
+        std::cerr << "sharding_idx" << bam_block_ptr->sharding_idx() << ":" << tid << "_" << pos << std::endl;
+
         if (!bam_block_ptr->Insert(slice)) {
             if (bam_block_ptr->full()) {
                 int sharding_idx = bam_block_ptr->sharding_idx();
@@ -252,6 +260,9 @@ namespace gamtools {
                     OutputShardingBAM(current_sharding_idx);
                     ++current_sharding_idx;
                     finish_sharding_idxs.pop();
+                    if (finish_sharding_idxs.empty()) {
+                        break;
+                    }
                 }
             }
         }
@@ -295,7 +306,7 @@ namespace gamtools {
                         ok = bgzf_write(bam_file_->fp.bgzf, it->data() + 36, block_len - 32);
                     }
                     if (!ok) {
-                        GLOG_ERROR << "Write BAM";
+                        GLOG_ERROR << "Write BAM error ";
                     }
                 }
                 block.release();

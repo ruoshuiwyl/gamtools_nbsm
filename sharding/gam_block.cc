@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <util/glogger.h>
 #include <lib/htslib-1.3.1/htslib/sam.h>
+#include <util/debug_util.h>
 #include "util/slice.h"
 
 namespace gamtools {
@@ -104,9 +105,27 @@ namespace gamtools {
 
     std::unique_ptr<GAMBlock> GAMBlock::BlockSort() {
         std::unique_ptr<GAMBlock> sort_block(new GAMBlock(block_size_, append_, block_id_, file_name_));
+
+#ifdef DEBUG
+        for (auto it = slices_.begin(); it != slices_.end(); ++it ){
+//            DebugGAMSlice(*it);
+            int tid = ((const uint64_t *)(it->data()))[0] >> 32 ;
+            int pos = (((const uint64_t *)(it->data()))[0] & 0xffffffff )>> 1;
+            int64_t read_id = ((const int64_t *)(it->data()))[1];
+            GLOG_DEBUG << "before sort idx :" << tid << ":" << pos << "-" << read_id;
+        }
+#endif
+
         std::sort(slices_.begin(), slices_.end(), GAMComparator);
 //        std::stable_sort(slices_.begin(), slices_.end(), GAMComparator);
         for (auto it = slices_.begin(); it != slices_.end(); ++it) {
+#ifdef  DEBUG
+//            DebugGAMSlice(*it);
+            int tid = ((const uint64_t *)(it->data()))[0] >> 32 ;
+            int pos = (((const uint64_t *)(it->data()))[0] & 0xffffffff )>> 1;
+            int64_t read_id = ((const int64_t *)(it->data()))[1];
+            GLOG_DEBUG << "after sort idx :" << tid << ":" << pos << "-" << read_id;
+#endif
             sort_block->Insert(*it);
         }
         return sort_block;
