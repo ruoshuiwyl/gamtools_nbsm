@@ -84,7 +84,6 @@ namespace gamtools {
     }
 
     void BAMSortMkdupImpl::ReadGAMPartitionData() {
-//        GLOG_INFO << "Start Read gam block";
 //        for (auto &part : partition_datas_) {
 //            GLOG_INFO << "Start Read one sharding idx:" << part->partition_data().sharding_id();
         const int sharding_size = partition_datas_.size();
