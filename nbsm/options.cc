@@ -11,11 +11,12 @@
 namespace  gamtools{
     SMOptions::SMOptions()
         :sort_region_size(22),// 1 << 20
-         sort_block_size(1<<20),
+         sort_block_size(1<<16),
          markdup_region_size(23), // 1 << 23
-         markdup_block_size(1<<20),
-         max_file_size(50),
+         markdup_block_size(1<<16),
+         max_file_size(100),
          block_sort_thread_num(1),
+         read_gam_thread_num(1),
          merge_sort_thread_num(1),
          bam_output_thread_num(1),
          mark_dup_thread_num(1) {

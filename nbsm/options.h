@@ -12,14 +12,14 @@ namespace  gamtools {
         int sort_region_size;
 
         //sort region buffer size to save gam record;
-        //Default : 1MB
+        //Default : 64KB
         int sort_block_size;
         // markdup region size
         // Default : 8M
         int markdup_region_size;
 
         // markdup region size
-        // Default : 1M
+        // Default : 64KB
         int markdup_block_size;
 
         // nbsm will create max file number in directory
@@ -33,6 +33,9 @@ namespace  gamtools {
 
         // Default : thread number 1;
         int block_sort_thread_num;
+
+        // Default : thread number 1;
+        int read_gam_thread_num;
 
 
         // Default : thread number 1;

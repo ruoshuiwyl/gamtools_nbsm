@@ -70,9 +70,10 @@ namespace gamtools {
                 ("sm_mkdup_sharding_size", po::value<int>(), "Mark Duplicate Sharding size Default(8M)")
                 ("sm_mkdup_block_size", po::value<int>(), "Mark Duplicate block buffer size for to save mkdup info Default(1M)")
                 ("sm_block_sort_thread", po::value<int>(), "sharding stage block sort thread number Default(4)")
-                ("sm_merge_thread", po::value<int>(), "Merge sort thread num Default(4)")
-                ("sm_compress_bam_thread", po::value<int>(), "Compress bam thread number Default(4)")
-                ("sm_mkdup_thread", po::value<int>(), "Mark Duplicate thread number Default (4)");
+                ("sm_read_gam_thread_num", po::value<int>(), "Merge stage read sharding data thread number Default(1)")
+                ("sm_merge_thread", po::value<int>(), "Merge sort thread num Default(1)")
+                ("sm_compress_bam_thread", po::value<int>(), "Compress bam thread number Default(1)")
+                ("sm_mkdup_thread", po::value<int>(), "Mark Duplicate thread number Default (1)");
 
         opt_des_.add(base_des_).add(filter_des_).add(bwamem_des_).add(sort_mkdup_des_);
 
@@ -384,10 +385,16 @@ namespace gamtools {
             sm_options.markdup_block_size = vm["sm_mkdup_block_size"].as<int>();
         }
 
+        if (vm.count("sm_read_gam_thread_num")) {
+            sm_options.read_gam_thread_num = vm["sm_read_gam_thread_num"].as<int>();
+        } else {
+            sm_options.read_gam_thread_num = nbsm_thread_num / 5 > 1 ? nbsm_thread_num / 5 : 1;
+        }
+
         if (vm.count("sm_block_sort_thread")) {
             sm_options.block_sort_thread_num = vm["sm_block_sort_thread"].as<int>();
         } else {
-            sm_options.block_sort_thread_num = nbsm_thread_num / 5 > 1 ? nbsm_thread_num / 5 : 1 ;
+            sm_options.block_sort_thread_num = nbsm_thread_num / 4 > 1 ? nbsm_thread_num / 4 : 1 ;
         }
         if (vm.count("sm_merge_thread")) {
             sm_options.merge_sort_thread_num = vm["sm_merge_thread"].as<int>();
@@ -397,7 +404,7 @@ namespace gamtools {
         if (vm.count("sm_compress_bam_thread")) {
             sm_options.bam_output_thread_num = vm["sm_compress_bam_thread"].as<int>();
         } else {
-            sm_options.bam_output_thread_num = nbsm_thread_num - 2 > 1 ? nbsm_thread_num - 2: 1;
+            sm_options.bam_output_thread_num = nbsm_thread_num / 2 > 1 ? nbsm_thread_num / 2: 1;
         }
         if (vm.count("sm_mkdup_thread")) {
             sm_options.mark_dup_thread_num = vm["sm_mkdup_thread"].as<int>();

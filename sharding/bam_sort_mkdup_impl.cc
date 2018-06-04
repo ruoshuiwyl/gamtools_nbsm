@@ -58,29 +58,45 @@ namespace gamtools {
     }
 
     void BAMSortMkdupImpl::ProcessSortMkdup() {
-        std::thread read_gam_thread = std::thread(&BAMSortMkdupImpl::ReadGAMPartitionData, this);
+        std::vector<std::thread> read_gam_threads;
+        for (int i = 0; i < sm_options_.read_gam_thread_num; ++i) {
+            read_gam_threads.push_back(std::thread(&BAMSortMkdupImpl::ReadGAMPartitionData, this));
+        }
         std::vector<std::thread> sort_threads;
         for (int i = 0; i < sm_options_.merge_sort_thread_num; ++i) {
-            sort_threads.push_back(std::thread(&BAMSortMkdupImpl::PartitonDecompressMerge, this));
+            sort_threads.push_back(std::thread(&BAMSortMkdupImpl::PartitionDecompressMerge, this));
         }
 
         std::thread output_bam_thread = std::thread(&BAMSortMkdupImpl::OutputBAM, this);
-        read_gam_thread.join();
+        for (auto &read_gam_thread :read_gam_threads ) {
+            read_gam_thread.join();
+        }
+        gam_part_channel_.SendEof();
+        GLOG_INFO << "Finish Read gam block";
         for (auto &th : sort_threads) {
             th.join();
         }
         output_bam_channel_.SendEof();
+        GLOG_INFO << "Finish Merge gam block";
         output_bam_thread.join();
+        GLOG_INFO << "Finish fastAln";
     }
 
     void BAMSortMkdupImpl::ReadGAMPartitionData() {
-        GLOG_INFO << "Start Read gam block";
-        for (auto &part : partition_datas_) {
-            GLOG_INFO << "Start Read one sharding idx:" << part->partition_data().sharding_id();
-            ReadGAMBlock(part);
+//        GLOG_INFO << "Start Read gam block";
+//        for (auto &part : partition_datas_) {
+//            GLOG_INFO << "Start Read one sharding idx:" << part->partition_data().sharding_id();
+        const int sharding_size = partition_datas_.size();
+        while (true) {
+            int block_idx = gam_block_idx.load(std::memory_order::memory_order_seq_cst);
+            if (block_idx > sharding_size) {
+                break;
+            }
+            gam_block_idx.fetch_add(1, std::memory_order::memory_order_seq_cst);
+            ReadGAMBlock(partition_datas_[block_idx]);
         }
-        gam_part_channel_.SendEof();
-        GLOG_INFO << "Finish Read gam block";
+//        }
+
     }
 
 
@@ -90,36 +106,67 @@ namespace gamtools {
         auto &part = part_data->partition_data();
         std::unique_ptr<GAMPartitionData> partition_data_ptr(new GAMPartitionData(part.sharding_id()));
         auto &filename = part.filename() ;
-        std::ifstream ifs(filename);
-        if (ifs.is_open()) {
-            GLOG_INFO << "Merge Stage Open file " << filename ;
-        } else {
-            GLOG_ERROR << "Merge Stage Open file " << filename ;
-        }
         int block_cnt = part_data->block_cnt();
-        char *data = new char[block_size_];
-        for (int block_idx = 0; block_idx < block_cnt; ++block_idx) {
-            size_t size = 0;
-            ifs.read((char*)&size, sizeof(size_t));
-            assert(block_size_ > size);
-            ifs.read(data, size);
-            std::unique_ptr<Block> gam_block = std::unique_ptr<Block>(new Block(block_size_));
-            gam_block->Insert(data, size);
-            partition_data_ptr->blocks.push_back(std::move(gam_block));
+        GLOG_TRACE << "Read gam block idx:" << part.sharding_id() << "block num:" << block_cnt;
+        if (block_cnt > 0) {
+            std::ifstream ifs(filename);
+            if (ifs.is_open()) {
+                GLOG_INFO << "Merge Stage Open file OK" << filename;
+            } else {
+                GLOG_ERROR << "Merge Stage Open file Error " << filename;
+            }
+            char *data = new char[block_size_];
+            char *uncompress = new char[block_size_];
+            for (int block_idx = 0; block_idx < block_cnt; ++block_idx) {
+                size_t size = 0;
+                ifs.read((char *) &size, sizeof(size_t));
+                assert(block_size_ > size);
+                ifs.read(data, size);
+//                std::unique_ptr<Block> gam_block = std::unique_ptr<Block>(new Block(block_size_));
+//                gam_block->Insert(data, size);
+                size_t ulength = 0;
+                if (!snappy::GetUncompressedLength(data, size, &ulength)) {
+                    GLOG_ERROR << "Snappy compressed length" << part.sharding_id() << ":" << block_idx << "Error";
+                }
+                assert(block_size_ >= ulength);
+                std::unique_ptr<Block> dblock(new Block(block_size_));
+                if (!snappy::RawUncompress(data, size, uncompress)) {
+                    GLOG_ERROR << "Snappy  uncompressed " << part.sharding_id() << ":" << block_idx << " Error";
+                }
+                dblock->Insert(uncompress, ulength);
+                // Build GAM slice ;
+                auto &slices = dblock->slices();
+                slices.clear();
+                const char *alloc_ptr_ = dblock->data();
+                size_t use_len = 0;
+                while (use_len < dblock->size()) {
+                    int bam_size = reinterpret_cast<const int *>(alloc_ptr_)[5] + 24;
+                    Slice slice(alloc_ptr_, bam_size);
+#ifdef DEBUG
+                    DebugGAMSlice(slice);
+#endif
+                    slices.push_back(slice);
+                    alloc_ptr_ += bam_size;
+                    use_len += bam_size;
+                }
+                partition_data_ptr->blocks.push_back(std::move(dblock));
+            }
+            delete[] data;
+            delete[] uncompress;
+            ifs.close();
         }
         gam_part_channel_.write(std::move(partition_data_ptr));
-        delete [] data;
-        ifs.close();
     }
 
-    void BAMSortMkdupImpl::PartitonDecompressMerge() {
+    void BAMSortMkdupImpl::PartitionDecompressMerge() {
         std::unique_ptr<GAMPartitionData> partition_data_ptr;
         while (gam_part_channel_.read(partition_data_ptr)) {
-            GLOG_INFO << "Start merge one sharding idx:" << partition_data_ptr->sharding_idx ;
-            Decompress(partition_data_ptr);
+            GLOG_INFO << "Start merge one sharding idx: " << partition_data_ptr->sharding_idx ;
+//            Decompress(partition_data_ptr);
             MergePartition(partition_data_ptr);
+            GLOG_INFO << "Finish merge sharding " << partition_data_ptr->sharding_idx;
         }
-        GLOG_INFO << "Finish merge sharding ";
+
     }
 
     void BAMSortMkdupImpl::Decompress(std::unique_ptr<gamtools::GAMPartitionData> &gam_part) {
@@ -128,12 +175,12 @@ namespace gamtools {
         for (auto& block : gam_part->blocks) {
             size_t ulength = 0;
             if (!snappy::GetUncompressedLength(block->data(), block->size(), &ulength)) {
-                GLOG_ERROR << "Snappy get un compressed length Error";
+                GLOG_ERROR << "Snappy get un compressed length Error" << gam_part->sharding_idx ;
             }
             assert(block_size_ >= ulength);
             std::unique_ptr<Block> dblock(new Block(block_size_));
             if (!snappy::RawUncompress(block->data(), block->size(), uncompress)){
-                GLOG_ERROR << "Snappy  uncompressed Error";
+                GLOG_ERROR << "Snappy  uncompressed Error" << gam_part->sharding_idx;
             }
             dblock->Insert(uncompress, ulength);
 
@@ -238,6 +285,8 @@ namespace gamtools {
 //                                   << read_id;
 //                    }
                     bam_heap.push(data);
+                } else {
+                    gam_blocks[data.block_idx].release(); // release block memory
                 }
             }
 

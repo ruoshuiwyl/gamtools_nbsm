@@ -8,6 +8,7 @@
 #include <thread>
 #include <vector>
 #include <util/channel.h>
+#include <atomic>
 #include "nbsm/options.h"
 
 namespace gamtools {
@@ -34,7 +35,7 @@ namespace gamtools {
         void ReadGAMPartitionData();
         void OutputBAM();
         void ReadGAMBlock(std::unique_ptr<ShardingPartitionData> &part_data);
-        void PartitonDecompressMerge();
+        void PartitionDecompressMerge();
         void Decompress(std::unique_ptr<GAMPartitionData> &gam_part);
         void MergePartition(std::unique_ptr<GAMPartitionData> &gam_part);
         void InsertBAMSlice(gamtools::Slice &slice, std::unique_ptr<BAMBlock> &bam_block_ptr);
@@ -47,6 +48,7 @@ namespace gamtools {
         int block_size_;//
         htsFile *bam_file_;
         const bam_hdr_t *bam_hdr_;
+        std::atomic<int> gam_block_idx;
         std::string bam_filename_;
     };
 }

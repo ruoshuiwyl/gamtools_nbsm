@@ -34,6 +34,10 @@ namespace gamtools {
         }
         return err_code;
     }
+
+    int test_output_bam() {
+
+    }
 }
 
 int main(int argc, char *argv[]) {
