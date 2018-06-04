@@ -249,6 +249,7 @@ namespace gamtools {
                     bam_heap.push(bam_slice);
                 }
             }
+
             while (!bam_heap.empty()) {
                 auto data = bam_heap.top();
                 const char *gam_data = gam_blocks[data.block_idx]->slices()[data.slice_idx].data();
