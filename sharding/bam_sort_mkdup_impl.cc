@@ -59,6 +59,7 @@ namespace gamtools {
 
     void BAMSortMkdupImpl::ProcessSortMkdup() {
         std::vector<std::thread> read_gam_threads;
+        gam_block_idx_.store(0);
         for (int i = 0; i < sm_options_.read_gam_thread_num; ++i) {
             read_gam_threads.push_back(std::thread(&BAMSortMkdupImpl::ReadGAMPartitionData, this));
         }
@@ -88,11 +89,11 @@ namespace gamtools {
 //            GLOG_INFO << "Start Read one sharding idx:" << part->partition_data().sharding_id();
         const int sharding_size = partition_datas_.size();
         while (true) {
-            int block_idx = gam_block_idx.load(std::memory_order::memory_order_seq_cst);
-            if (block_idx > sharding_size) {
+            int block_idx = gam_block_idx_.load(std::memory_order::memory_order_seq_cst);
+            if (block_idx >= sharding_size) {
                 break;
             }
-            gam_block_idx.fetch_add(1, std::memory_order::memory_order_seq_cst);
+            gam_block_idx_.fetch_add(1, std::memory_order::memory_order_seq_cst);
             ReadGAMBlock(partition_datas_[block_idx]);
         }
 //        }
@@ -340,6 +341,9 @@ namespace gamtools {
         if (bam_file_ == nullptr) {
             GLOG_ERROR << "Write bam open bam file failed ";
         }
+//        if (!hts_set_threads(bam_file_, sm_options_.bam_output_thread_num)) {
+//            GLOG_ERROR << "Write bam set compress thread failed ";
+//        }
         if (!hts_set_threads(bam_file_, sm_options_.bam_output_thread_num)) {
             GLOG_ERROR << "Write bam set compress thread failed ";
         }

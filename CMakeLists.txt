@@ -4,7 +4,7 @@ project(gamtools_sm)
 set(CMAKE_CXX_COMPILER /usr/bin/g++-7)
 #set(CMAKE_CXX_FLAGS "-DBOOST_LOG_DYN_LINK" )
 #set(CMAKE_CXX_FLAGS  "-DBOOST_ALL_DYN_LINK -D_GLIBCXX_USE_CXX11_ABI=0 -DDEBUG")
-set(CMAKE_CXX_FLAGS_DEBUG "-O0 -DBOOST_ALL_DYN_LINK -D_GLIBCXX_USE_CXX11_ABI=0 -DDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -DBOOST_ALL_DYN_LINK -D_GLIBCXX_USE_CXX11_ABI=0 -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-DBOOST_ALL_DYN_LINK -D_GLIBCXX_USE_CXX11_ABI=0 -O2 ")
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 11)
@@ -80,7 +80,7 @@ add_library(gam_sm ""
         util/debug_util.cc
         util/debug_util.h
         fastqc/fastq_info_statistics.cc
-        fastqc/fastq_info_statistics.h)
+        fastqc/fastq_info_statistics.h util/thread_pool.cc util/thread_pool.h)
 
 target_sources(gam_sm PRIVATE
         "${PROJECT_SOURCE_DIR}/util/slice.h"

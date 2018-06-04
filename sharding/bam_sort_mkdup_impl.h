@@ -48,7 +48,7 @@ namespace gamtools {
         int block_size_;//
         htsFile *bam_file_;
         const bam_hdr_t *bam_hdr_;
-        std::atomic<int> gam_block_idx;
+        std::atomic<int> gam_block_idx_;
         std::string bam_filename_;
     };
 }
