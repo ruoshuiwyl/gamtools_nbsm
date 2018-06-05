@@ -82,7 +82,7 @@ namespace gamtools {
                 free(read_buffer->seqs[i+1].dup);
             }
 
-#elif
+#else
             GLOG_INFO << "Process sharding one batch";
             for (int i = 0; i < read_buffer->size; i += 2) {
                 int gam_len = 0;
