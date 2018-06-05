@@ -100,7 +100,7 @@ namespace gamtools {
                 });
 
             }
-            GLOG_DEBUG << "....." ;
+//            GLOG_DEBUG << "....." ;
 //            for (auto &th : filter_thread) {
 //                th.join();
 //            }
@@ -112,6 +112,7 @@ namespace gamtools {
                 if (read1->is_clean && read2->is_clean) {
                     if (!bwa_read_buffer->AddPairEndRead(read1, read2)) {
                         bwamem_channel_.write(std::move(bwa_read_buffer));
+                        GLOG_TRACE << "Input BWA MEM Read Queue size: " << bwamem_channel_.size();
                         bwa_read_buffer = std::unique_ptr<BWAReadBuffer>(new BWAReadBuffer(bwamem_batch_size_));
                         bwa_read_buffer->AddPairEndRead(read1, read2);
                     }

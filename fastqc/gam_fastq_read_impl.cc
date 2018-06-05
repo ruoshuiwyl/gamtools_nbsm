@@ -2,6 +2,7 @@
 // Created by ruoshui on 5/10/18.
 //
 
+#include <util/glogger.h>
 #include "gam_fastq_read_impl.h"
 
 #include "util/gam_read_buffer.h"
@@ -23,6 +24,7 @@ namespace gamtools {
             std::unique_ptr<GAMReadBuffer> read_buffer = fast_file->ReadFastq(fastq_batch_size_);
             while ( read_buffer != nullptr) {
                 output_fastq_channel_.write(std::move(read_buffer));
+                GLOG_TRACE << "Read Fastq Buffer queue size: " << output_fastq_channel_.size();
                 read_buffer = fast_file->ReadFastq(fastq_batch_size_);
             }
         }

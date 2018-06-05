@@ -27,8 +27,8 @@ namespace gamtools {
         mem_pestat_t *mem_pestat_;
         const mem_opt_t *mem_opt_ ;
         uint64_t processed_num_;
-        BlockQueue<std::unique_ptr<BWAReadBuffer>> &input_;
-        BlockQueue<std::unique_ptr<BWAReadBuffer>> &output_;
+        BlockQueue<std::unique_ptr<BWAReadBuffer>> &input_queue_;
+        BlockQueue<std::unique_ptr<BWAReadBuffer>> &output_queue_;
     };
 }
 
