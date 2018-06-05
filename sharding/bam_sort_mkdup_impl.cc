@@ -287,7 +287,7 @@ namespace gamtools {
 //                    }
                     bam_heap.push(data);
                 } else {
-                    gam_blocks[data.block_idx].release(); // release block memory
+                    gam_blocks[data.block_idx].reset(nullptr); // release block memory
                 }
             }
 
@@ -412,7 +412,7 @@ namespace gamtools {
                         GLOG_ERROR << "Write BAM error ";
                     }
                 }
-                block.release();
+                block.reset(nullptr);
             }
         }
     }
