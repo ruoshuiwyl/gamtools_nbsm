@@ -81,6 +81,7 @@ namespace gamtools {
                 free(read_buffer->seqs[i].dup);
                 free(read_buffer->seqs[i+1].dup);
             }
+            read_buffer.reset(nullptr);
 
 #else
             GLOG_INFO << "Process sharding one batch";
@@ -109,6 +110,7 @@ namespace gamtools {
                 read_buffer->seqs[i + 1].dup = nullptr;
                 markdup_impl_->StorePairEndRecord(read1_dup, read2_dup);
             }
+            read_buffer.reset(nullptr);
 #endif
         }
         GLOG_INFO << "Finish Sharding";
