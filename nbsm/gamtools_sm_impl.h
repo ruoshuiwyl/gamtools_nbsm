@@ -10,7 +10,7 @@
 #include <memory>
 #include <htslib/sam.h>
 #include <util/create_index.h>
-#include <util/channel.h>
+#include <util/array_block_queue.h>
 #include <sharding/bam_sharding_impl.h>
 #include <util/gam_read_buffer.h>
 
@@ -25,7 +25,7 @@ namespace  gamtools {
         explicit SMImpl(const bam_hdr_t *bam_hdr,
                         const SMOptions &options,
                         const std::string &bam_file, 
-                        Channel<std::unique_ptr<BWAReadBuffer>> &input);
+                        ArrayBlockQueue<std::unique_ptr<BWAReadBuffer>> &input);
 //        void Initialize(const SMOptions &options);
         std::thread SpawnSharding();
         void Sharding();
@@ -41,7 +41,7 @@ namespace  gamtools {
         const SMOptions &options_;
         std::unique_ptr<BAMShardingImpl> sharding_impl_;
         std::unique_ptr<GAMMarkDuplicateImpl> markdup_impl_;
-        Channel<std::unique_ptr<BWAReadBuffer>> &input_;
+        ArrayBlockQueue<std::unique_ptr<BWAReadBuffer>> &input_;
         std::atomic<bool> finish_markdup_flag_;
     };
 }

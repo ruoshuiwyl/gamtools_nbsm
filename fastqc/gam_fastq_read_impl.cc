@@ -9,8 +9,8 @@
 
 namespace gamtools {
     GAMFastqReadImpl::GAMFastqReadImpl(std::vector<gamtools::GAMFastqFileInfo> &fastq_file_lists,
-                                           gamtools::Channel<std::unique_ptr<gamtools::GAMReadBuffer>> &output_fastq_channel,
-                                           const int batch_size)
+                                       BlockQueue <std::unique_ptr<GAMReadBuffer>> &output_fastq_channel,
+                                       const int batch_size)
             : output_fastq_channel_(output_fastq_channel), fastq_batch_size_(batch_size) {
         for (auto &fastq_file :fastq_file_lists ) {
             std::unique_ptr<GAMFastqFile> fastq( new GAMFastqFile(fastq_file));

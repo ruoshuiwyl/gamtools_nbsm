@@ -105,11 +105,11 @@ namespace gamtools {
     void BAMShardingImpl::GAMBlockSortCompress() {
         std::unique_ptr<GAMBlock> gam_block;
         while(sort_channel_.read(gam_block)) {
-            GLOG_INFO << "Sharding stage start block sort and compress ; sort channel size: " << sort_channel_.size();
+            GLOG_TRACE << "Sharding stage start block sort and compress ; sort channel size: " << sort_channel_.size();
             auto sort_block = gam_block->BlockSort();
             sort_block->Compress();
             output_channel_.write(std::move(sort_block));
-            GLOG_INFO << "Sharding stage output compress gam block data; output channel size: " << output_channel_.size();
+            GLOG_TRACE << "Sharding stage output compress gam block data; output channel size: " << output_channel_.size();
 
         }
         GLOG_INFO << "Finish Sharding stage block sort and compress";

@@ -7,7 +7,8 @@
 
 #include <htslib/sam.h>
 #include <util/gam_read_buffer.h>
-#include <util/channel.h>
+#include <util/array_block_queue.h>
+#include <util/bounded_queue.h>
 #include "nbsm_options.h"
 
 namespace gamtools {
@@ -24,9 +25,11 @@ namespace gamtools {
         bwaidx_t *mem_idx_;
         bam_hdr_t *bam_hdr_;
         NBSMOptions nbsm_options_;
-        Channel<std::unique_ptr<GAMReadBuffer>> read_fastq_;
-        Channel<std::unique_ptr<BWAReadBuffer>> input_fastq_;
-        Channel<std::unique_ptr<BWAReadBuffer>> output_gam_;
+//        ArrayBlockQueue<std::unique_ptr<GAMReadBuffer>> read_fastq_channel_;
+        BoundedQueue<std::unique_ptr<GAMReadBuffer>> read_fastq_queue_;
+        BoundedQueue<std::unique_ptr<BWAReadBuffer>> input_read_queue_;
+//        ArrayBlockQueue<std::unique_ptr<BWAReadBuffer>> input_fastq_channel_;
+        ArrayBlockQueue<std::unique_ptr<BWAReadBuffer>> output_gam_channel_;
     };
 }
 

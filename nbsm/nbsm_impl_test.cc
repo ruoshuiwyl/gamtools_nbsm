@@ -60,9 +60,9 @@ int main(int argc, char *argv[]) {
 //    bam_hdr_t *bam_hdr;
 //    gamtools::SMOptions options;
 //    std::string bam_file = "test.bam";
-//    gamtools::Channel<std::unique_ptr<gamtools::GAMReadBuffer>> output_fastq_channel;
-//    gamtools::Channel<std::unique_ptr<gamtools::BWAReadBuffer>> input;
-//    gamtools::Channel<std::unique_ptr<gamtools::BWAReadBuffer>> output;
+//    gamtools::ArrayBlockQueue<std::unique_ptr<gamtools::GAMReadBuffer>> output_fastq_channel;
+//    gamtools::ArrayBlockQueue<std::unique_ptr<gamtools::BWAReadBuffer>> input;
+//    gamtools::ArrayBlockQueue<std::unique_ptr<gamtools::BWAReadBuffer>> output;
 //    int batch_size = 1 << 16;
 //    gamtools::GAMFastqReadImpl read_fastq(fastq_file_infos, output_fastq_channel, batch_size);
 //

@@ -23,8 +23,8 @@ namespace gamtools {
         }
     }
 
-    GAMBWAMEM::GAMBWAMEM(Channel<std::unique_ptr<BWAReadBuffer>> &input,
-                         Channel<std::unique_ptr<BWAReadBuffer>> &output,
+    GAMBWAMEM::GAMBWAMEM(BlockQueue <std::unique_ptr<BWAReadBuffer>> &input,
+                         BlockQueue <std::unique_ptr<BWAReadBuffer>> &output,
                          const mem_opt_t *opt, bwaidx_t *mem_idx)
         : input_(input),
           output_(output),

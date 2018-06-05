@@ -46,9 +46,11 @@ namespace gamtools {
             4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4,  4, 4, 4, 4
     };
 
-    FilterProcessor::FilterProcessor(const FilterOptions &filter_options, Channel <std::unique_ptr<GAMReadBuffer>> &fastq_channel,
-                                         Channel <std::unique_ptr<BWAReadBuffer>> &bwamem_channel, const int bwamem_batch_size,
-                                         std::unique_ptr<FastqInfoStatistics> &&fastq_info_stats)
+    FilterProcessor::FilterProcessor(const FilterOptions &filter_options,
+                                     BlockQueue <unique_ptr<GAMReadBuffer>> &fastq_channel,
+                                     BlockQueue <unique_ptr<BWAReadBuffer>> &bwamem_channel,
+                                     const int bwamem_batch_size,
+                                     std::unique_ptr<FastqInfoStatistics> &&fastq_info_stats)
             : fastq_channel_(fastq_channel),
               bwamem_channel_(bwamem_channel),
               bwamem_batch_size_(bwamem_batch_size),

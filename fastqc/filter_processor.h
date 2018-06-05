@@ -9,7 +9,7 @@
 #include <set>
 #include <strings.h>
 #include <nbsm/options.h>
-#include <util/channel.h>
+#include <util/array_block_queue.h>
 #include <util/gam_thread_pool.h>
 #include "base_fastq_info.h"
 #include "util/gam_read_buffer.h"
@@ -56,9 +56,11 @@ namespace gamtools {
     class FastqInfoStatistics;
     class FilterProcessor {
     public:
-        explicit FilterProcessor(const FilterOptions &filter_options, Channel <std::unique_ptr<GAMReadBuffer>> &fastq_channel,
-                                         Channel <std::unique_ptr<BWAReadBuffer>> &bwamem_channel, const int bwamem_batch_size,
-                                         std::unique_ptr<FastqInfoStatistics> &&fastq_info_stats);
+        explicit FilterProcessor(const FilterOptions &filter_options,
+                                 BlockQueue <std::unique_ptr<GAMReadBuffer>> &fastq_channel,
+                                 BlockQueue <std::unique_ptr<BWAReadBuffer>> &bwamem_channel,
+                                 const int bwamem_batch_size,
+                                 std::unique_ptr<FastqInfoStatistics> &&fastq_info_stats);
 
         std::thread spawn();
         void Filter();
@@ -95,8 +97,8 @@ namespace gamtools {
         int qualSys_ ;
         std::mutex mtx_;
         int bwamem_batch_size_;
-        Channel<std::unique_ptr<GAMReadBuffer>> &fastq_channel_;
-        Channel <std::unique_ptr<BWAReadBuffer>> &bwamem_channel_;
+        BlockQueue<std::unique_ptr<GAMReadBuffer>> &fastq_channel_;
+        BlockQueue <std::unique_ptr<BWAReadBuffer>> &bwamem_channel_;
         std::unique_ptr<FastqInfoStatistics> fastq_info_stats_;
     };
 

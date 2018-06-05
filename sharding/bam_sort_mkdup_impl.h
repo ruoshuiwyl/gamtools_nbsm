@@ -7,7 +7,7 @@
 
 #include <thread>
 #include <vector>
-#include <util/channel.h>
+#include <util/array_block_queue.h>
 #include <atomic>
 #include "nbsm/options.h"
 
@@ -41,8 +41,8 @@ namespace gamtools {
         void InsertBAMSlice(gamtools::Slice &slice, std::unique_ptr<BAMBlock> &bam_block_ptr);
         void OutputShardingBAM(int current_sharding_idx);
         std::vector<std::unique_ptr<ShardingPartitionData>> &partition_datas_;
-        Channel<std::unique_ptr<GAMPartitionData>> gam_part_channel_;
-        Channel<std::unique_ptr<BAMBlock>> output_bam_channel_;
+        ArrayBlockQueue<std::unique_ptr<GAMPartitionData>> gam_part_channel_;
+        ArrayBlockQueue<std::unique_ptr<BAMBlock>> output_bam_channel_;
         std::vector<std::vector<std::unique_ptr<BAMBlock>>> chunks_;
         const SMOptions &sm_options_;
         int block_size_;//

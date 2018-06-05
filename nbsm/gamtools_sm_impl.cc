@@ -22,7 +22,7 @@
 namespace gamtools {
 
     SMImpl::SMImpl(const bam_hdr_t *bam_hdr, const SMOptions &options,
-                   const std::string &bam_file, Channel<std::unique_ptr<BWAReadBuffer>> &input)
+                   const std::string &bam_file, ArrayBlockQueue<std::unique_ptr<BWAReadBuffer>> &input)
             : bam_hdr_(bam_hdr),
               options_(options),
               bam_file_(bam_file),

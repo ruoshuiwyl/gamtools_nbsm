@@ -10,16 +10,17 @@
 #include <thread>
 #include <condition_variable>
 #include <cstddef>
+#include "block_queue.h"
 
 //#pragma once
 //
 namespace gamtools {
     template <typename T>
-    class Channel {
+    class ArrayBlockQueue : public BlockQueue<T> {
     public:
-        explicit  Channel(): eof_(false){}
-        Channel(const Channel&) = delete;
-        void operator=(const Channel&) = delete;
+        explicit  ArrayBlockQueue(): eof_(false){}
+        ArrayBlockQueue(const ArrayBlockQueue&) = delete;
+        void operator=(const ArrayBlockQueue&) = delete;
         void SendEof() {
             std::lock_guard<std::mutex> lk(lock_);
             eof_ = true;
@@ -58,6 +59,8 @@ namespace gamtools {
         bool eof_;
 
     };
+
+
 }
 
 

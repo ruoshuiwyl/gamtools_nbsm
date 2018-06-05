@@ -6,7 +6,7 @@
 #define GAMTOOLS_SM_BAM_PARTITION_H
 
 #include <string>
-#include <util/channel.h>
+#include <util/array_block_queue.h>
 #include <sharding/gam_block.h>
 
 namespace gamtools {
@@ -16,7 +16,7 @@ namespace gamtools {
     class PartitionData;
     class ShardingPartitionData {
     public:
-        explicit ShardingPartitionData(Channel <std::unique_ptr<GAMBlock>> &sort_channel, const PartitionData &partdata,
+        explicit ShardingPartitionData(ArrayBlockQueue <std::unique_ptr<GAMBlock>> &sort_channel, const PartitionData &partdata,
                                                const int block_size);
         ~ShardingPartitionData();
         void Add(const Slice &slice);
@@ -37,8 +37,8 @@ namespace gamtools {
         int block_size_;
 //        int bam_block_idx_;
         const PartitionData &partition_data_;
-        Channel<std::unique_ptr<GAMBlock>> &sort_channel_;
-//        Channel<std::unique_ptr<BAMBlock>> &output_bam_channel_;
+        ArrayBlockQueue<std::unique_ptr<GAMBlock>> &sort_channel_;
+//        ArrayBlockQueue<std::unique_ptr<BAMBlock>> &output_bam_channel_;
         std::unique_ptr<GAMBlock> gam_block_ptr_;
 //        std::unique_ptr<BAMBlock> bam_block_ptr_;
         std::vector<std::unique_ptr<GAMBlock>> gam_blocks_;

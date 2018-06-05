@@ -18,7 +18,7 @@
 
 namespace gamtools {
     const static int kBAMBlockSize = 65536;
-    ShardingPartitionData::ShardingPartitionData(Channel <std::unique_ptr<GAMBlock>> &sort_channel, const PartitionData &part_data,
+    ShardingPartitionData::ShardingPartitionData(ArrayBlockQueue <std::unique_ptr<GAMBlock>> &sort_channel, const PartitionData &part_data,
                                                      const int block_size)
             : append_(false),
               block_cnt_(0),

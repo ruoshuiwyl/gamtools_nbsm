@@ -19,7 +19,7 @@
 #include <util/create_index.h>
 #include "bam_block.h"
 #include "gam_block.h"
-#include "util/channel.h"
+#include "util/array_block_queue.h"
 
 namespace gamtools {
     class Slice;
@@ -47,11 +47,11 @@ namespace gamtools {
 //        void MergeSort();
 //        void OutputBAM();
 
-//        typedef Channel<std::unique_ptr<GAMBlock>> GAMBlockChannel;
-        Channel<std::unique_ptr<GAMBlock>> sort_channel_;
-        Channel<std::unique_ptr<GAMBlock>> output_channel_;
-//        Channel<std::unique_ptr<ShardingPartitionData>> merge_channel_;
-//        Channel<std::unique_ptr<BAMBlock>> bam_channel_;
+//        typedef ArrayBlockQueue<std::unique_ptr<GAMBlock>> GAMBlockChannel;
+        ArrayBlockQueue<std::unique_ptr<GAMBlock>> sort_channel_;
+        ArrayBlockQueue<std::unique_ptr<GAMBlock>> output_channel_;
+//        ArrayBlockQueue<std::unique_ptr<ShardingPartitionData>> merge_channel_;
+//        ArrayBlockQueue<std::unique_ptr<BAMBlock>> bam_channel_;
         std::unique_ptr<CreateIndex> sort_idx_;
         std::thread output_gamblock_thread_;
         std::vector<std::thread> sort_compress_threads_;

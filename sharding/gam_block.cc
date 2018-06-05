@@ -74,13 +74,13 @@ namespace gamtools {
         if (!ofs.is_open()) {
             GLOG_ERROR << "Open file\t" << file_name_ ;
         } else {
-            GLOG_INFO << "Open file\t " << file_name_;
+            GLOG_TRACE << "Open file\t " << file_name_;
         }
         size_t block_size = size();
         ofs.write((char *)(&block_size), sizeof(size_t));
         ofs.write(data(), block_size);
         ofs.close();
-        GLOG_INFO << "Finish write file " << file_name_;
+        GLOG_TRACE << "Finish write file " << file_name_;
     }
 
     bool GAMComparator(const Slice &a, const Slice &b)  {

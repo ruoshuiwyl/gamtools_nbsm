@@ -8,7 +8,7 @@
 
 #include <vector>
 #include <memory>
-#include <util/channel.h>
+#include <util/array_block_queue.h>
 
 namespace gamtools {
     class GAMFastqFile;
@@ -17,13 +17,13 @@ namespace gamtools {
     class GAMFastqReadImpl {
     public:
         explicit GAMFastqReadImpl(std::vector<gamtools::GAMFastqFileInfo> &fastq_file_lists,
-                                          gamtools::Channel<std::unique_ptr<gamtools::GAMReadBuffer>> &output_fastq_channel_,
-                                          const int batch_size);
+                                  BlockQueue <std::unique_ptr<GAMReadBuffer>> &output_fastq_channel_,
+                                  const int batch_size);
         void ReadFastQ();
         std::thread spawn();
     private:
         std::vector<std::unique_ptr<GAMFastqFile>> fastq_file_lists_;
-        Channel<std::unique_ptr<GAMReadBuffer>> &output_fastq_channel_;
+        BlockQueue<std::unique_ptr<GAMReadBuffer>> &output_fastq_channel_;
         int fastq_batch_size_;
     };
 }

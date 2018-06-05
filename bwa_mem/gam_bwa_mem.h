@@ -6,7 +6,7 @@
 #define GAMTOOLS_SM_GAM_BWA_MEM_H
 
 #include <cstdint>
-#include <util/channel.h>
+#include <util/array_block_queue.h>
 #include <util/gam_read_buffer.h>
 #include <lib/htslib-1.3.1/htslib/sam.h>
 #include "bwamem.h"
@@ -14,8 +14,8 @@
 namespace gamtools {
     class GAMBWAMEM {
     public:
-        explicit GAMBWAMEM(Channel<std::unique_ptr<BWAReadBuffer>> &input,
-                           Channel<std::unique_ptr<BWAReadBuffer>> &output,
+        explicit GAMBWAMEM(BlockQueue <std::unique_ptr<BWAReadBuffer>> &input,
+                           BlockQueue <std::unique_ptr<BWAReadBuffer>> &output,
                            const mem_opt_t *opt, bwaidx_t *mem_idx);
 //        Initilization(const mem_opt_t *opt, const char *ref_file, bam_hdr_t **bam_hdr, const char *read_group_line);
         ~GAMBWAMEM();
@@ -27,8 +27,8 @@ namespace gamtools {
         mem_pestat_t *mem_pestat_;
         const mem_opt_t *mem_opt_ ;
         uint64_t processed_num_;
-        Channel<std::unique_ptr<BWAReadBuffer>> &input_;
-        Channel<std::unique_ptr<BWAReadBuffer>> &output_;
+        BlockQueue<std::unique_ptr<BWAReadBuffer>> &input_;
+        BlockQueue<std::unique_ptr<BWAReadBuffer>> &output_;
     };
 }
 
