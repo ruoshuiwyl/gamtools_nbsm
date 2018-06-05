@@ -96,6 +96,7 @@ namespace gamtools {
         std::unique_ptr<GAMBlock> gbam_block;
         while (output_channel_.read(gbam_block)) {
             gbam_block->Write();
+            gbam_block.release();
         }
         GLOG_INFO << "Sharding stage finish gbam block";
         assert (output_channel_.eof());

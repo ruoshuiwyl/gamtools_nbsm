@@ -76,6 +76,13 @@ namespace gamtools {
         GLOG_INFO << "Process Sharing " ;
         std::unique_ptr<BWAReadBuffer> read_buffer;
         while ( input_.read(read_buffer)) {
+#ifdef TESTDEBUG
+            for (int i = 0; i < read_buffer->size; i += 2) {
+                free(read_buffer->seqs[i].dup);
+                free(read_buffer->seqs[i+1].dup);
+            }
+
+#elif
             GLOG_INFO << "Process sharding one batch";
             for (int i = 0; i < read_buffer->size; i += 2) {
                 int gam_len = 0;
@@ -102,6 +109,7 @@ namespace gamtools {
                 read_buffer->seqs[i + 1].dup = nullptr;
                 markdup_impl_->StorePairEndRecord(read1_dup, read2_dup);
             }
+#endif
         }
         GLOG_INFO << "Finish Sharding";
         if (input_.eof()) {

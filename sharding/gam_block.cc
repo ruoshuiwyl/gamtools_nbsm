@@ -21,7 +21,7 @@ namespace gamtools {
     }
     void GAMBlock::Compress() {
         char *compress = new char[snappy::MaxCompressedLength(block_len_)];
-        size_t outlen;
+        size_t outlen = 0;
         snappy::RawCompress(block_data_, block_len_, compress, &outlen);
         compress_ = true;
         delete [] block_data_;
