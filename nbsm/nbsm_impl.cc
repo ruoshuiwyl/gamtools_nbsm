@@ -33,8 +33,8 @@
 namespace gamtools {
 
     NBSMImpl::NBSMImpl()
-    :  read_fastq_queue_(128),
-       input_read_queue_(128) {
+    :  read_fastq_queue_(16),
+       input_read_queue_(16) {
 
     }
     int NBSMImpl::ParseProgramOptions(int argc, char **argv) {
