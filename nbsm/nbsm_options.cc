@@ -20,8 +20,8 @@ namespace gamtools {
     NBSMOptions::NBSMOptions() {
         base_des_.add_options()
                 // base options
-                ("CheckHelp,h", "produce CheckHelp message")
-                ("version,v", "print version message")
+                ("help,h", "Print CheckHelp message")
+                ("version,v", "Print version message")
                 ("reference_file,r", po::value<std::string>(&reference_file), "Reference sequence file Default(null)")
                 ("temp_dir,d", po::value<std::string>(&temporary_directory), "Temporary directory Storage space size must be twice BAM file size Default(null)")
                 ("input_fastq1_lists,f", po::value<std::vector<std::string>>(&input_fastq1_lists_), "Input fastq1 file lists")
