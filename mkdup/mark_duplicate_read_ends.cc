@@ -103,7 +103,7 @@ bool MarkDuplicatePairEnds::ReadEndsComparator(const std::shared_ptr<MarkDuplica
         compare_difference = rhs->read2_pos_ - lhs->read2_pos_;
     }
     if (compare_difference == kEqualFlag) {
-        compare_difference = rhs->name_id_, lhs->name_id_;
+        compare_difference = rhs->name_id_ - lhs->name_id_;
     }
 //    assert(compare_difference != kEqualFlag);
     if (compare_difference > kEqualFlag){

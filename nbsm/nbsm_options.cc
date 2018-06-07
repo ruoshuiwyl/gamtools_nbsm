@@ -424,7 +424,7 @@ namespace gamtools {
 
     int NBSMOptions::CheckHelp() {
         int status = 1;
-        if (vm.count("CheckHelp")) {
+        if (vm.count("help")) {
             std::cout << opt_des_;
             status = 0;
         } else if (vm.count("version")) {

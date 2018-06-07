@@ -35,7 +35,7 @@ namespace gamtools {
         }
         std::stringstream oss;
         if (fastq_infos_.size() == 1) {
-            oss << "Total information of sample " << std::endl;
+            oss << "Total information of sample" << std::endl;
             oss << "Sample have one lane data" << std::endl;
             oss << "\tType\t\tRaw Data\t\tClean" << std::endl;
             oss << PrintBaseFqInfo(&fastq_infos_[0].first, &fastq_infos_[0].second) << std::endl;
@@ -45,8 +45,8 @@ namespace gamtools {
                 sample_fastq_info.first.Add(fq_infos.first);
                 sample_fastq_info.second.Add(fq_infos.second);
             }
-            oss << "Total information of sample " << std::endl;
-            oss << "Total have " << fastq_infos_.size() << "lanes" << std::endl;
+            oss << "Total information of sample" << std::endl;
+            oss << "Total have " << fastq_infos_.size() << " lanes" << std::endl;
             oss << "\tType\t\tRaw Data\t\tClean" << std::endl;
             int lane_id = 0;
             uint64_t sample_raw_base_num = sample_fastq_info.first.raw_base_num + sample_fastq_info.second.raw_base_num ;
@@ -54,17 +54,18 @@ namespace gamtools {
             for (auto &fq_info :fastq_infos_) {
                 uint64_t raw_base_num = fq_info.first.raw_base_num + fq_info.second.raw_base_num;
                 uint64_t clean_base_num = fq_info.first.clean_base_num + fq_info.second.clean_base_num;
-                oss << "Propotions of lane " << lane_id++ << "\t " << std::setprecision(4)
+                oss << "Propotions of lane_id" << lane_id++ << ":\t " << std::setprecision(4)
                     << (float)(100 * raw_base_num/sample_raw_base_num) << "\t " << (float)(100 * clean_base_num/sample_clean_base_num) << std::endl;
             }
             std::string head;
             oss << PrintBaseFqInfo(&sample_fastq_info.first, &sample_fastq_info.second) << std::endl;
             lane_id = 0;
             for (auto &fq_infos : fastq_infos_) {
-                oss << "Lane ID" << lane_id << std::endl;
-                oss << "Fastq filename :" << fastq_file_lists_[lane_id].fastq1_filename << "\t " << fastq_file_lists_[lane_id].fastq2_filename << std::endl;
+                oss << "Lane ID " << lane_id << std::endl;
+                oss << "Fastq1 filename: " << fastq_file_lists_[lane_id].fastq1_filename << std::endl;
+                oss << "Fastq2 filename: " << fastq_file_lists_[lane_id].fastq2_filename << std::endl;
                 oss << "\tType\t\tRaw Data\t\tClean" << std::endl;
-                oss << PrintBaseFqInfo(&sample_fastq_info.first, &sample_fastq_info.second) << std::endl;
+                oss << PrintBaseFqInfo(&fq_infos.first, &fq_infos.second) << std::endl;
                 lane_id++;
             }
         }
