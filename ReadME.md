@@ -115,13 +115,19 @@ Multiple pe files
 
 ###Performance
 ENV : centos7 128G 2*12 E3 CPU
-DataSets: NA12878 BGISEQ500(38X) HISSEQ500(30X)
-Time :
+DataSets: NA12878 BGISEQ500(38X)
+Time : 7h vs
 Accuracy:
 filter:
 mapped rate:
 markdup rate:
 
+## QC Report
+
+
+
+### Filter uniquely mapped reads
+[ Mappability (Mapping Quality) Score Of Unique Aligned Reads](https://www.biostars.org/p/59282/)
 
 
 ## Limitations

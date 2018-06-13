@@ -213,10 +213,11 @@ namespace gamtools {
 
     void  BAMSortMkdupImpl::MergePartition(std::unique_ptr<GAMPartitionData> &gam_part){
         auto bam_block_ptr = std::unique_ptr<BAMBlock>( new BAMBlock(kBAMBlockSize, gam_part->sharding_idx, 0 ,false));
+
         auto &gam_blocks = gam_part->blocks;
         if (gam_blocks.empty()) {
             bam_block_ptr->SendEof();
-            output_bam_channel_.write(std::move(bam_block_ptr));
+            output_bam_queue_.write(std::move(bam_block_ptr));
             return ;
         }
         if (gam_blocks.size() > 1) {
@@ -306,7 +307,7 @@ namespace gamtools {
             }
         }
         bam_block_ptr->SendEof();
-        output_bam_channel_.write(std::move(bam_block_ptr));
+        output_bam_queue_.write(std::move(bam_block_ptr));
     }
 
     void
@@ -349,14 +350,16 @@ namespace gamtools {
         if (!bam_hdr_write(bam_file_->fp.bgzf, bam_hdr_)) {
             GLOG_ERROR << "Write bam head failed";
         }
-        std::unique_ptr<BAMBlock> bam_block;
+//        std::unique_ptr<BAMBlock> bam_block;
         int current_sharding_idx = 0;
         std::priority_queue<int, std::vector<int>, std::greater<int>> finish_sharding_idxs;
-        while (output_bam_channel_.read(bam_block)) {
-            auto sharding_idx = bam_block->sharding_idx();
-            bool eof = bam_block->eof();
+        std::unique_ptr<GAMPartitionData> bam_block;
+        while (output_bam_queue_.read(bam_block)) {
+            auto sharding_idx = bam_block->sharding_idx;
+//            bool eof = bam_block->eof();
             chunks_[sharding_idx].push_back(std::move(bam_block));
-            if (eof) {
+            bam_chunks_[sharding_idx] = std::move(bam_block);
+//            if (eof) {
                 finish_sharding_idxs.push(sharding_idx);
                 while (current_sharding_idx == finish_sharding_idxs.top()) {
                     GLOG_TRACE << "Output BAM sharding idx " << current_sharding_idx;

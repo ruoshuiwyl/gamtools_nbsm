@@ -9,6 +9,7 @@
 #include <vector>
 #include <util/array_block_queue.h>
 #include <atomic>
+#include <util/bounded_queue.h>
 #include "nbsm/options.h"
 
 namespace gamtools {
@@ -42,7 +43,9 @@ namespace gamtools {
         void OutputShardingBAM(int current_sharding_idx);
         std::vector<std::unique_ptr<ShardingPartitionData>> &partition_datas_;
         ArrayBlockQueue<std::unique_ptr<GAMPartitionData>> gam_part_channel_;
-        ArrayBlockQueue<std::unique_ptr<BAMBlock>> output_bam_channel_;
+//        ArrayBlockQueue<std::unique_ptr<BAMBlock>> output_bam_channel_;
+        BoundedQueue<std::unique_ptr<GAMPartitionData>> output_bam_queue_;
+        std::vector<std::unique_ptr<GAMPartitionData>> bam_chunks_;
         std::vector<std::vector<std::unique_ptr<BAMBlock>>> chunks_;
         const SMOptions &sm_options_;
         int block_size_;//
