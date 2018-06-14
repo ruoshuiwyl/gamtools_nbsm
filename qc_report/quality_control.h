@@ -10,46 +10,32 @@
 #include <map>
 #include <vector>
 #include <util/slice.h>
+#include "qc_stat.h"
 
 namespace gamtools {
     typedef std::tuple<int, int, int> bed_t;
 
 
-    struct StatisticsSlice {
-        StatisticsSlice(const Slice &s):slice(s) {
-
-        }
-
-        int tid;
-        int pos;
-        int rlen;
-        int qlen;
-        int mapq;
-        const Slice &slice;
-    };
-
-
     class QualityControl {
     public:
         void Init();
-        void Statistics(const Slice &slice);
+        void Statistics(const StatisticsSlice &stat);
         void Report();
     private:
 
+//        void StatisticsRead(const StatisticsSlice &stat);
+//        void StatisticsDepth(const StatisticsSlice &stat );
 
-        std::list<int> stat_list_;
+
+        std::deque<std::pair<int,int>> stat_list_;
         int curr_idx_;
         int curr_pos_;
+        int curr_end_;
         bool target_;
-        std::set<int> stat_chr_;
-        std::map<std::string, int> refer_dict_;
-        std::vector<int> refer_lens_;
-        std::vector<std::vector<bed_t>> target_region_, flank_region_;
-        std::vector<int> target_chr_lens_, flank_chr_lens_;
-        std::vector<std::vector<int64_t>> target_depth_, flank_depth_;
-        int flank_extend = 200;
-        std::string bed_filename_;
+
         std::string ref_filename_;
+        std::string report_filename_;
+        std::unique_ptr<BaseStat> base_stat_;
     };
 }
 
