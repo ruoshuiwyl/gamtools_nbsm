@@ -141,12 +141,10 @@ namespace gamtools {
     std::string TargetStat::Report() {
 
         std::ostringstream oss;
-        oss << "\t\t\t\t\tMapping" << std::endl;
-
 
         oss << "\t\t\t\t\tTarget" << std::endl;
 
-        oss<< "\t\t\t\t\tFlank" << std::endl;
+
 
 
         oss << "\t\t\t\t\tChromosome Depth" << std::endl;
@@ -160,7 +158,7 @@ namespace gamtools {
             double mean_depth;
             double relative_depth;
             int median_depth;
-            oss << chr << "\t" << lens << "\t" << bases << "\t" << cover_pos << "\t" ;
+            oss << chr << "\t" << lens << "\t" << bases << "\t" << cover_pos << "\t" << cover_precent << "\t" ;
             oss << mean_depth << "\t" << relative_depth << "\t" << median_depth << std::endl;
         }
 
