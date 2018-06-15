@@ -16,7 +16,6 @@ namespace gamtools {
     }
 
 
-
     void QualityControl::Statistics( const StatisticsSlice &stat) {
         base_stat_->StatisticsRead(stat);
         if (base_stat_->HasStat(stat.tid)) {

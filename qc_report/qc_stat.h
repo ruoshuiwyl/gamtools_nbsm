@@ -27,6 +27,16 @@ namespace gamtools {
         int qlen;
         int mapq; //
     };
+
+    struct  ChromosomeStatData {
+        int lens;
+        int bases;
+        int cover_pos;
+        double cover_precent;
+        double mean_depth;
+        double relative_depth;
+        int median_depth;
+    };
     class BaseStat {
     public:
         BaseStat(const std::string &ref_idx_file): ref_filename_(ref_idx_file){}
@@ -40,6 +50,13 @@ namespace gamtools {
         }
     protected:
         void ReadReferIndex();
+        int64_t mapped_reads_, mapped_bases_;
+        int64_t mapq10_mapped_reads_, mapq10_mapped_bases_;
+        int64_t chrx_depth_, chrx_idx_;
+        int64_t chry_depth_, chry_idx_;
+        int64_t dup_reads_;
+        int64_t total_reads_;
+
         std::string ref_filename_;
         std::set<int> stat_chr_;
         std::map<std::string, int> refer_dict_;
@@ -54,11 +71,17 @@ namespace gamtools {
         void StatisticsDepth(int tid, int pos, int depth);
         std::string Report();
     private:
+
+
+        void ComputeDepthStat(std::vector<double> &target_depth_radio, std::vector<double> &flank_depth_radio,
+                                      std::vector<double> &total_depth_radio);
+        void ComputeChrStat(int chr_idx, ChromosomeStatData &stat_data);
         std::string bed_filename_;
         int target_read_idx_, flank_read_idx_;
         int target_read_reg_, flank_read_reg_;
         int target_depth_idx_, flank_depth_idx_;
         int target_depth_reg_, flank_depth_reg_;
+        int target_total_len_, flank_total_len_;
         std::vector<std::vector<bed_t>> target_region_, flank_region_;
         std::vector<int> target_chr_lens_, flank_chr_lens_;
         std::vector<std::vector<int64_t>> target_depth_, flank_depth_; // static depth
@@ -82,6 +105,8 @@ namespace gamtools {
         void StatisticsDepth(int tid, int pos, int depth);
         std::string Report();
     private:
+        void ComputeChrStat(int chr_idx, ChromosomeStatData &stat_data);
+
         std::vector<int64_t> target_coverage_;
         std::vector<int64_t> depth_stat_;
         std::vector<int64_t> mapq10_target_reads_, target_reads_;

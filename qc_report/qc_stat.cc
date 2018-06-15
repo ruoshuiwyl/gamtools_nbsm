@@ -72,6 +72,14 @@ namespace gamtools {
 
 
     void TargetStat::StatisticsRead(const StatisticsSlice &stat) {
+
+
+
+        if (stat.tid == chrx_idx_ || stat.tid == chry_idx_) {
+
+        }
+
+
         if (stat.tid > target_read_idx_) {
             target_read_idx_ = stat.tid;
             target_read_reg_ = 0;
@@ -139,42 +147,124 @@ namespace gamtools {
 
 
     std::string TargetStat::Report() {
-
+        std::vector<double> target_depth_radio;
+        std::vector<double> flank_depth_radio;
+        std::vector<double> total_depth_radio;
+        ComputeDepthStat(target_depth_radio, flank_depth_radio, total_depth_radio);
         std::ostringstream oss;
-
+        oss << "\t\t\t\t\tMapping" << std::endl;
+        oss << "Capture specificity(%)\t" << std::endl;
+        oss << "Bases mapped to genome\t" << std::endl;
+        oss << "Reads mapped to genome\t" << std::endl;
+        oss << "Bases mapped (mapq >= 10) to genome\t" << std::endl;
+        oss << "Reads mapped (mapq >= 10) to genome\t" << std::endl;
+        oss << "mapq >= 10 rate(%)\t" << std::endl;
+        oss << "Mean depth of chrX(X)\t" << std::endl;
+        oss << "Mean depth of chrY(X)\t" << std::endl;
+        oss << "Gender\t" << std::endl;
+        oss << "Duplicate rate(%d)\t" << std::endl;
+        oss << "GC(%)" << std::endl;
+        std::vector<int> depth_stat = {4, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
         oss << "\t\t\t\t\tTarget" << std::endl;
+        oss << "Bases in target region(bp)\t " << target_total_len_ << std::endl;
+        oss << "Reads mapped to target region\t" << target_total_len_ << std::endl;
+        oss << "Bases mapped to target region\t" << target_total_len_ << std::endl;
+        oss << "Reads mapped (mapq >= 10 )to target region\t" << target_total_len_ <<std::endl;
+        oss << "Bases mapped (mapq >= 10)to target region\t" << target_total_len_ <<std::endl;
+        oss << "Mean depth of target region(X)\t" << std::setprecision(5) << target_total_len_ <<std::endl;
+        oss << "Coverage of target region(%)\t" << std::setprecision(4) <<  target_total_len_ << std::endl;
 
+        for (auto depth :depth_stat ) {
+            oss << "Fraction of target region covered >=" << depth << "X(%)\t" << target_depth_radio[depth] << std::endl;
+        }
 
+        oss << "\t\t\t\t\tFlank" << std::endl;
+        oss << "Bases in flanking region(bp)\t " << target_total_len_ << std::endl;
+        oss << "Reads mapped to flanking region\t" << target_total_len_ << std::endl;
+        oss << "Bases mapped to flanking region\t" << target_total_len_ << std::endl;
+        oss << "Reads mapped (Mapq >= 10 )to flanking region\t" << target_total_len_ <<std::endl;
+        oss << "Bases mapped (Mapq >= 10)to flanking region\t" << target_total_len_ <<std::endl;
+        oss << "Mean depth of flanking region(X)\t" << std::setprecision(5) << target_total_len_ <<std::endl;
+        oss << "Coverage of flanking region(%)\t" << std::setprecision(4) <<  target_total_len_ << std::endl;
+
+        for (auto depth :depth_stat ) {
+            oss << "Fraction of flanking region covered >=" << depth << "X(%)\t" << target_bases_ << std::endl;
+        }
 
 
         oss << "\t\t\t\t\tChromosome Depth" << std::endl;
         oss << "Chromosome\tSize\tTotalBase\tCoverPosition\tCoveragePercent\tMeanDepth\tRelativeDepth\tMedianDepth" << std::endl;
         for (auto &chr : kChromosomeName) {
             int chr_idx = refer_dict_[chr];
-            int lens;
-            int bases;
-            int cover_pos;
-            double cover_precent;
-            double mean_depth;
-            double relative_depth;
-            int median_depth;
-            oss << chr << "\t" << lens << "\t" << bases << "\t" << cover_pos << "\t" << cover_precent << "\t" ;
-            oss << mean_depth << "\t" << relative_depth << "\t" << median_depth << std::endl;
+            ChromosomeStatData stat_data ;
+            ComputeChrStat(chr_idx, stat_data);
+            oss << chr << "\t" << stat_data.lens << "\t" << stat_data.bases << "\t" << stat_data.cover_pos << "\t" ;
+            oss << std::setprecision(4)<< stat_data.cover_precent << "\t"<< stat_data.mean_depth << "\t" <<
+                stat_data.relative_depth << "\t" << stat_data.median_depth << std::endl;
         }
-
+        oss << std::endl;
         oss << "\t\t\t\t\tDepth Staticstic" << std::endl;
         oss << "Depth\t TRPercent\t FlankPercent\t TotalPercent" << std::endl;
-        for (int i = 0; i < kMaxDepth; ++i) {
-            double target_radio;
-            double flank_radio;
-            double total_radio;
-            oss << i << "\t" << target_radio << "\t" << flank_radio << "\t" << total_radio << std::endl;
-        }
+        oss << "0\t 100\t 100\t 100" << std::endl;
 
+        for (int idx = 1; idx < kMaxDepth; ++idx) {
+            if (target_depth_radio[idx] > 10.0) {
+                oss << idx << "\t" << std::setprecision(4) << target_depth_radio[idx] << "\t" << flank_depth_radio[idx] << "\t" << total_depth_radio[idx] << std::endl;
+            }
+        }
 
         return oss.str();
     }
 
+
+    void TargetStat::ComputeDepthStat(std::vector<double> &target_depth_radio, std::vector<double> &flank_depth_radio,
+                                          std::vector<double> &total_depth_radio) {
+        std::vector<int64_t> target_depth;
+        std::vector<int64_t> flank_depth;
+        target_depth.resize(kMaxDepth, 0);
+        flank_depth.resize(kMaxDepth, 0);
+        for (int idx = kMaxDepth - 1; idx >= 0; --idx) {
+            if (idx < kMaxDepth - 1) {
+                target_depth[idx] += target_depth[idx + 1];
+                flank_depth[idx] += flank_depth[idx + 1];
+            }
+            for (auto chr_idx : stat_chr_) {
+                target_depth[idx] += target_depth_[chr_idx][idx];
+                flank_depth[idx] += flank_depth_[chr_idx][idx];
+            }
+        }
+        target_depth_radio.resize(kMaxDepth);
+        flank_depth_radio.resize(kMaxDepth);
+        total_depth_radio.resize(kMaxDepth);
+        int target_total_len;
+        int flank_total_len;
+        for (int idx = 1; idx < kMaxDepth; ++idx) {
+            target_depth_radio[idx] = (double) target_depth[idx]/ target_total_len;
+            flank_depth_radio[idx]  = (double) flank_depth[idx] / flank_total_len;
+            total_depth_radio[idx] = (double)(target_depth[idx] + flank_depth[idx]) / (target_total_len + flank_total_len );
+        }
+    }
+
+    void TargetStat::ComputeChrStat(int chr_idx, ChromosomeStatData &stat_data) {
+        stat_data.lens = target_chr_lens_[chr_idx];
+        stat_data.bases = target_bases_[chr_idx];
+        stat_data.cover_pos = target_coverage_[chr_idx];
+        stat_data.cover_precent = (double)stat_data.cover_pos / stat_data.lens;
+        stat_data.mean_depth = (double)target_depth_stat_[chr_idx] / stat_data.lens;
+        stat_data.relative_depth = (double)target_depth_stat_[chr_idx]/target_total_len_;
+        auto &depth_dist = target_depth_[chr_idx];
+        int64_t midian = target_depth_stat_[chr_idx] >> 1;
+        int64_t cnt = 0, next_cnt = 0;
+        for (int idx = 0, ; idx < kMaxDepth; ++idx) {
+            next_cnt += depth_dist[idx];
+            if (next_cnt >= midian && midian > cnt) {
+                stat_data.median_depth = idx;
+                break;
+            }
+            cnt = next_cnt;
+        }
+
+    }
 
 
     void WGSStat::Init() {
@@ -196,9 +286,74 @@ namespace gamtools {
         }
     }
     std::string WGSStat::Report() {
+        std::ostringstream oss;
+        oss << "\t\t\t\t\tMapping" << std::endl;
+        oss << "Capture specificity(%)\t" << std::endl;
+        oss << "Bases mapped to genome\t" << std::endl;
+        oss << "Reads mapped to genome\t" << std::endl;
+        oss << "Bases mapped (mapq >= 10) to genome\t" << std::endl;
+        oss << "Reads mapped (mapq >= 10) to genome\t" << std::endl;
+        oss << "mapq >= 10 rate(%)\t" << std::endl;
+        oss << "Mean depth of chrX(X)\t" << std::endl;
+        oss << "Mean depth of chrY(X)\t" << std::endl;
+        oss << "Gender\t" << std::endl;
+        oss << "Duplicate rate(%d)\t" << std::endl;
+        oss << "GC(%)" << std::endl;
+        std::vector<int> depth_stat = {4, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
+        oss << "\t\t\t\t\tTarget" << std::endl;
+        oss << "Bases in target region(bp)\t " << target_total_len_ << std::endl;
+        oss << "Reads mapped to target region\t" << target_total_len_ << std::endl;
+        oss << "Bases mapped to target region\t" << target_total_len_ << std::endl;
+        oss << "Reads mapped (mapq >= 10 )to target region\t" << target_total_len_ <<std::endl;
+        oss << "Bases mapped (mapq >= 10)to target region\t" << target_total_len_ <<std::endl;
+        oss << "Mean depth of target region(X)\t" << std::setprecision(5) << target_total_len_ <<std::endl;
+        oss << "Coverage of target region(%)\t" << std::setprecision(4) <<  target_total_len_ << std::endl;
+
+        for (auto depth :depth_stat ) {
+            oss << "Fraction of target region covered >=" << depth << "X(%)\t" << target_bases_ << std::endl;
+        }
+        oss << "\t\t\t\t\tChromosome Depth" << std::endl;
+        oss << "Chromosome\tSize\tTotalBase\tCoverPosition\tCoveragePercent\tMeanDepth\tRelativeDepth\tMedianDepth" << std::endl;
+        for (auto &chr : kChromosomeName) {
+            int chr_idx = refer_dict_[chr];
+            ChromosomeStatData stat_data ;
+            ComputeChrStat(chr_idx, stat_data);
+            oss << chr << "\t" << stat_data.lens << "\t" << stat_data.bases << "\t" << stat_data.cover_pos << "\t" ;
+            oss << std::setprecision(4)<< stat_data.cover_precent << "\t"<< stat_data.mean_depth << "\t" <<
+                stat_data.relative_depth << "\t" << stat_data.median_depth << std::endl;
+        }
+        oss << std::endl;
+        oss << "\t\t\t\t\tDepth Staticstic" << std::endl;
+        oss << "Depth\t TRPercent\t FlankPercent\t TotalPercent" << std::endl;
+        oss << "0\t 100\t 100\t 100" << std::endl;
+
+        for (int idx = 1; idx < kMaxDepth; ++idx) {
+            if (target_depth_radio[idx] > 10.0) {
+                oss << idx << "\t" << std::setprecision(4) << target_depth_radio[idx] << std::endl;
+            }
+        }
 
 
+    }
 
+    void WGSStat::ComputeChrStat(int chr_idx, gamtools::ChromosomeStatData &stat_data) {
+        stat_data.lens = target_chr_lens_[chr_idx];
+        stat_data.bases = target_bases_[chr_idx];
+        stat_data.cover_pos = target_coverage_[chr_idx];
+        stat_data.cover_precent = (double)stat_data.cover_pos / stat_data.lens;
+        stat_data.mean_depth = (double)target_depth_stat_[chr_idx] / stat_data.lens;
+        stat_data.relative_depth = (double)target_depth_stat_[chr_idx]/target_total_len_;
+        auto &depth_dist = target_depth_[chr_idx];
+        int64_t midian = target_depth_stat_[chr_idx] >> 1;
+        int64_t cnt = 0, next_cnt = 0;
+        for (int idx = 0, ; idx < kMaxDepth; ++idx) {
+            next_cnt += depth_dist[idx];
+            if (next_cnt >= midian && midian > cnt) {
+                stat_data.median_depth = idx;
+                break;
+            }
+            cnt = next_cnt;
+        }
     }
 
 }

@@ -8,6 +8,7 @@
 #include <stdint.h>
 
 typedef struct {
+    int32_t rlen;
     int32_t tid;
     int32_t pos;
     uint32_t bin:16, qual:8, l_qname:8;

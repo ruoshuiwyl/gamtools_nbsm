@@ -893,7 +893,9 @@ static void put_bam_data(kstring_t *bam, const bseq1_t *s, const gam1_core_t *co
     uint64_t pos = (uint64_t )core->tid << 32 | (core->pos + 1) << 1 | is_rev;
     kputsn_(&pos, sizeof(uint64_t), bam);
     kputsn_(&s->read_id, sizeof(int64_t), bam);
-    kputsn_(&s->lib_id, sizeof(int), bam);
+    int32_t meta = core->l_qseq << 24 | core->rlen << 16 | core->qual << 8 | s->lib_id;
+//    kputsn_(&s->lib_id, sizeof(int), bam);
+	kputsn_(&meta, sizeof(int32_t), bam);
     kputsn_(&block_len, sizeof(uint32_t), bam);
 //    kputsn_(&pos, sizeof(uint64_t), bam);
 //    kputsn_(&block_len, sizeof(uint32_t), bam);
@@ -997,6 +999,7 @@ void mem_aln2bam(const mem_opt_t *opt, const bntseq_t *bns, kstring_t *str, bseq
 	if (m && m->rid >= 0) {
 		core.mtid = m->rid;
 		core.mpos = m->pos;
+		core.rlen = get_rlen(p->n_cigar, p->cigar);
 		if (p->rid == m->rid) {
 			int64_t p0 = p->pos + (p->is_rev? get_rlen(p->n_cigar, p->cigar) - 1 : 0);
 			int64_t p1 = m->pos + (m->is_rev? get_rlen(m->n_cigar, m->cigar) - 1 : 0);
