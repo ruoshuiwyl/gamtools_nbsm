@@ -38,6 +38,31 @@ namespace gamtools {
         }
     }
 
+    void BaseStat::BaseStatisticsRead(const StatisticsSlice &stat) {
+        total_reads_++;
+        if (stat.tid >= 0) {
+            mapped_reads_++;
+            mapped_bases_ += stat.qlen;
+            if (stat.mapq >= 10) {
+                mapq10_mapped_reads_++;
+                mapq10_mapped_bases_ += stat.qlen
+            }
+            if (stat.tid == chrx_idx_) {
+                chrx_depth_ += stat.qlen;
+            }
+            if (stat.tid == chry_idx_) {
+                chry_depth_ += stat.qlen;
+            }
+        }
+        if (stat.is_dup) {
+            dup_reads_++;
+        }
+
+
+    }
+
+
+
 
 
     void TargetStat::Init() {
@@ -72,14 +97,6 @@ namespace gamtools {
 
 
     void TargetStat::StatisticsRead(const StatisticsSlice &stat) {
-
-
-
-        if (stat.tid == chrx_idx_ || stat.tid == chry_idx_) {
-
-        }
-
-
         if (stat.tid > target_read_idx_) {
             target_read_idx_ = stat.tid;
             target_read_reg_ = 0;
@@ -153,17 +170,18 @@ namespace gamtools {
         ComputeDepthStat(target_depth_radio, flank_depth_radio, total_depth_radio);
         std::ostringstream oss;
         oss << "\t\t\t\t\tMapping" << std::endl;
-        oss << "Capture specificity(%)\t" << std::endl;
-        oss << "Bases mapped to genome\t" << std::endl;
-        oss << "Reads mapped to genome\t" << std::endl;
-        oss << "Bases mapped (mapq >= 10) to genome\t" << std::endl;
-        oss << "Reads mapped (mapq >= 10) to genome\t" << std::endl;
-        oss << "mapq >= 10 rate(%)\t" << std::endl;
-        oss << "Mean depth of chrX(X)\t" << std::endl;
-        oss << "Mean depth of chrY(X)\t" << std::endl;
-        oss << "Gender\t" << std::endl;
-        oss << "Duplicate rate(%d)\t" << std::endl;
-        oss << "GC(%)" << std::endl;
+        oss << "Capture specificity(%)\t" << std::setprecision(5) << target_total_reads_/ mapped_reads_ = std::endl;
+        oss << "Capture specificity(mapq > 10) (%)\t" << std::setprecision(5) << mapq10_target_total_reads_/ mapq10_mapped_reads_ = std::endl;
+        oss << "Bases mapped to genome\t" << mapped_bases_ <<  std::endl;
+        oss << "Reads mapped to genome\t" << mapped_reads_ << std::endl;
+        oss << "Bases mapped (mapq >= 10) to genome\t" << mapq10_mapped_bases_ <<  std::endl;
+        oss << "Reads mapped (mapq >= 10) to genome\t" << mapq10_mapped_reads_ << std::endl;
+        oss << "mapq >= 10 rate(%)\t" << std::setprecision(4)<< mapq10_mapped_reads_ /mapped_reads_<< std::endl;
+        oss << "Mean depth of chrX(X)\t" << chrx_depth_/ chrx_total_len_<< std::endl;
+        oss << "Mean depth of chrY(X)\t" << chry_depth_/ chry_total_len_<< std::endl;
+        oss << "Gender\t" << (chrx_depth_/ chry_total_len_ > 30 ? 'M' : 'W' )<< std::endl;
+        oss << "Duplicate rate(%d)\t" << std::setprecision(4) << (double)dup_reads_/ total_reads_ << std::endl;
+//        oss << "GC(%)" << std::endl;
         std::vector<int> depth_stat = {4, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
         oss << "\t\t\t\t\tTarget" << std::endl;
         oss << "Bases in target region(bp)\t " << target_total_len_ << std::endl;

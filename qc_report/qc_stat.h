@@ -13,7 +13,7 @@ namespace gamtools {
 
     typedef std::tuple<int, int, int> bed_t;
     struct StatisticsSlice {
-        StatisticsSlice(const Slice &s) {
+        StatisticsSlice(const Slice &s, bool is_dup) {
             tid = s.data()[0];
             pos = s.data()[1];
             rlen = 0;
@@ -21,6 +21,7 @@ namespace gamtools {
             mapq = 0;
 
         }
+        bool is_dup;
         int tid;
         int pos;
         int rlen;
@@ -48,12 +49,15 @@ namespace gamtools {
         inline bool HasStat(int tid) {
             return stat_chr_.count(tid) != 0;
         }
+        void BaseStatisticsRead(const StatisticsSlice &stat);
     protected:
         void ReadReferIndex();
+
         int64_t mapped_reads_, mapped_bases_;
         int64_t mapq10_mapped_reads_, mapq10_mapped_bases_;
         int64_t chrx_depth_, chrx_idx_;
         int64_t chry_depth_, chry_idx_;
+        int64_t chrx_total_len_, chry_total_len_;
         int64_t dup_reads_;
         int64_t total_reads_;
 
@@ -82,6 +86,9 @@ namespace gamtools {
         int target_depth_idx_, flank_depth_idx_;
         int target_depth_reg_, flank_depth_reg_;
         int target_total_len_, flank_total_len_;
+
+        int target_total_reads_;
+        int mapq10_target_total_reads_;
         std::vector<std::vector<bed_t>> target_region_, flank_region_;
         std::vector<int> target_chr_lens_, flank_chr_lens_;
         std::vector<std::vector<int64_t>> target_depth_, flank_depth_; // static depth
