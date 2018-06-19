@@ -57,7 +57,8 @@ namespace gamtools {
             return true;
         }
 
-        void write(T &&elem, int order) {
+        void write(T &&elem) {
+            int order = elem->order();
             std::unique_lock<std::mutex> lk(mtx_);
             not_full_cv_.wait(lk, [&] {
                 return !queue_.full() && (order == order_id_ + 1);

@@ -22,7 +22,14 @@ namespace gamtools {
     struct GAMPartitionData {
         explicit GAMPartitionData(int idx): sharding_idx(idx){}
         int sharding_idx;
+        std::unique_ptr<Block> bam_block_ptr;
         std::vector<std::unique_ptr<Block>>  blocks;
+        inline int order(){
+            return sharding_idx;
+        }
+        void InsertBAMSlice(gamtools::Slice &slice);
+
+
     };
 
     class BAMSortMkdupImpl {

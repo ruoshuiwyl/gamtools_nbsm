@@ -79,7 +79,8 @@ namespace gamtools {
         for (auto &th : sort_threads) {
             th.join();
         }
-        output_bam_channel_.SendEof();
+//        output_bam_channel_.SendEof();
+        output_bam_queue_.SendEof();
         GLOG_INFO << "Finish Merge gam block";
         output_bam_thread.join();
         GLOG_INFO << "Finish fastAln";
@@ -312,6 +313,20 @@ namespace gamtools {
         output_bam_queue_.write(std::move(bam_block_ptr));
     }
 
+    void GAMPartitionData::InsertBAMSlice(gamtools::Slice &slice) {
+        if (!bam_block_ptr->Insert(slice)) {
+            if (bam_block_ptr->full()) {
+                int sharding_idx = bam_block_ptr->sharding_idx();
+                int bam_block_idx = bam_block_ptr->block_idx() + 1;
+//                output_bam_channel_.write(std::move(bam_block_ptr));
+                bam_block_ptr = std::unique_ptr<BAMBlock>(
+                        new BAMBlock(kBAMBlockSize, sharding_idx, bam_block_idx, false));
+                bam_block_ptr->Insert(slice);
+            } else {
+                GLOG_ERROR << "BAM Block insert failed but not full";
+            }
+        }
+    }
     void
     BAMSortMkdupImpl::InsertBAMSlice(gamtools::Slice &slice, std::unique_ptr<BAMBlock> &bam_block_ptr) {
 
