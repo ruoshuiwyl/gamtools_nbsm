@@ -8,6 +8,8 @@
 
 #include <util/slice.h>
 #include <vector>
+#include <set>
+#include <map>
 
 namespace gamtools {
 
@@ -75,7 +77,7 @@ namespace gamtools {
         void StatisticsDepth(int tid, int pos, int depth);
         std::string Report();
     private:
-
+        void ReadBedFile();
 
         void ComputeDepthStat(std::vector<double> &target_depth_radio, std::vector<double> &flank_depth_radio,
                                       std::vector<double> &total_depth_radio);
@@ -113,12 +115,19 @@ namespace gamtools {
         std::string Report();
     private:
         void ComputeChrStat(int chr_idx, ChromosomeStatData &stat_data);
-
+        void ComputeDepthStat(std::vector<double> &target_depth_radio);
         std::vector<int64_t> target_coverage_;
         std::vector<int64_t> depth_stat_;
         std::vector<int64_t> mapq10_target_reads_, target_reads_;
         std::vector<int64_t> mapq10_target_bases_, target_bases_;
         std::vector<std::vector<int64_t>> target_depth_;
+        int64_t target_mapped_reads_;
+        int64_t target_mapped_bases_;
+        int64_t mapq10_target_mapped_reads_;
+        int64_t mapq10_target_mapped_bases_;
+        int64_t target_total_lens_;
+        int64_t total_depth_;
+        int64_t total_coverage_;
 
         int kMaxDepth = 8192;
         int kMapq = 10;

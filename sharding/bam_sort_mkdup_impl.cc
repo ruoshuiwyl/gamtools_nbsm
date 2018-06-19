@@ -50,7 +50,9 @@ namespace gamtools {
             : partition_datas_(partition_datas),
               bam_hdr_(bam_hdr),
               bam_filename_(bam_filename),
-              sm_options_(sm_opt) {
+              sm_options_(sm_opt),
+              gam_part_queue_(4),
+              output_bam_queue_(4) {
         block_size_ = sm_opt.sort_block_size;
 //        chunks_.resize(bam_hdr->n_targets + 1);
         chunks_.resize(partition_datas.size());
@@ -72,7 +74,7 @@ namespace gamtools {
         for (auto &read_gam_thread :read_gam_threads ) {
             read_gam_thread.join();
         }
-        gam_part_channel_.SendEof();
+        gam_part_queue_.SendEof();
         GLOG_INFO << "Finish Read gam block";
         for (auto &th : sort_threads) {
             th.join();
