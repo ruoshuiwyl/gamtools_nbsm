@@ -10,6 +10,23 @@
 
 namespace gamtools {
 
+    QualityControl::QualityControl(const std::string &ref_file, const std::string &report_file)
+            : report_filename_(report_file),
+              curr_idx_(-1),
+              curr_pos_(-1),
+              curr_end_(-1) {
+        base_stat_ =  std::unique_ptr<WGSStat>( new WGSStat(ref_file));
+    }
+    QualityControl::QualityControl(const std::string &ref_file, const std::string &bed_file,
+                                   const std::string &report_file)
+        : report_filename_(report_file),
+          curr_idx_(-1),
+          curr_pos_(-1),
+          curr_end_(-1) {
+        base_stat_ = std::unique_ptr<TargetStat> (new TargetStat(bed_file, ref_file));
+    }
+
+
 
     void QualityControl::Init() {
         base_stat_->Init();
@@ -42,7 +59,8 @@ namespace gamtools {
                     base_stat_->StatisticsDepth(curr_idx_, stat_list_.front().first, stat_list_.front().second);
                     stat_list_.pop_front();
                 }
-                assert(curr_pos_ == stat_list_.front().first);
+                assert(stat.pos == stat_list_.front().first);
+                curr_pos_ = stat_list_.front().first;
             }
             for (int idx = 0; idx < stat.rlen ; ++idx) {
                 stat_list_[idx].second++;

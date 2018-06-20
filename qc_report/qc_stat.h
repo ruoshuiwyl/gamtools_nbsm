@@ -15,13 +15,13 @@ namespace gamtools {
 
     typedef std::tuple<int, int, int> bed_t;
     struct StatisticsSlice {
+        StatisticsSlice() = default;
         StatisticsSlice(const Slice &s, bool is_dup) {
             tid = s.data()[0];
             pos = s.data()[1];
             rlen = 0;
             qlen = 0;
             mapq = 0;
-
         }
         bool is_dup;
         int tid;
@@ -47,7 +47,9 @@ namespace gamtools {
         virtual void StatisticsDepth(int tid, int pos, int depth) = 0;
         virtual void Init() = 0;
         virtual std::string Report() = 0;
-        virtual ~BaseStat();
+        virtual ~BaseStat(){
+
+        }
         inline bool HasStat(int tid) {
             return stat_chr_.count(tid) != 0;
         }
@@ -71,11 +73,14 @@ namespace gamtools {
 
     class TargetStat : public BaseStat {
     public:
-        TargetStat(const std::string &bed_file, const std::string &ref_idx_file);
+        TargetStat(const std::string &ref_idx_file, const std::string &bed_file);
         void Init();
         void StatisticsRead(const StatisticsSlice &stat);
         void StatisticsDepth(int tid, int pos, int depth);
         std::string Report();
+        ~TargetStat(){
+
+        }
     private:
         void ReadBedFile();
 
@@ -113,6 +118,9 @@ namespace gamtools {
         void StatisticsRead(const StatisticsSlice &stat);
         void StatisticsDepth(int tid, int pos, int depth);
         std::string Report();
+        ~WGSStat(){
+
+        }
     private:
         void ComputeChrStat(int chr_idx, ChromosomeStatData &stat_data);
         void ComputeDepthStat(std::vector<double> &target_depth_radio);

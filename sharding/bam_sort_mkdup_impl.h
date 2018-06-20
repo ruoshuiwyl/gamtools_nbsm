@@ -11,6 +11,7 @@
 #include <atomic>
 #include <util/bounded_queue.h>
 #include <util/order_block_queue.h>
+#include <qc_report/quality_control.h>
 #include "nbsm/options.h"
 
 namespace gamtools {
@@ -20,7 +21,7 @@ namespace gamtools {
     class BAMBlock;
 
     struct GAMPartitionData {
-        explicit GAMPartitionData(int idx): sharding_idx(idx){}
+        explicit GAMPartitionData(int idx): sharding_idx(idx), bam_block_ptr(nullptr){}
         int sharding_idx;
         std::unique_ptr<Block> bam_block_ptr;
         std::vector<std::unique_ptr<Block>>  blocks;
@@ -28,7 +29,6 @@ namespace gamtools {
             return sharding_idx;
         }
         void InsertBAMSlice(gamtools::Slice &slice);
-
 
     };
 
@@ -45,23 +45,26 @@ namespace gamtools {
         void OutputBAM();
         void ReadGAMBlock(std::unique_ptr<ShardingPartitionData> &part_data);
         void PartitionDecompressMerge();
-        void Decompress(std::unique_ptr<GAMPartitionData> &gam_part);
+//        void Decompress(std::unique_ptr<GAMPartitionData> &gam_part);
         void MergePartition(std::unique_ptr<GAMPartitionData> &gam_part);
-        void InsertBAMSlice(gamtools::Slice &slice, std::unique_ptr<BAMBlock> &bam_block_ptr);
-        void OutputShardingBAM(int current_sharding_idx);
+//        void InsertBAMSlice(gamtools::Slice &slice, std::unique_ptr<BAMBlock> &bam_block_ptr);
+//        void OutputShardingBAM(int current_sharding_idx);
+        void OutputShardingBAM(std::unique_ptr<GAMPartitionData> &bam_chunk);
         std::vector<std::unique_ptr<ShardingPartitionData>> &partition_datas_;
 //        ArrayBlockQueue<std::unique_ptr<GAMPartitionData>> gam_part_channel_;
         OrderBlockQueue<std::unique_ptr<GAMPartitionData>> gam_part_queue_;
 //        ArrayBlockQueue<std::unique_ptr<BAMBlock>> output_bam_channel_;
         OrderBlockQueue<std::unique_ptr<GAMPartitionData>> output_bam_queue_;
-        std::vector<std::unique_ptr<GAMPartitionData>> bam_chunks_;
-        std::vector<std::vector<std::unique_ptr<BAMBlock>>> chunks_;
+//        std::vector<std::unique_ptr<GAMPartitionData>> bam_chunks_;
+//        std::vector<std::vector<std::unique_ptr<BAMBlock>>> chunks_;
         const SMOptions &sm_options_;
         int block_size_;//
         htsFile *bam_file_;
         const bam_hdr_t *bam_hdr_;
         std::atomic<int> gam_block_idx_;
         std::string bam_filename_;
+
+        std::unique_ptr<QualityControl> qc_report_;
     };
 }
 

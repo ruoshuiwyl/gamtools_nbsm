@@ -55,9 +55,22 @@ namespace gamtools {
               output_bam_queue_(4) {
         block_size_ = sm_opt.sort_block_size;
 //        chunks_.resize(bam_hdr->n_targets + 1);
-        chunks_.resize(partition_datas.size());
+//        chunks_.resize(partition_datas.size());
+        std::string ref_file;
+        std::string report_file;
+        std::string bed_file;
+        if (bed_file.empty()) {
+            qc_report_ = std::unique_ptr<QualityControl>(new QualityControl(ref_file, report_file));
+        } else {
+            qc_report_ = std::unique_ptr<QualityControl>(new QualityControl(ref_file, bed_file, report_file));
+
+        }
+
 
     }
+
+
+
 
     void BAMSortMkdupImpl::ProcessSortMkdup() {
         std::vector<std::thread> read_gam_threads;
@@ -158,12 +171,12 @@ namespace gamtools {
             delete[] uncompress;
             ifs.close();
         }
-        gam_part_channel_.write(std::move(partition_data_ptr));
+        gam_part_queue_.write(std::move(partition_data_ptr));
     }
 
     void BAMSortMkdupImpl::PartitionDecompressMerge() {
         std::unique_ptr<GAMPartitionData> partition_data_ptr;
-        while (gam_part_channel_.read(partition_data_ptr)) {
+        while (gam_part_queue_.read(partition_data_ptr)) {
             GLOG_INFO << "Start merge one sharding idx: " << partition_data_ptr->sharding_idx ;
 //            Decompress(partition_data_ptr);
             MergePartition(partition_data_ptr);
@@ -172,6 +185,7 @@ namespace gamtools {
 
     }
 
+    /*
     void BAMSortMkdupImpl::Decompress(std::unique_ptr<gamtools::GAMPartitionData> &gam_part) {
         std::vector<std::unique_ptr<Block>> decompress_blocks;
         char *uncompress = new char[block_size_];
@@ -213,14 +227,16 @@ namespace gamtools {
 
         delete [] uncompress;
     }
+     */
 
     void  BAMSortMkdupImpl::MergePartition(std::unique_ptr<GAMPartitionData> &gam_part){
-        auto bam_block_ptr = std::unique_ptr<BAMBlock>( new BAMBlock(kBAMBlockSize, gam_part->sharding_idx, 0 ,false));
+//        auto bam_block_ptr = std::unique_ptr<BAMBlock>( new BAMBlock(kBAMBlockSize, gam_part->sharding_idx, 0 ,false));
+        auto bam_sharding_ptr = std::unique_ptr<GAMPartitionData>(new GAMPartitionData(gam_part->sharding_idx));
 
         auto &gam_blocks = gam_part->blocks;
         if (gam_blocks.empty()) {
-            bam_block_ptr->SendEof();
-            output_bam_queue_.write(std::move(bam_block_ptr));
+//            bam_block_ptr->SendEof();
+            output_bam_queue_.write(std::move(bam_sharding_ptr));
             return ;
         }
         if (gam_blocks.size() > 1) {
@@ -274,7 +290,8 @@ namespace gamtools {
 //                    GLOG_TRACE << "after_merge_sharding_id:" << gam_part->sharding_idx << "_" << data.block_idx << "\t"
 //                               << tid << "_" << pos << "\t" << sort_pos << " " << read_id;
 //                }
-                InsertBAMSlice(slice, bam_block_ptr);
+//                InsertBAMSlice(slice, bam_block_ptr);
+                bam_sharding_ptr->InsertBAMSlice(slice);
                 bam_heap.pop();
                 ++data.slice_idx;
                 if (data.slice_idx != gam_blocks[data.block_idx]->slices().size()) {
@@ -306,18 +323,24 @@ namespace gamtools {
                     reinterpret_cast< int *>(const_cast<char *> (bam))[4] = bam_flag;
                 }
                 Slice slice(bam, reinterpret_cast<const int *>(bam)[0] + 4);
-                InsertBAMSlice(slice, bam_block_ptr);
+//                InsertBAMSlice(slice, bam_block_ptr);
+                bam_sharding_ptr->InsertBAMSlice(slice);
             }
         }
-        bam_block_ptr->SendEof();
-        output_bam_queue_.write(std::move(bam_block_ptr));
+//        bam_block_ptr->SendEof();
+        output_bam_queue_.write(std::move(bam_sharding_ptr));
     }
 
     void GAMPartitionData::InsertBAMSlice(gamtools::Slice &slice) {
+        if (bam_block_ptr == nullptr) {
+            bam_block_ptr = std::unique_ptr<BAMBlock>(
+                    new BAMBlock(kBAMBlockSize, sharding_idx, 0, false));
+        }
+
         if (!bam_block_ptr->Insert(slice)) {
             if (bam_block_ptr->full()) {
-                int sharding_idx = bam_block_ptr->sharding_idx();
-                int bam_block_idx = bam_block_ptr->block_idx() + 1;
+//                int sharding_idx = bam_block_ptr->sharding_idx();
+                int bam_block_idx = blocks.size();
 //                output_bam_channel_.write(std::move(bam_block_ptr));
                 bam_block_ptr = std::unique_ptr<BAMBlock>(
                         new BAMBlock(kBAMBlockSize, sharding_idx, bam_block_idx, false));
@@ -327,29 +350,29 @@ namespace gamtools {
             }
         }
     }
-    void
-    BAMSortMkdupImpl::InsertBAMSlice(gamtools::Slice &slice, std::unique_ptr<BAMBlock> &bam_block_ptr) {
-
-#ifdef DEBUG
-//        DebugBAMSlice(slice);
-#endif
-//        int tid = reinterpret_cast<const int *>(slice.data())[1];
-//        int pos = reinterpret_cast<const int *>(slice.data())[2];
-//        std::cerr << "sharding_idx" << bam_block_ptr->sharding_idx() << ":" << tid << "_" << pos << std::endl;
-
-        if (!bam_block_ptr->Insert(slice)) {
-            if (bam_block_ptr->full()) {
-                int sharding_idx = bam_block_ptr->sharding_idx();
-                int bam_block_idx = bam_block_ptr->block_idx() + 1;
-                output_bam_channel_.write(std::move(bam_block_ptr));
-                bam_block_ptr = std::unique_ptr<BAMBlock>(
-                        new BAMBlock(kBAMBlockSize, sharding_idx, bam_block_idx, false));
-                bam_block_ptr->Insert(slice);
-            } else {
-                GLOG_ERROR << "BAM Block insert failed but not full";
-            }
-        }
-    }
+//    void
+//    BAMSortMkdupImpl::InsertBAMSlice(gamtools::Slice &slice, std::unique_ptr<BAMBlock> &bam_block_ptr) {
+//
+//#ifdef DEBUG
+////        DebugBAMSlice(slice);
+//#endif
+////        int tid = reinterpret_cast<const int *>(slice.data())[1];
+////        int pos = reinterpret_cast<const int *>(slice.data())[2];
+////        std::cerr << "sharding_idx" << bam_block_ptr->sharding_idx() << ":" << tid << "_" << pos << std::endl;
+//
+//        if (!bam_block_ptr->Insert(slice)) {
+//            if (bam_block_ptr->full()) {
+//                int sharding_idx = bam_block_ptr->sharding_idx();
+//                int bam_block_idx = bam_block_ptr->block_idx() + 1;
+//                output_bam_channel_.write(std::move(bam_block_ptr));
+//                bam_block_ptr = std::unique_ptr<BAMBlock>(
+//                        new BAMBlock(kBAMBlockSize, sharding_idx, bam_block_idx, false));
+//                bam_block_ptr->Insert(slice);
+//            } else {
+//                GLOG_ERROR << "BAM Block insert failed but not full";
+//            }
+//        }
+//    }
 
 
     void BAMSortMkdupImpl::OutputBAM() {
@@ -374,33 +397,36 @@ namespace gamtools {
         while (output_bam_queue_.read(bam_block)) {
             auto sharding_idx = bam_block->sharding_idx;
 //            bool eof = bam_block->eof();
-            chunks_[sharding_idx].push_back(std::move(bam_block));
-            bam_chunks_[sharding_idx] = std::move(bam_block);
+//            chunks_[sharding_idx].push_back(std::move(bam_block));
+//            bam_chunks_.push_back();
+//            bam_chunks_[sharding_idx] = std::move(bam_block);
 //            if (eof) {
-                finish_sharding_idxs.push(sharding_idx);
-                while (current_sharding_idx == finish_sharding_idxs.top()) {
-                    GLOG_TRACE << "Output BAM sharding idx " << current_sharding_idx;
-                    OutputShardingBAM(current_sharding_idx);
-                    ++current_sharding_idx;
-                    finish_sharding_idxs.pop();
-                    if (finish_sharding_idxs.empty()) {
-                        break;
-                    }
-                }
-            }
-        }
-
-        if (!finish_sharding_idxs.empty()) {
+            assert(current_sharding_idx == finish_sharding_idxs.top());
+            finish_sharding_idxs.push(sharding_idx);
             while (current_sharding_idx == finish_sharding_idxs.top()) {
-                OutputShardingBAM(current_sharding_idx);
+                GLOG_TRACE << "Output BAM sharding idx " << current_sharding_idx;
+//                OutputShardingBAM(current_sharding_idx);
+                OutputShardingBAM(bam_block);
                 ++current_sharding_idx;
                 finish_sharding_idxs.pop();
+                if (finish_sharding_idxs.empty()) {
+                    break;
+                }
             }
+//            }
         }
+
+//        if (!finish_sharding_idxs.empty()) {
+//            while (current_sharding_idx == finish_sharding_idxs.top()) {
+//                OutputShardingBAM(current_sharding_idx);
+//                ++current_sharding_idx;
+//                finish_sharding_idxs.pop();
+//            }
+//        }
         if (!finish_sharding_idxs.empty()) {
             GLOG_ERROR << "finish sharding should be empty";
         }
-        if (output_bam_channel_.eof()) {
+        if (output_bam_queue_.eof()) {
             hts_close(bam_file_);
         } else {
             GLOG_ERROR << "close bam file failed";
@@ -408,6 +434,7 @@ namespace gamtools {
 
     }
 
+    /*
     void BAMSortMkdupImpl::OutputShardingBAM(int current_sharding_idx) {
         if (!chunks_[current_sharding_idx].empty()) {
             for (auto &block: chunks_[current_sharding_idx]) {
@@ -434,6 +461,34 @@ namespace gamtools {
                 }
                 block.reset(nullptr);
             }
+        }
+    }
+     */
+
+    void BAMSortMkdupImpl::OutputShardingBAM(std::unique_ptr<gamtools::GAMPartitionData> &bam_chunk) {
+        for ( auto &block : bam_chunk->blocks) {
+            auto &slices = block->slices();
+            for (auto it = slices.begin(); it != slices.end(); ++it) {
+                int block_len = it->size() - 4;
+#ifdef DEBUG
+                DebugBAMSlice(*it);
+#endif
+                int ok = (bgzf_flush_try(bam_file_->fp.bgzf, it->size()) >= 0);
+                if (ok) {
+                    ok = bgzf_write(bam_file_->fp.bgzf, (char *)&(block_len)  ,4); // write bam length
+                }
+                if (ok) {
+                    ok = bgzf_write(bam_file_->fp.bgzf, it->data() + 4, 32); // write bam core data 32B
+                }
+                if (ok) {
+                    // write bam data variant length
+                    ok = bgzf_write(bam_file_->fp.bgzf, it->data() + 36, block_len - 32);
+                }
+                if (!ok) {
+                    GLOG_ERROR << "Write BAM error ";
+                }
+            }
+            block.reset(nullptr);
         }
     }
 

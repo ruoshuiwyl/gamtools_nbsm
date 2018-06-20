@@ -13,10 +13,9 @@ namespace gamtools {
             "chr6",  "chr7",  "chr8",  "chr9",  "chr10",
             "chr11", "chr12", "chr13", "chr14", "chr15",
             "chr16", "chr17", "chr18", "chr19", "chr20",
-            "chr21", "chr22", "chrX", "chrY" };
+            "chr21", "chr22", "chrX",  "chrY" };
 
     void BaseStat::ReadReferIndex() {
-
         char data[1024];
         char chr_name[64];
         int chr_len;
@@ -24,9 +23,10 @@ namespace gamtools {
         std::ifstream ref_ifs(ref_filename_);
         if (ref_ifs.is_open()){
             while (ref_ifs.getline(data, 1024) ) {
-                sscanf(data, "%s %d", chr_name, chr_len);
+                sscanf(data, "%s %d", chr_name, &chr_len);
                 refer_dict_[chr_name] = chr_idx;
-                refer_lens_[chr_idx++] = chr_len;
+                refer_lens_. push_back(chr_len);
+                chr_idx++;
             }
             ref_ifs.close();
         } else {
@@ -45,7 +45,7 @@ namespace gamtools {
             mapped_bases_ += stat.qlen;
             if (stat.mapq >= 10) {
                 mapq10_mapped_reads_++;
-                mapq10_mapped_bases_ += stat.qlen
+                mapq10_mapped_bases_ += stat.qlen;
             }
             if (stat.tid == chrx_idx_) {
                 chrx_depth_ += stat.qlen;
@@ -63,10 +63,40 @@ namespace gamtools {
 
 
 
+    TargetStat::TargetStat(const std::string &ref_idx_file, const std::string &bed_file)
+            : BaseStat(ref_idx_file), bed_filename_(bed_file) {
+
+    }
+
+
 
 
     void TargetStat::Init() {
         BaseStat::ReadReferIndex();
+        int genome_size = refer_dict_.size();
+        target_reads_.resize(genome_size, 0);
+        flank_reads_.resize(genome_size, 0);
+        mapq10_target_reads_.resize(genome_size, 0);
+        mapq10_flank_reads_.resize(genome_size, 0);
+
+
+        target_bases_.resize(genome_size, 0);
+        flank_bases_.resize(genome_size, 0);
+        mapq10_target_bases_.resize(genome_size, 0);
+        mapq10_flank_bases_.resize(genome_size, 0);
+
+        target_depth_.resize(genome_size);
+        flank_depth_.resize(genome_size);
+        for (int i = 0; i < genome_size; ++i) {
+            target_depth_[i].resize(kMaxDepth, 0);
+            flank_depth_[i].resize(kMaxDepth, 0);
+        }
+
+        target_coverage_.resize(genome_size, 0);
+        flank_coverage_.resize(genome_size, 0);
+
+        target_depth_stat_.resize(genome_size, 0);
+        flank_depth_stat_.resize(genome_size, 0);
         ReadBedFile();
 
     }
@@ -147,8 +177,8 @@ namespace gamtools {
         ComputeDepthStat(target_depth_radio, flank_depth_radio, total_depth_radio);
         std::ostringstream oss;
         oss << "\t\t\t\t\tMapping" << std::endl;
-        oss << "Capture specificity(%)\t" << std::setprecision(5) << target_total_reads_/ mapped_reads_ = std::endl;
-        oss << "Capture specificity(mapq > 10) (%)\t" << std::setprecision(5) << mapq10_target_total_reads_/ mapq10_mapped_reads_ = std::endl;
+        oss << "Capture specificity(%)\t" << std::setprecision(5) << (double)target_total_reads_/ mapped_reads_ <<  std::endl;
+        oss << "Capture specificity(mapq > 10) (%)\t" << std::setprecision(5) << (double)mapq10_target_total_reads_/ mapq10_mapped_reads_  << std::endl;
         oss << "Bases mapped to genome\t" << mapped_bases_ <<  std::endl;
         oss << "Reads mapped to genome\t" << mapped_reads_ << std::endl;
         oss << "Bases mapped (mapq >= 10) to genome\t" << mapq10_mapped_bases_ <<  std::endl;
@@ -185,7 +215,7 @@ namespace gamtools {
         oss << "Coverage of flanking region(%)\t" << std::setprecision(4) <<  target_total_len_ << std::endl;
 
         for (auto depth : depth_stat ) {
-            oss << "Fraction of flanking region covered >=" << depth << "X(%)\t" << target_bases_ << std::endl;
+            oss << "Fraction of flanking region covered >=" << depth << "X(%)\t" << target_depth_radio[depth] << std::endl;
         }
 
 
@@ -214,11 +244,19 @@ namespace gamtools {
     }
 
 
+
+
     void TargetStat::ReadBedFile() {
         int chr_idx;
         char *data = new char[1024];
         char chr_name[64];
         std::ifstream bed_ifs(bed_filename_);
+        target_region_.resize(refer_dict_.size());
+        flank_region_.resize(refer_dict_.size());
+        target_chr_lens_.resize(refer_dict_.size());
+        flank_chr_lens_.resize(refer_dict_.size());
+        target_total_len_ = 0;
+        flank_total_len_ = 0;
         if (bed_ifs.is_open()) {
             while(bed_ifs.getline(data, 1024)) {
                 int target_start, target_stop;
@@ -282,7 +320,7 @@ namespace gamtools {
         auto &depth_dist = target_depth_[chr_idx];
         int64_t midian = target_depth_stat_[chr_idx] >> 1;
         int64_t cnt = 0, next_cnt = 0;
-        for (int idx = 0, ; idx < kMaxDepth; ++idx) {
+        for (int idx = 0; idx < kMaxDepth; ++idx) {
             next_cnt += depth_dist[idx];
             if (next_cnt >= midian && midian > cnt) {
                 stat_data.median_depth = idx;
@@ -294,8 +332,22 @@ namespace gamtools {
     }
 
 
+    WGSStat::WGSStat(const std::string &ref_idx_file) : BaseStat(ref_idx_file){}
+
+
     void WGSStat::Init() {
         BaseStat::ReadReferIndex();
+        int genome_size = refer_dict_.size();
+        target_coverage_.resize(genome_size, 0);
+        depth_stat_.resize(genome_size, 0);
+        target_reads_.resize(genome_size, 0);
+        target_bases_.resize(genome_size, 0);
+        mapq10_target_reads_.resize(genome_size, 0);
+        mapq10_target_bases_.resize(genome_size, 0);
+        target_depth_.resize(genome_size);
+        for (int i = 0; i < genome_size; ++i) {
+            target_depth_[i].resize(kMaxDepth, 0);
+        }
     }
 
     void WGSStat::StatisticsDepth(int tid, int pos, int depth) {
@@ -321,7 +373,7 @@ namespace gamtools {
         oss << "Reads mapped to genome\t" << target_mapped_bases_ << std::endl;
         oss << "Bases mapped (mapq >= 10) to genome\t" << mapq10_target_mapped_reads_ <<  std::endl;
         oss << "Reads mapped (mapq >= 10) to genome\t" << mapq10_target_mapped_bases_ <<  std::endl;
-        oss << "mapq >= 10 rate(%)\t" <<mapq10_target_mapped_reads_ / target_mapped_reads_ << std::endl;
+        oss << "mapq >= 10 rate(%)\t" << mapq10_target_mapped_reads_ / target_mapped_reads_ << std::endl;
         double chrx_median = chrx_depth_/ chrx_total_len_;
         double chry_median = chry_depth_/ chry_total_len_;
         oss << "Mean depth of chrX(X)\t" << chrx_median<< std::endl;
