@@ -6,22 +6,22 @@
 #define GAMTOOLS_SM_TARGET_STAT_H
 
 
-#include <util/slice.h>
+
 #include <vector>
 #include <set>
 #include <map>
 
 namespace gamtools {
-
+    class Slice;
     typedef std::tuple<int, int, int> bed_t;
     struct StatisticsSlice {
         StatisticsSlice() = default;
         StatisticsSlice(const Slice &s, bool is_dup) {
-            tid = s.data()[0];
-            pos = s.data()[1];
-            rlen = 0;
-            qlen = 0;
-            mapq = 0;
+//            tid = s.data()[0];
+//            pos = s.data()[1];
+//            rlen = 0;
+//            qlen = 0;
+//            mapq = 0;
         }
         bool is_dup;
         int tid;
@@ -56,6 +56,8 @@ namespace gamtools {
         void BaseStatisticsRead(const StatisticsSlice &stat);
     protected:
         void ReadReferIndex();
+        std::string MappedStatReport();
+
 
         int64_t mapped_reads_, mapped_bases_;
         int64_t mapq10_mapped_reads_, mapq10_mapped_bases_;

@@ -35,7 +35,35 @@ namespace gamtools {
         for (auto &chr_name : kChromosomeName) {
             chr_idx = refer_dict_[chr_name];
             stat_chr_.insert(chr_idx);
+            if (chr_name == "chrX") {
+                chrx_idx_ = chr_idx;
+                chrx_total_len_ = refer_lens_[chr_idx];
+            }
+            if (chr_name == "chrY") {
+                chry_idx_ = chr_idx;
+                chry_total_len_ = refer_lens_[chr_idx];
+            }
         }
+
+    }
+
+    std::string BaseStat::MappedStatReport() {
+        std::ostringstream oss;
+        oss << "\t\t\t\t\tMapping Statistics" << std::endl;
+//        oss << "Capture specificity(%)\t" << std::setprecision(5) << (double)target_mapped_bases_ / mapped_reads_ <<std::endl;
+//        oss << "Capture specificity mapq >= 10 (%)\t" << std::setprecision(5) << (double)mapq10_target_mapped_reads_ /mapq10_mapped_reads_ <<  std::endl;
+        oss << "Bases mapped to genome\t" << mapped_bases_ << std::endl;
+        oss << "Reads mapped to genome\t" << mapped_reads_ << std::endl;
+        oss << "Bases mapped (mapq >= 10) to genome\t" << mapq10_mapped_reads_ <<  std::endl;
+        oss << "Reads mapped (mapq >= 10) to genome\t" << mapq10_mapped_bases_ <<  std::endl;
+        oss << "mapq >= 10 rate(%)\t" << (double ) mapq10_mapped_reads_ / mapped_reads_ << std::endl;
+        double chrx_median = chrx_depth_/ chrx_total_len_;
+        double chry_median = chry_depth_/ chry_total_len_;
+        oss << "Mean depth of chrX(X)\t" << chrx_median << std::endl;
+        oss << "Mean depth of chrY(X)\t" << chry_median << std::endl;
+        oss << "Gender\t" << (chry_median/ chrx_median >= 0.5 ? 'M' : 'W' )<< std::endl;
+        oss << "Duplicate rate(%d)\t" << std::setprecision(4) << (double)dup_reads_/ total_reads_  << std::endl;
+        return oss.str();
     }
 
     void BaseStat::BaseStatisticsRead(const StatisticsSlice &stat) {
@@ -98,6 +126,9 @@ namespace gamtools {
         target_depth_stat_.resize(genome_size, 0);
         flank_depth_stat_.resize(genome_size, 0);
         ReadBedFile();
+
+
+
 
     }
 
@@ -351,7 +382,9 @@ namespace gamtools {
 
     void WGSStat::StatisticsDepth(int tid, int pos, int depth) {
         depth_stat_[tid] += depth;
-        target_coverage_[tid]++;
+        if (depth > 0) {
+            target_coverage_[tid]++;
+        }
         target_depth_[tid][depth >= kMaxDepth? kMaxDepth - 1 : depth]++;
     }
 
@@ -366,20 +399,7 @@ namespace gamtools {
     }
     std::string WGSStat::Report() {
         std::ostringstream oss;
-        oss << "\t\t\t\t\tMapping Statistics" << std::endl;
-        oss << "Capture specificity(%)\t" << std::setprecision(5) << (double)target_mapped_bases_ / mapped_reads_ <<std::endl;
-        oss << "Capture specificity mapq >= 10 (%)\t" << std::setprecision(5) << (double)mapq10_target_mapped_reads_ /mapq10_mapped_reads_ <<  std::endl;
-        oss << "Bases mapped to genome\t" << target_mapped_reads_ << std::endl;
-        oss << "Reads mapped to genome\t" << target_mapped_bases_ << std::endl;
-        oss << "Bases mapped (mapq >= 10) to genome\t" << mapq10_target_mapped_reads_ <<  std::endl;
-        oss << "Reads mapped (mapq >= 10) to genome\t" << mapq10_target_mapped_bases_ <<  std::endl;
-        oss << "mapq >= 10 rate(%)\t" << mapq10_target_mapped_reads_ / target_mapped_reads_ << std::endl;
-        double chrx_median = chrx_depth_/ chrx_total_len_;
-        double chry_median = chry_depth_/ chry_total_len_;
-        oss << "Mean depth of chrX(X)\t" << chrx_median<< std::endl;
-        oss << "Mean depth of chrY(X)\t" << chry_median<< std::endl;
-        oss << "Gender\t" << (chry_median/ chrx_median >= 0.5 ? 'M' : 'W' )<< std::endl;
-        oss << "Duplicate rate(%d)\t" << std::setprecision(4) << (double)dup_reads_/ total_reads_  << std::endl;
+        oss << MappedStatReport();
 //        oss << "GC(%)" << std::endl;
         std::vector<int> depth_stat = {4, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
         oss << "\t\t\t\t\tTarget" << std::endl;

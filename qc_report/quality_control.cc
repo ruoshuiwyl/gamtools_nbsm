@@ -3,7 +3,9 @@
 //
 
 #include <fstream>
-#include <util/glogger.h>
+#include <cassert>
+
+//#include <util/glogger.h>
 #include "quality_control.h"
 #include "qc_stat.h"
 
@@ -23,7 +25,7 @@ namespace gamtools {
           curr_idx_(-1),
           curr_pos_(-1),
           curr_end_(-1) {
-        base_stat_ = std::unique_ptr<TargetStat> (new TargetStat(bed_file, ref_file));
+        base_stat_ = std::unique_ptr<TargetStat> (new TargetStat(ref_file, bed_file));
     }
 
 
@@ -75,7 +77,7 @@ namespace gamtools {
             report_file << base_stat_->Report();
             report_file.close();
         } else {
-            GLOG_ERROR << "Load QC Report Filename" << report_filename_;
+//            GLOG_ERROR << "Load QC Report Filename" << report_filename_;
         }
 
     }

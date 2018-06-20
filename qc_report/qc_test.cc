@@ -13,8 +13,10 @@ std::vector<int> poss = {30, 40, 50, 70, 100, 30000, 30200, 30330, 40000, 50000,
 
 
 void wes_stat() {
-    std::string ref_file = "/home/ruoshui/data/ucsc.hg19/ucsc.hg19/ucsc.hg19.fasta.fai";
-    std::string bed_file = "/home/ruoshui/data/ucsc.hg19/ex_region.sort.bed";
+//    std::string ref_file = "/home/ruoshui/data/ucsc.hg19/ucsc.hg19/ucsc.hg19.fasta.fai";
+    std::string ref_file = "/home/ruoshui/data/uscs_hg38/hg38.fa.fai";
+    std::string bed_file = "/home/ruoshui/data/uscs_hg38/hg38.bed";
+//    std::string bed_file = "/home/ruoshui/data/ucsc.hg19/ex_region.sort.bed";
     std::string report_file = "test_wes.report";
     std::unique_ptr<QualityControl> qc_report(new QualityControl(ref_file, report_file));
     qc_report->Init();
@@ -38,7 +40,8 @@ void wes_stat() {
 }
 
 void wgs_stat() {
-    std::string ref_file = "/home/ruoshui/data/ucsc.hg19/ucsc.hg19/ucsc.hg19.fasta.fai";
+//    std::string ref_file = "/home/ruoshui/data/ucsc.hg19/ucsc.hg19/ucsc.hg19.fasta.fai";
+    std::string ref_file = "/home/ruoshui/data/uscs_hg38/test.fa.fai";
     std::string report_file = "test_wgs.qc";
     std::unique_ptr<QualityControl> qc_report(new QualityControl(ref_file, report_file));
     qc_report->Init();
