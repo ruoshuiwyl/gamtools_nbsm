@@ -104,6 +104,7 @@ namespace gamtools {
 
 
     void TargetStat::StatisticsRead(const StatisticsSlice &stat) {
+        BaseStat::BaseStatisticsRead(stat);
         if (stat.tid > target_read_idx_) {
             target_read_idx_ = stat.tid;
             target_read_reg_ = 0;
@@ -244,8 +245,6 @@ namespace gamtools {
     }
 
 
-
-
     void TargetStat::ReadBedFile() {
         int chr_idx;
         char *data = new char[1024];
@@ -357,6 +356,7 @@ namespace gamtools {
     }
 
     void WGSStat::StatisticsRead(const gamtools::StatisticsSlice &stat) {
+        BaseStat::BaseStatisticsRead(stat);
         target_reads_[stat.tid]++;
         target_bases_[stat.tid] += stat.qlen;
         if (stat.mapq >= kMapq) {
@@ -414,7 +414,7 @@ namespace gamtools {
                 oss << idx << "\t" << std::setprecision(4) << target_depth_radio[idx] << std::endl;
             }
         }
-
+        return oss.str();
 
     }
 
