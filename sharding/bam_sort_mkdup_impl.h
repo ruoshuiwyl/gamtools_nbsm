@@ -29,6 +29,7 @@ namespace gamtools {
             return sharding_idx;
         }
         void InsertBAMSlice(gamtools::Slice &slice);
+        void End();
 
     };
 

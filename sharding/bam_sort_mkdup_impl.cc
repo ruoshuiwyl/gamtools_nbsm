@@ -349,6 +349,7 @@ namespace gamtools {
             }
         }
 //        bam_block_ptr->SendEof();
+        bam_sharding_ptr->End();
         output_bam_queue_.write(std::move(bam_sharding_ptr));
         quality_control_queue_.write(std::move(qc_sharding_ptr));
     }
@@ -361,6 +362,7 @@ namespace gamtools {
 
         if (!bam_block_ptr->Insert(slice)) {
             if (bam_block_ptr->full()) {
+                blocks.push_back(std::move(bam_block_ptr));
 //                int sharding_idx = bam_block_ptr->sharding_idx();
                 int bam_block_idx = blocks.size();
 //                output_bam_channel_.write(std::move(bam_block_ptr));
@@ -371,6 +373,9 @@ namespace gamtools {
                 GLOG_ERROR << "BAM Block insert failed but not full";
             }
         }
+    }
+    void GAMPartitionData::End() {
+        blocks.push_back(std::move(bam_block_ptr));
     }
 //    void
 //    BAMSortMkdupImpl::InsertBAMSlice(gamtools::Slice &slice, std::unique_ptr<BAMBlock> &bam_block_ptr) {
@@ -417,8 +422,10 @@ namespace gamtools {
         std::priority_queue<int, std::vector<int>, std::greater<int>> finish_sharding_idxs;
         std::unique_ptr<GAMPartitionData> bam_block;
         while (output_bam_queue_.read(bam_block)) {
+
             auto sharding_idx = bam_block->sharding_idx;
-//            bool eof = bam_block->eof();
+//            std::cerr << "sharding_idx " << sharding_idx <<  "size:" << bam_block->blocks.size() << std::endl;
+                      //            bool eof = bam_block->eof();
 //            chunks_[sharding_idx].push_back(std::move(bam_block));
 //            bam_chunks_.push_back();
 //            bam_chunks_[sharding_idx] = std::move(bam_block);
@@ -426,11 +433,11 @@ namespace gamtools {
             assert(current_sharding_idx == sharding_idx);
 //            finish_sharding_idxs.push(sharding_idx);
 //            while (current_sharding_idx == finish_sharding_idxs.top()) {
-                GLOG_TRACE << "Output BAM sharding idx " << current_sharding_idx;
+                GLOG_TRACE << "Output BAM sharding idx " << current_sharding_idx ;
 //                OutputShardingBAM(current_sharding_idx);
             OutputShardingBAM(bam_block);
             ++current_sharding_idx;
-            finish_sharding_idxs.pop();
+//            finish_sharding_idxs.pop();
 //                if (finish_sharding_idxs.empty()) {
 //                    break;
 //                }

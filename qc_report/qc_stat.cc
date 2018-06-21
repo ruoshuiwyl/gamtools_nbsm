@@ -56,10 +56,10 @@ namespace gamtools {
         oss << "\t\t\t\t\tMapping Statistics" << std::endl;
 //        oss << "Capture specificity(%)\t" << std::setprecision(5) << (double)target_mapped_bases_ / mapped_reads_ <<std::endl;
 //        oss << "Capture specificity mapq >= 10 (%)\t" << std::setprecision(5) << (double)mapq10_target_mapped_reads_ /mapq10_mapped_reads_ <<  std::endl;
-        oss << "Bases mapped to genome\t" << mapped_bases_ << std::endl;
         oss << "Reads mapped to genome\t" << mapped_reads_ << std::endl;
-        oss << "Bases mapped (mapq >= 10) to genome\t" << mapq10_mapped_reads_ <<  std::endl;
-        oss << "Reads mapped (mapq >= 10) to genome\t" << mapq10_mapped_bases_ <<  std::endl;
+        oss << "Bases mapped to genome\t" << mapped_bases_ << std::endl;
+        oss << "Reads mapped (mapq >= 10) to genome\t" << mapq10_mapped_reads_ <<  std::endl;
+        oss << "Bases mapped (mapq >= 10) to genome\t" << mapq10_mapped_bases_ <<  std::endl;
         oss << "mapq >= 10 rate(%)\t" << (double ) mapq10_mapped_reads_ / mapped_reads_ << std::endl;
         if (chrx_total_len_ > 0 && chry_total_len_ > 0) {
             double chrx_median = chrx_depth_ / chrx_total_len_;
