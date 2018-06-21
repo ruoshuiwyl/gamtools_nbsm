@@ -56,17 +56,17 @@ namespace gamtools {
 
         if (boost::filesystem::exists(dir_path)) {
             boost::filesystem::remove_all(dir_path);
-        } else {
-            boost::filesystem::create_directories(dir_path);
         }
+        bool status = boost::filesystem::create_directories(dir_path);
+
 //        bool status = boost::filesystem::create_directory(dir_path); //read & write
 //
-//        if (!status) {
-//            GLOG_ERROR << "Create directory name  " << dir_name << " failed" ;
-//            exit(1);
-//        } else {
-//            GLOG_INFO << "Create directory name" << dir_name << "\tOK ";
-//        }
+        if (!status) {
+            GLOG_ERROR << "Create directory name  " << dir_name << " failed" ;
+            exit(1);
+        } else {
+            GLOG_INFO << "Create directory name" << dir_name << "\tOK ";
+        }
         return dir_name;
     }
 
