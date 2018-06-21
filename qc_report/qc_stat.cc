@@ -378,6 +378,10 @@ namespace gamtools {
         for (int i = 0; i < genome_size; ++i) {
             target_depth_[i].resize(kMaxDepth, 0);
         }
+        target_mapped_reads_ = 0;
+        target_mapped_bases_ = 0;
+        mapq10_target_mapped_reads_ = 0;
+        mapq10_target_mapped_bases_  = 0;
     }
 
     void WGSStat::StatisticsDepth(int tid, int pos, int depth) {
@@ -390,11 +394,20 @@ namespace gamtools {
 
     void WGSStat::StatisticsRead(const gamtools::StatisticsSlice &stat) {
         BaseStat::BaseStatisticsRead(stat);
+        target_mapped_reads_++;
+        target_mapped_bases_ += stat.qlen;
         target_reads_[stat.tid]++;
         target_bases_[stat.tid] += stat.qlen;
         if (stat.mapq >= kMapq) {
             mapq10_target_reads_[stat.tid]++;
             mapq10_target_bases_[stat.tid] += stat.qlen;
+            mapq10_target_mapped_reads_++;
+            mapq10_target_mapped_bases_ += stat.qlen;
+        }
+
+        target_total_lens_ = 0;
+        for (auto chr : stat_chr_) {
+            target_total_lens_ += refer_lens_[chr];
         }
     }
     std::string WGSStat::Report() {
@@ -411,7 +424,7 @@ namespace gamtools {
         oss << "Mean depth of target region(X)\t" << std::setprecision(5) << (double)(total_depth_/target_total_lens_)  <<std::endl;
         oss << "Coverage of target region(%)\t" << std::setprecision(4) <<  (double)(total_coverage_/target_total_lens_) << std::endl;
         std::vector<double> target_depth_radio;
-
+        ComputeDepthStat(target_depth_radio);
         for (auto depth :depth_stat ) {
             oss << "Fraction of target region covered >=" << depth << "X(%)\t" << std::setprecision(4) <<  target_depth_radio[depth] << std::endl;
         }
