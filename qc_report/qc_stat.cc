@@ -100,7 +100,6 @@ namespace gamtools {
             dup_reads_++;
         }
 
-
     }
 
 

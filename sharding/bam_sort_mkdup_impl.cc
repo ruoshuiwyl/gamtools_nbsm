@@ -51,9 +51,9 @@ namespace gamtools {
               bam_hdr_(bam_hdr),
               bam_filename_(bam_filename),
               sm_options_(sm_opt),
-              gam_part_queue_(4),
-              output_bam_queue_(4),
-              quality_control_queue_(8)           {
+              gam_part_queue_(16),
+              output_bam_queue_(16),
+              quality_control_queue_(24)           {
         block_size_ = sm_opt.sort_block_size;
 //        chunks_.resize(bam_hdr->n_targets + 1);
 //        chunks_.resize(partition_datas.size());
