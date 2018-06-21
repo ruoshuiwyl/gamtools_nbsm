@@ -43,6 +43,7 @@ namespace gamtools {
     private:
         void ReadGAMPartitionData();
         void OutputBAM();
+        void QCStatics();
         void ReadGAMBlock(std::unique_ptr<ShardingPartitionData> &part_data);
         void PartitionDecompressMerge();
 //        void Decompress(std::unique_ptr<GAMPartitionData> &gam_part);
@@ -55,6 +56,8 @@ namespace gamtools {
         OrderBlockQueue<std::unique_ptr<GAMPartitionData>> gam_part_queue_;
 //        ArrayBlockQueue<std::unique_ptr<BAMBlock>> output_bam_channel_;
         OrderBlockQueue<std::unique_ptr<GAMPartitionData>> output_bam_queue_;
+
+        OrderBlockQueue<std::unique_ptr<QCShardingData>> quality_control_queue_;
 //        std::vector<std::unique_ptr<GAMPartitionData>> bam_chunks_;
 //        std::vector<std::vector<std::unique_ptr<BAMBlock>>> chunks_;
         const SMOptions &sm_options_;
@@ -64,7 +67,6 @@ namespace gamtools {
         std::atomic<int> gam_block_idx_;
         std::string bam_filename_;
 
-        std::unique_ptr<QualityControl> qc_report_;
     };
 }
 

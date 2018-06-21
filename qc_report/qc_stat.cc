@@ -15,6 +15,8 @@ namespace gamtools {
             "chr16", "chr17", "chr18", "chr19", "chr20",
             "chr21", "chr22", "chrX",  "chrY" };
 
+//    const static std::vector<std::string> kChromosomeName = {
+//            "chr1",  "chr2",  "chrX",  "chrY" };
     void BaseStat::ReadReferIndex() {
         char data[1024];
         char chr_name[64];
@@ -33,15 +35,17 @@ namespace gamtools {
             GLOG_ERROR << "Load Reference file index *.fai Error";
         }
         for (auto &chr_name : kChromosomeName) {
-            chr_idx = refer_dict_[chr_name];
-            stat_chr_.insert(chr_idx);
-            if (chr_name == "chrX") {
-                chrx_idx_ = chr_idx;
-                chrx_total_len_ = refer_lens_[chr_idx];
-            }
-            if (chr_name == "chrY") {
-                chry_idx_ = chr_idx;
-                chry_total_len_ = refer_lens_[chr_idx];
+            if (refer_dict_.find(chr_name) != refer_dict_.end()) {
+                chr_idx = refer_dict_[chr_name];
+                stat_chr_.insert(chr_idx);
+                if (chr_name == "chrX") {
+                    chrx_idx_ = chr_idx;
+                    chrx_total_len_ = refer_lens_[chr_idx];
+                }
+                if (chr_name == "chrY") {
+                    chry_idx_ = chr_idx;
+                    chry_total_len_ = refer_lens_[chr_idx];
+                }
             }
         }
 
@@ -57,12 +61,22 @@ namespace gamtools {
         oss << "Bases mapped (mapq >= 10) to genome\t" << mapq10_mapped_reads_ <<  std::endl;
         oss << "Reads mapped (mapq >= 10) to genome\t" << mapq10_mapped_bases_ <<  std::endl;
         oss << "mapq >= 10 rate(%)\t" << (double ) mapq10_mapped_reads_ / mapped_reads_ << std::endl;
-        double chrx_median = chrx_depth_/ chrx_total_len_;
-        double chry_median = chry_depth_/ chry_total_len_;
-        oss << "Mean depth of chrX(X)\t" << chrx_median << std::endl;
-        oss << "Mean depth of chrY(X)\t" << chry_median << std::endl;
-        oss << "Gender\t" << (chry_median/ chrx_median >= 0.5 ? 'M' : 'W' )<< std::endl;
-        oss << "Duplicate rate(%d)\t" << std::setprecision(4) << (double)dup_reads_/ total_reads_  << std::endl;
+        if (chrx_total_len_ > 0 && chry_total_len_ > 0) {
+            double chrx_median = chrx_depth_ / chrx_total_len_;
+            double chry_median = chry_depth_ / chry_total_len_;
+            oss << "Mean depth of chrX(X)\t" << chrx_median << std::endl;
+            oss << "Mean depth of chrY(X)\t" << chry_median << std::endl;
+            oss << "Gender\t" << (chry_median / chrx_median >= 0.5 ? 'M' : 'W') << std::endl;
+        } else {
+            oss << "Mean depth of chrX(X)\t" << 0.0 << std::endl;
+            oss << "Mean depth of chrY(X)\t" << 0.0 << std::endl;
+            oss << "Gender\t - " <<  std::endl;
+        }
+        if (total_reads_ > 0 ) {
+            oss << "Duplicate rate(%d)\t" << std::setprecision(4) << (double) dup_reads_ / total_reads_ << std::endl;
+        } else {
+            oss << "Duplicate rate(%d)\t" << std::setprecision(4) << 0.0 << std::endl;
+        }
         return oss.str();
     }
 
@@ -125,11 +139,21 @@ namespace gamtools {
 
         target_depth_stat_.resize(genome_size, 0);
         flank_depth_stat_.resize(genome_size, 0);
+        target_total_reads_ = 0;
+        flank_total_reads_ = 0;
+        target_total_bases_ = 0;
+        flank_total_bases_ = 0;
+        mapq10_target_total_reads_ = 0;
+        mapq10_flank_total_reads_ = 0;
+        mapq10_target_total_bases_ = 0;
+        mapq10_flank_total_bases_ = 0;
+        target_total_depth_ = 0;
+        flank_total_depth_ = 0;
+
+        target_total_coverage_ = 0;
+        flank_total_coverage_ = 0;
+
         ReadBedFile();
-
-
-
-
     }
 
 
@@ -148,9 +172,13 @@ namespace gamtools {
         if (!(std::get<0>(target_bed) >= overlap_end || std::get<1>(target_bed) <= stat.pos)) {
             target_reads_[target_read_idx_]++;
             target_bases_[target_read_idx_] += stat.qlen;
+            target_total_reads_ ++;
+            target_total_bases_ += stat.qlen;
             if (stat.mapq >= kMapq ) {
                 mapq10_target_reads_[target_read_idx_]++;
                 mapq10_target_bases_[target_read_idx_] +=  stat.qlen;
+                mapq10_target_total_reads_ ++;
+                mapq10_target_total_bases_ += stat.qlen;
             }
         }
         while (std::get<1>(target_region_[flank_read_idx_][flank_read_reg_]) <= stat.pos) {
@@ -160,9 +188,13 @@ namespace gamtools {
         if (!(std::get<0>(flank_bed) >= overlap_end || std::get<1>(flank_bed) <= stat.pos)) {
             flank_reads_[target_read_idx_]++;
             flank_bases_[target_read_idx_] += stat.qlen;
+            flank_total_reads_++;
+            flank_total_bases_ += stat.qlen;
             if (stat.mapq >= kMapq) {
                 mapq10_flank_reads_[target_read_idx_]++;
                 mapq10_flank_bases_[target_read_idx_] +=  stat.qlen;
+                mapq10_flank_total_reads_++;
+                mapq10_flank_total_bases_ += stat.qlen;
             }
         }
 
@@ -179,9 +211,11 @@ namespace gamtools {
             target_depth_reg_++;
         }
         bed_t &target_bed = target_region_[target_read_idx_][target_read_reg_];
-        if (std::get<0>(target_bed) >= pos && std::get<1>(target_bed) < pos) {
+        if (std::get<0>(target_bed) <= pos && std::get<1>(target_bed) > pos) {
             target_depth_[target_depth_idx_][depth >= kMaxDepth? kMaxDepth - 1: depth] ++;
+            target_total_depth_ += depth;
             if (depth > 0 ) {
+                target_total_coverage_++;
                 target_coverage_[target_depth_idx_]++;
                 target_depth_stat_[target_depth_idx_] += depth;
             }
@@ -190,9 +224,11 @@ namespace gamtools {
             target_depth_reg_++;
         }
         bed_t &flank_bed = flank_region_[flank_depth_idx_][flank_depth_reg_];
-        if (std::get<0>(target_bed) >= pos && std::get<1>(target_bed) < pos) {
+        if (std::get<0>(target_bed) <= pos && std::get<1>(target_bed) > pos) {
             flank_depth_[flank_depth_idx_][depth >= kMaxDepth? kMaxDepth - 1: depth] ++;
+            flank_total_depth_ += depth;
             if (depth > 0 ) {
+                flank_total_coverage_++;
                 flank_coverage_[flank_depth_idx_]++;
                 flank_depth_stat_[flank_depth_idx_] += depth;
             }
@@ -209,45 +245,44 @@ namespace gamtools {
         ComputeDepthStat(target_depth_radio, flank_depth_radio, total_depth_radio);
         std::ostringstream oss;
         oss << "\t\t\t\t\tMapping" << std::endl;
-        oss << "Capture specificity(%)\t" << std::setprecision(5) << (double)target_total_reads_/ mapped_reads_ <<  std::endl;
-        oss << "Capture specificity(mapq > 10) (%)\t" << std::setprecision(5) << (double)mapq10_target_total_reads_/ mapq10_mapped_reads_  << std::endl;
+        oss << "Capture specificity(%)\t" << std::setprecision(5) << (double)100 * target_total_reads_/ mapped_reads_ <<  std::endl;
+        oss << "Capture specificity(mapq > 10) (%)\t" << std::setprecision(5) << (double)100 * mapq10_target_total_reads_/ mapq10_mapped_reads_  << std::endl;
         oss << "Bases mapped to genome\t" << mapped_bases_ <<  std::endl;
         oss << "Reads mapped to genome\t" << mapped_reads_ << std::endl;
         oss << "Bases mapped (mapq >= 10) to genome\t" << mapq10_mapped_bases_ <<  std::endl;
         oss << "Reads mapped (mapq >= 10) to genome\t" << mapq10_mapped_reads_ << std::endl;
-        oss << "mapq >= 10 rate(%)\t" << std::setprecision(4)<< mapq10_mapped_reads_ /mapped_reads_<< std::endl;
-        double chrx_median = chrx_depth_/ chrx_total_len_;
-        double chry_median = chry_depth_/ chry_total_len_;
-        oss << "Mean depth of chrX(X)\t" << chrx_median<< std::endl;
-        oss << "Mean depth of chrY(X)\t" << chry_median<< std::endl;
+        oss << "mapq >= 10 rate(%)\t" << std::setprecision(4)<< (double) 100 * mapq10_mapped_reads_ /mapped_reads_<< std::endl;
+        double chrx_median = chrx_depth_ / chrx_total_len_;
+        double chry_median = chry_depth_ / chry_total_len_;
+        oss << "Mean depth of chrX(X)\t" << chrx_median << std::endl;
+        oss << "Mean depth of chrY(X)\t" << chry_median << std::endl;
         oss << "Gender\t" << (chry_median/ chrx_median >= 0.5 ? 'M' : 'W' )<< std::endl;
         oss << "Duplicate rate(%d)\t" << std::setprecision(4) << (double)dup_reads_/ total_reads_ << std::endl;
 //        oss << "GC(%)" << std::endl;
-        std::vector<int> depth_stat = {4, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
+
         oss << "\t\t\t\t\tTarget" << std::endl;
         oss << "Bases in target region(bp)\t " << target_total_len_ << std::endl;
-        oss << "Reads mapped to target region\t" << target_total_len_ << std::endl;
-        oss << "Bases mapped to target region\t" << target_total_len_ << std::endl;
-        oss << "Reads mapped (mapq >= 10 )to target region\t" << target_total_len_ <<std::endl;
-        oss << "Bases mapped (mapq >= 10)to target region\t" << target_total_len_ <<std::endl;
-        oss << "Mean depth of target region(X)\t" << std::setprecision(5) << target_total_len_ <<std::endl;
-        oss << "Coverage of target region(%)\t" << std::setprecision(4) <<  target_total_len_ << std::endl;
-
+        oss << "Reads mapped to target region\t" << target_total_reads_ << std::endl;
+        oss << "Bases mapped to target region\t" << target_total_bases_ << std::endl;
+        oss << "Reads mapped (mapq >= 10) to target region\t" << mapq10_target_total_reads_ <<std::endl;
+        oss << "Bases mapped (mapq >= 10) to target region\t" << mapq10_target_total_bases_ <<std::endl;
+        oss << "Mean depth of target region(X)\t" << std::setprecision(5) << (double) target_total_depth_ / target_total_len_ <<std::endl;
+        oss << "Coverage of target region(%)\t" << std::setprecision(4) << (double) target_total_coverage_  / target_total_len_ << std::endl;
+        std::vector<int> depth_stat = {4, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
         for (auto depth :depth_stat ) {
-            oss << "Fraction of target region covered >=" << depth << "X(%)\t" << target_depth_radio[depth] << std::endl;
+            oss << "Fraction of target region covered >=" << depth << "X(%)\t" << 100 * target_depth_radio[depth] << std::endl;
         }
 
         oss << "\t\t\t\t\tFlank" << std::endl;
-        oss << "Bases in flanking region(bp)\t " << target_total_len_ << std::endl;
-        oss << "Reads mapped to flanking region\t" << target_total_len_ << std::endl;
-        oss << "Bases mapped to flanking region\t" << target_total_len_ << std::endl;
-        oss << "Reads mapped (Mapq >= 10 )to flanking region\t" << target_total_len_ <<std::endl;
-        oss << "Bases mapped (Mapq >= 10)to flanking region\t" << target_total_len_ <<std::endl;
-        oss << "Mean depth of flanking region(X)\t" << std::setprecision(5) << target_total_len_ <<std::endl;
-        oss << "Coverage of flanking region(%)\t" << std::setprecision(4) <<  target_total_len_ << std::endl;
-
+        oss << "Bases in flanking region(bp)\t " << flank_total_len_ << std::endl;
+        oss << "Reads mapped to flanking region\t" << flank_total_reads_ << std::endl;
+        oss << "Bases mapped to flanking region\t" << flank_total_bases_ << std::endl;
+        oss << "Reads mapped (Mapq >= 10) to flanking region\t" << mapq10_flank_total_reads_ <<std::endl;
+        oss << "Bases mapped (Mapq >= 10) to flanking region\t" << mapq10_flank_total_bases_ <<std::endl;
+        oss << "Mean depth of flanking region(X)\t" << std::setprecision(5) << (double)flank_total_depth_ / flank_total_len_ <<std::endl;
+        oss << "Coverage of flanking region(%)\t" << std::setprecision(4) <<  (double) flank_total_coverage_/ flank_total_len_<< std::endl;
         for (auto depth : depth_stat ) {
-            oss << "Fraction of flanking region covered >=" << depth << "X(%)\t" << target_depth_radio[depth] << std::endl;
+            oss << "Fraction of flanking region covered >=" << depth << "X(%)\t" << 100 * flank_depth_radio[depth] << std::endl;
         }
 
 
@@ -258,7 +293,7 @@ namespace gamtools {
             ChromosomeStatData stat_data ;
             ComputeChrStat(chr_idx, stat_data);
             oss << chr << "\t" << stat_data.lens << "\t" << stat_data.bases << "\t" << stat_data.cover_pos << "\t" ;
-            oss << std::setprecision(4)<< stat_data.cover_precent << "\t"<< stat_data.mean_depth << "\t" <<
+            oss << std::setprecision(4)<< 100 * stat_data.cover_precent << "\t"<< stat_data.mean_depth << "\t" <<
                 stat_data.relative_depth << "\t" << stat_data.median_depth << std::endl;
         }
         oss << std::endl;
@@ -267,7 +302,7 @@ namespace gamtools {
         oss << "0\t 100\t 100\t 100" << std::endl;
 
         for (int idx = 1; idx < kMaxDepth; ++idx) {
-            if (target_depth_radio[idx] > 10.0) {
+            if (target_depth_radio[idx] > 10.0 || idx <= 100) {
                 oss << idx << "\t" << std::setprecision(4) << target_depth_radio[idx] << "\t" << flank_depth_radio[idx] << "\t" << total_depth_radio[idx] << std::endl;
             }
         }
@@ -283,14 +318,14 @@ namespace gamtools {
         std::ifstream bed_ifs(bed_filename_);
         target_region_.resize(refer_dict_.size());
         flank_region_.resize(refer_dict_.size());
-        target_chr_lens_.resize(refer_dict_.size());
-        flank_chr_lens_.resize(refer_dict_.size());
+        target_chr_lens_.resize(refer_dict_.size(), 0);
+        flank_chr_lens_.resize(refer_dict_.size(), 0);
         target_total_len_ = 0;
         flank_total_len_ = 0;
         if (bed_ifs.is_open()) {
             while(bed_ifs.getline(data, 1024)) {
                 int target_start, target_stop;
-                sscanf(data, "%s %d %d", chr_name, target_start, target_stop);
+                sscanf(data, "%s %d %d", chr_name, &target_start, &target_stop);
                 chr_idx = refer_dict_[chr_name];
                 int target_len = target_stop - target_start;
                 bed_t bed_region = std::make_tuple(target_start, target_stop, target_len);
@@ -318,12 +353,14 @@ namespace gamtools {
         std::vector<int64_t> flank_depth;
         target_depth.resize(kMaxDepth, 0);
         flank_depth.resize(kMaxDepth, 0);
-        for (int idx = kMaxDepth - 1; idx >= 0; --idx) {
-            if (idx < kMaxDepth - 1) {
-                target_depth[idx] += target_depth[idx + 1];
-                flank_depth[idx] += flank_depth[idx + 1];
-            }
+        for (int idx = kMaxDepth - 2; idx >= 0; --idx) {
+//            if (idx < kMaxDepth - 1) {
+//                target_depth[idx] += target_depth[idx + 1];
+//                flank_depth[idx] += flank_depth[idx + 1];
+//            }
             for (auto chr_idx : stat_chr_) {
+                target_depth_[chr_idx][idx] += target_depth_[chr_idx][idx+1];
+                flank_depth_[chr_idx][idx] += flank_depth_[chr_idx][idx+1];
                 target_depth[idx] += target_depth_[chr_idx][idx];
                 flank_depth[idx] += flank_depth_[chr_idx][idx];
             }
@@ -331,12 +368,10 @@ namespace gamtools {
         target_depth_radio.resize(kMaxDepth);
         flank_depth_radio.resize(kMaxDepth);
         total_depth_radio.resize(kMaxDepth);
-        int target_total_len;
-        int flank_total_len;
         for (int idx = 1; idx < kMaxDepth; ++idx) {
-            target_depth_radio[idx] = (double) target_depth[idx]/ target_total_len;
-            flank_depth_radio[idx]  = (double) flank_depth[idx] / flank_total_len;
-            total_depth_radio[idx] = (double)(target_depth[idx] + flank_depth[idx]) / (target_total_len + flank_total_len );
+            target_depth_radio[idx] = (double) target_depth[idx]/ target_total_len_;
+            flank_depth_radio[idx]  = (double) flank_depth[idx] / flank_total_len_;
+            total_depth_radio[idx] = (double)(target_depth[idx] + flank_depth[idx]) / (target_total_len_ + flank_total_len_ );
         }
     }
 
@@ -362,7 +397,9 @@ namespace gamtools {
     }
 
 
-    WGSStat::WGSStat(const std::string &ref_idx_file) : BaseStat(ref_idx_file){}
+    WGSStat::WGSStat(const std::string &ref_idx_file) : BaseStat(ref_idx_file){
+
+    }
 
 
     void WGSStat::Init() {
@@ -421,12 +458,19 @@ namespace gamtools {
         oss << "Bases mapped to target region\t" << target_mapped_bases_ << std::endl;
         oss << "Reads mapped (mapq >= 10 )to target region\t" << mapq10_target_mapped_reads_ <<std::endl;
         oss << "Bases mapped (mapq >= 10)to target region\t" << mapq10_target_mapped_bases_ <<std::endl;
-        oss << "Mean depth of target region(X)\t" << std::setprecision(5) << (double)(total_depth_/target_total_lens_)  <<std::endl;
-        oss << "Coverage of target region(%)\t" << std::setprecision(4) <<  (double)(total_coverage_/target_total_lens_) << std::endl;
+        if (target_total_lens_ > 0 ) {
+            oss << "Mean depth of target region(X)\t" << std::setprecision(5)
+                << (double) (total_depth_ / target_total_lens_) << std::endl;
+            oss << "Coverage of target region(%)\t" << std::setprecision(4)
+                << (double) (total_coverage_ / target_total_lens_) << std::endl;
+        } else {
+            oss << "Mean depth of target region(X)\t0" << std::endl;
+            oss << "Coverage of target region(%)\t 0" << std::endl;
+        }
         std::vector<double> target_depth_radio;
         ComputeDepthStat(target_depth_radio);
         for (auto depth :depth_stat ) {
-            oss << "Fraction of target region covered >=" << depth << "X(%)\t" << std::setprecision(4) <<  target_depth_radio[depth] << std::endl;
+            oss << "Fraction of target region covered >=" << depth << "X(%)\t" << std::setprecision(4) << 100 * target_depth_radio[depth] << std::endl;
         }
         oss << "\t\t\t\t\tChromosome Depth" << std::endl;
         oss << "Chromosome\tSize\tTotalBase\tCoverPosition\tCoveragePercent\tMeanDepth\tRelativeDepth\tMedianDepth" << std::endl;
@@ -435,16 +479,16 @@ namespace gamtools {
             ChromosomeStatData stat_data ;
             ComputeChrStat(chr_idx, stat_data);
             oss << chr << "\t" << stat_data.lens << "\t" << stat_data.bases << "\t" << stat_data.cover_pos << "\t" ;
-            oss << std::setprecision(4)<< stat_data.cover_precent << "\t"<< stat_data.mean_depth << "\t" <<
+            oss << std::setprecision(4)<< 100 * stat_data.cover_precent << "\t"<< stat_data.mean_depth << "\t" <<
                 stat_data.relative_depth << "\t" << stat_data.median_depth << std::endl;
         }
         oss << std::endl;
         oss << "\t\t\t\t\tDepth Staticstic" << std::endl;
-        oss << "Depth\t TRPercent\t FlankPercent\t TotalPercent" << std::endl;
-        oss << "0\t 100\t 100\t 100" << std::endl;
+        oss << "Depth\t WGSPercent" << std::endl;
+        oss << "0\t 100" << std::endl;
         for (int idx = 1; idx < kMaxDepth; ++idx) {
-            if (target_depth_radio[idx] > 10.0) {
-                oss << idx << "\t" << std::setprecision(4) << target_depth_radio[idx] << std::endl;
+            if (target_depth_radio[idx] > 10.0 || idx <= 100) {
+                oss << idx << "\t" << std::setprecision(4) << 100 * target_depth_radio[idx] << std::endl;
             }
         }
         return oss.str();
@@ -459,7 +503,11 @@ namespace gamtools {
         stat_data.mean_depth = (double)depth_stat_[chr_idx] / stat_data.lens;
         stat_data.relative_depth = (double)depth_stat_[chr_idx]/target_total_lens_;
         auto &depth_dist = target_depth_[chr_idx];
-        int64_t midian = depth_stat_[chr_idx] >> 1;
+        int64_t midian = 0;
+        for (auto depth_cnt : depth_dist) {
+            midian += depth_cnt;
+        }
+        midian >>= 1;
         int64_t cnt = 0, next_cnt = 0;
         for (int idx = 0 ; idx < kMaxDepth; ++idx) {
             next_cnt += depth_dist[idx];

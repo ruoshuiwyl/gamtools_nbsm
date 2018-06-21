@@ -34,7 +34,9 @@ namespace gamtools {
                 ("thread_number,t", boost::program_options::value<int>(&nbsm_thread_num)->default_value(1),"NBSM total thread Default(1)")
                 ("batch_size", boost::program_options::value<int>(&batch_size)->default_value(100000), "NBSM process batch read size Default(20 * 10000000)")
                 ("read_len", boost::program_options::value<int>(&read_len)->default_value(100), "NBSM process read length Default(100)");
-            // filter fastq options
+                ("bed_file,B", boost::program_options::value<std::string>(&bed_file), "NBSM process read length Default(100)");
+
+        // filter fastq options
         filter_des_.add_options()
                 ("filter_low_qual", po::value<int>(), "Filter Read low quality threshold Default(10)")
                 ("filter_qual_rate", po::value<float>(),"Filter Read low quality rate Default(0.5")
@@ -136,6 +138,7 @@ namespace gamtools {
 
         if (vm.count("reference_file")) {
             GLOG_INFO << "Reference File:" << reference_file ;
+            sm_options.ref_file =  reference_file + ".fai";
         } else {
             GLOG_ERROR << "Not set reference file:";
             return 2;
@@ -202,6 +205,7 @@ namespace gamtools {
             boost::filesystem::path output_bam_path(output_bam_file);
             boost::filesystem::path qc_path = boost::filesystem::change_extension(output_bam_path, "qc");
             statistics_file = qc_path.string();
+            sm_options.report_file = statistics_file;
             GLOG_INFO << "Set output QC filename " << statistics_file;
         } else {
             GLOG_ERROR << "Not set output_bam_file";
@@ -232,6 +236,11 @@ namespace gamtools {
             GLOG_INFO << "Set nbsm batch_size " << batch_size;
         } else {
             GLOG_INFO << "Default set nbsm batch_size " << batch_size;
+        }
+
+        if (vm.count(bed_file)) {
+            sm_options.bed_file = bed_file;
+            GLOG_INFO << "BED file " << bed_file;
         }
         return 0;
     }

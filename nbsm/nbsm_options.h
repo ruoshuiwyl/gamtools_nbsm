@@ -40,6 +40,7 @@ namespace gamtools {
         std::string sample_id;
         std::string sample_name;
         std::string statistics_file;
+        std::string bed_file;
         int batch_size;
         int read_len;
         int nbsm_thread_num;

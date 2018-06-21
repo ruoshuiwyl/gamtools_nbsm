@@ -46,6 +46,13 @@ namespace  gamtools {
 
         // Default : thread number 1;
         int mark_dup_thread_num;
+
+        std::string report_file;
+
+        std::string ref_file;
+
+        std::string bed_file;
+
         SMOptions ();
     };
     struct FilterOptions {

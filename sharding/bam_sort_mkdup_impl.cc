@@ -52,19 +52,12 @@ namespace gamtools {
               bam_filename_(bam_filename),
               sm_options_(sm_opt),
               gam_part_queue_(4),
-              output_bam_queue_(4) {
+              output_bam_queue_(4),
+              quality_control_queue_(8)           {
         block_size_ = sm_opt.sort_block_size;
 //        chunks_.resize(bam_hdr->n_targets + 1);
 //        chunks_.resize(partition_datas.size());
-        std::string ref_file;
-        std::string report_file;
-        std::string bed_file;
-        if (bed_file.empty()) {
-            qc_report_ = std::unique_ptr<QualityControl>(new QualityControl(ref_file, report_file));
-        } else {
-            qc_report_ = std::unique_ptr<QualityControl>(new QualityControl(ref_file, bed_file, report_file));
 
-        }
 
 
     }
@@ -84,6 +77,8 @@ namespace gamtools {
         }
 
         std::thread output_bam_thread = std::thread(&BAMSortMkdupImpl::OutputBAM, this);
+
+        std::thread qc_report_thread = std::thread(&BAMSortMkdupImpl::QCStatics, this);
         for (auto &read_gam_thread :read_gam_threads ) {
             read_gam_thread.join();
         }
@@ -94,9 +89,11 @@ namespace gamtools {
         }
 //        output_bam_channel_.SendEof();
         output_bam_queue_.SendEof();
+        quality_control_queue_.SendEof();
         GLOG_INFO << "Finish Merge gam block";
         output_bam_thread.join();
-        GLOG_INFO << "Finish fastAln";
+        qc_report_thread.join();
+        GLOG_INFO << "Finish fastAln and QC report";
     }
 
     void BAMSortMkdupImpl::ReadGAMPartitionData() {
@@ -232,10 +229,11 @@ namespace gamtools {
     void  BAMSortMkdupImpl::MergePartition(std::unique_ptr<GAMPartitionData> &gam_part){
 //        auto bam_block_ptr = std::unique_ptr<BAMBlock>( new BAMBlock(kBAMBlockSize, gam_part->sharding_idx, 0 ,false));
         auto bam_sharding_ptr = std::unique_ptr<GAMPartitionData>(new GAMPartitionData(gam_part->sharding_idx));
-
+        auto qc_sharding_ptr = std::unique_ptr<QCShardingData> ( new QCShardingData(gam_part->sharding_idx));
         auto &gam_blocks = gam_part->blocks;
         if (gam_blocks.empty()) {
 //            bam_block_ptr->SendEof();
+            quality_control_queue_.write(std::move(qc_sharding_ptr));
             output_bam_queue_.write(std::move(bam_sharding_ptr));
             return ;
         }
@@ -280,8 +278,11 @@ namespace gamtools {
                 const bool markdup_flag = GAMMarkDuplicateImpl::IsMarkDuplicate(read_id); // Markdup read
                 const char *bam = gam_data + 20;
                 if (markdup_flag) { // flag add mark dup flag 0x400 1024
-                    int bam_flag = reinterpret_cast< const int *>(bam)[4] | (0x400 << 16);
-                    reinterpret_cast< int *>(const_cast<char *> (bam))[4] = bam_flag;
+                    int orginal_flag = reinterpret_cast< const int *>(bam)[4];
+                    if (!(orginal_flag & (0x800 << 16))) { // skip flag 2048
+                        int bam_flag = reinterpret_cast< const int *>(bam)[4] | (0x400 << 16);
+                        reinterpret_cast< int *>(const_cast<char *> (bam))[4] = bam_flag;
+                    }
                 }
                 Slice slice(bam, reinterpret_cast<const int *>(bam)[0] + 4);
                 int tid = sort_pos>>32;
@@ -292,6 +293,14 @@ namespace gamtools {
 //                }
 //                InsertBAMSlice(slice, bam_block_ptr);
                 bam_sharding_ptr->InsertBAMSlice(slice);
+                StatisticsSlice stat_data;
+                stat_data.tid = reinterpret_cast<const int*>(bam)[1];
+                stat_data.pos = reinterpret_cast<const int*>(bam)[2];
+                stat_data.qlen = reinterpret_cast<const int*>(bam)[5];
+                stat_data.rlen = reinterpret_cast<const uint32_t*>(gam_data)[4] >> 16;
+                stat_data.mapq = (reinterpret_cast<const uint32_t*>(bam)[3] >> 8 ) & 0xff;;
+                stat_data.is_dup = markdup_flag;
+                qc_sharding_ptr->InsertStatData(stat_data);
                 bam_heap.pop();
                 ++data.slice_idx;
                 if (data.slice_idx != gam_blocks[data.block_idx]->slices().size()) {
@@ -324,11 +333,24 @@ namespace gamtools {
                 }
                 Slice slice(bam, reinterpret_cast<const int *>(bam)[0] + 4);
 //                InsertBAMSlice(slice, bam_block_ptr);
+                uint64_t sort_pos = reinterpret_cast<const uint64_t *>(it->data())[0];
+
+                int tid = sort_pos>>32;
+                int pos = (sort_pos & 0xffffffff )>> 1;
+                StatisticsSlice stat_data;
+                stat_data.tid = reinterpret_cast<const int*> (bam)[1];
+                stat_data.pos = reinterpret_cast<const int*> (bam)[2];
+                stat_data.qlen = reinterpret_cast<const int*>(bam)[5];
+                stat_data.rlen = reinterpret_cast<const uint32_t*>(it->data())[4] >> 16;
+                stat_data.mapq = (reinterpret_cast<const uint32_t*>(bam)[3] >> 8 ) & 0xff;
+                stat_data.is_dup = markdup_flag;
+                qc_sharding_ptr->InsertStatData(stat_data);
                 bam_sharding_ptr->InsertBAMSlice(slice);
             }
         }
 //        bam_block_ptr->SendEof();
         output_bam_queue_.write(std::move(bam_sharding_ptr));
+        quality_control_queue_.write(std::move(qc_sharding_ptr));
     }
 
     void GAMPartitionData::InsertBAMSlice(gamtools::Slice &slice) {
@@ -401,18 +423,18 @@ namespace gamtools {
 //            bam_chunks_.push_back();
 //            bam_chunks_[sharding_idx] = std::move(bam_block);
 //            if (eof) {
-            assert(current_sharding_idx == finish_sharding_idxs.top());
-            finish_sharding_idxs.push(sharding_idx);
-            while (current_sharding_idx == finish_sharding_idxs.top()) {
+            assert(current_sharding_idx == sharding_idx);
+//            finish_sharding_idxs.push(sharding_idx);
+//            while (current_sharding_idx == finish_sharding_idxs.top()) {
                 GLOG_TRACE << "Output BAM sharding idx " << current_sharding_idx;
 //                OutputShardingBAM(current_sharding_idx);
-                OutputShardingBAM(bam_block);
-                ++current_sharding_idx;
-                finish_sharding_idxs.pop();
-                if (finish_sharding_idxs.empty()) {
-                    break;
-                }
-            }
+            OutputShardingBAM(bam_block);
+            ++current_sharding_idx;
+            finish_sharding_idxs.pop();
+//                if (finish_sharding_idxs.empty()) {
+//                    break;
+//                }
+//            }
 //            }
         }
 
@@ -432,6 +454,26 @@ namespace gamtools {
             GLOG_ERROR << "close bam file failed";
         }
 
+    }
+
+
+    void BAMSortMkdupImpl::QCStatics() {
+        std::unique_ptr<QCShardingData> qc_data;
+        std::unique_ptr<QualityControl> qc_report;
+        if (sm_options_.bed_file.empty()) {
+            qc_report = std::unique_ptr<QualityControl>(new QualityControl(sm_options_.ref_file, sm_options_.report_file));
+        } else {
+            qc_report = std::unique_ptr<QualityControl>(new QualityControl(sm_options_.ref_file, sm_options_.bed_file, sm_options_.report_file));
+        }
+        qc_report->Init();
+
+        while (quality_control_queue_.read(qc_data)) {
+            auto &stat_datas = qc_data->stat_datas;
+            for (auto stat_data : stat_datas) {
+                qc_report->Statistics(stat_data);
+            }
+        }
+        qc_report->Report();
     }
 
     /*

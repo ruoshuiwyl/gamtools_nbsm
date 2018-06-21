@@ -42,7 +42,15 @@ namespace gamtools {
     };
     class BaseStat {
     public:
-        BaseStat(const std::string &ref_idx_file): ref_filename_(ref_idx_file){}
+        BaseStat(const std::string &ref_idx_file): ref_filename_(ref_idx_file){
+             mapped_reads_ = 0; mapped_bases_ = 0;
+             mapq10_mapped_reads_ = 0; mapq10_mapped_bases_ = 0;
+             chrx_depth_ = 0; chrx_idx_ = 0;
+             chry_depth_ = 0;  chry_idx_ = 0;
+             chrx_total_len_ = 0; chry_total_len_= 0;
+             dup_reads_ = 0;
+             total_reads_ = 0;
+        }
         virtual void StatisticsRead(const StatisticsSlice &stat)  = 0;
         virtual void StatisticsDepth(int tid, int pos, int depth) = 0;
         virtual void Init() = 0;
@@ -96,8 +104,12 @@ namespace gamtools {
         int target_depth_reg_, flank_depth_reg_;
         int target_total_len_, flank_total_len_;
 
-        int target_total_reads_;
-        int mapq10_target_total_reads_;
+        int64_t target_total_reads_, flank_total_reads_;
+        int64_t target_total_bases_, flank_total_bases_;
+        int64_t mapq10_target_total_reads_, mapq10_flank_total_reads_;
+        int64_t mapq10_target_total_bases_, mapq10_flank_total_bases_;
+        int64_t target_total_depth_, flank_total_depth_;
+        int64_t target_total_coverage_, flank_total_coverage_;
         std::vector<std::vector<bed_t>> target_region_, flank_region_;
         std::vector<int> target_chr_lens_, flank_chr_lens_;
         std::vector<std::vector<int64_t>> target_depth_, flank_depth_; // static depth

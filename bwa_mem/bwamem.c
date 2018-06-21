@@ -893,9 +893,9 @@ static void put_bam_data(kstring_t *bam, const bseq1_t *s, const gam1_core_t *co
     uint64_t pos = (uint64_t )core->tid << 32 | (core->pos + 1) << 1 | is_rev;
     kputsn_(&pos, sizeof(uint64_t), bam);
     kputsn_(&s->read_id, sizeof(int64_t), bam);
-    int32_t meta = core->l_qseq << 24 | core->rlen << 16 | core->qual << 8 | s->lib_id;
+    uint32_t meta = core->rlen << 16 | s->lib_id;
 //    kputsn_(&s->lib_id, sizeof(int), bam);
-	kputsn_(&meta, sizeof(int32_t), bam);
+	kputsn_(&meta, sizeof(uint32_t), bam);
     kputsn_(&block_len, sizeof(uint32_t), bam);
 //    kputsn_(&pos, sizeof(uint64_t), bam);
 //    kputsn_(&block_len, sizeof(uint32_t), bam);

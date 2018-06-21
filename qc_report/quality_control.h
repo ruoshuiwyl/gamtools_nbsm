@@ -17,6 +17,18 @@
 namespace gamtools {
     typedef std::tuple<int, int, int> bed_t;
 
+    struct QCShardingData{
+        QCShardingData(int idx): order_(idx){}
+        int order() {
+            return order_;
+        }
+        void InsertStatData(StatisticsSlice &stat_data) {
+            stat_datas.push_back(stat_data);
+        }
+        int order_;
+        std::vector<StatisticsSlice> stat_datas;
+    };
+
 
     class QualityControl {
     public:
@@ -35,7 +47,6 @@ namespace gamtools {
         int curr_idx_;
         int curr_pos_;
         int curr_end_;
-        std::string ref_filename_;
         std::string report_filename_;
         std::unique_ptr<BaseStat> base_stat_;
     };

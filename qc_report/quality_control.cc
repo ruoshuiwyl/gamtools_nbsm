@@ -57,7 +57,7 @@ namespace gamtools {
             }
             assert(stat.pos >= curr_pos_);
             if (stat.pos > curr_pos_) {
-                while(stat_list_.front().first < stat.pos) {
+                while (stat_list_.front().first < stat.pos) {
                     base_stat_->StatisticsDepth(curr_idx_, stat_list_.front().first, stat_list_.front().second);
                     stat_list_.pop_front();
                 }
@@ -72,7 +72,13 @@ namespace gamtools {
 
 
     void QualityControl::Report() {
-        std::ofstream report_file(report_filename_);
+
+        while(!stat_list_.empty()){
+            base_stat_->StatisticsDepth(curr_idx_, stat_list_.front().first, stat_list_.front().second);
+            stat_list_.pop_front();
+        }
+
+        std::ofstream report_file(report_filename_, std::ofstream::app);
         if (report_file.is_open()) {
             report_file << base_stat_->Report();
             report_file.close();
