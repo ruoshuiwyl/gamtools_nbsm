@@ -33,8 +33,8 @@ namespace gamtools {
                 ("sample_id,i", boost::program_options::value<std::string>(&sample_id)->default_value("Zebra"), "Sample Name Default(Zebra)")
                 ("thread_number,t", boost::program_options::value<int>(&nbsm_thread_num)->default_value(1),"NBSM total thread Default(1)")
                 ("batch_size", boost::program_options::value<int>(&batch_size)->default_value(100000), "NBSM process batch read size Default(20 * 10000000)")
-                ("read_len", boost::program_options::value<int>(&read_len)->default_value(100), "NBSM process read length Default(100)");
-                ("bed_file,B", boost::program_options::value<std::string>(&bed_file), "NBSM process read length Default(100)");
+                ("read_len", boost::program_options::value<int>(&read_len)->default_value(100), "NBSM process read length Default(100)")
+                ("bed_file,B", boost::program_options::value<std::string>(&bed_file), "NBSM process target data bed file");
 
         // filter fastq options
         filter_des_.add_options()
