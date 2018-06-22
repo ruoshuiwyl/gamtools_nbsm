@@ -63,7 +63,7 @@ namespace gamtools {
             int order = elem->order();
 
 #ifdef DEBUG
-            GLOG_ERROR << "Order queue size" << queue_.size() << "order : " << order << std::endl;
+            GLOG_ERROR << "Order queue size" << queue_.size() << "order : " << order << "queue order" << order_id_.load() <<  std::endl;
 #endif
             not_full_cv_.wait(lk, [&] {
                 return !queue_.full() && (order == order_id_.load() + 1);
