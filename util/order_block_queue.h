@@ -54,6 +54,7 @@ namespace gamtools {
             }
             elem = std::move(queue_.front());
             queue_.pop_front();
+            order_id_.fetch_add(1);
             not_full_cv_.notify_one();
             return true;
         }
@@ -69,7 +70,7 @@ namespace gamtools {
                 return !queue_.full() && (order == order_id_.load() + 1);
             });
             queue_.push_back(std::forward<T>(elem));
-            order_id_.fetch_add(1);
+
             not_empty_cv_.notify_one();
         }
 
@@ -79,6 +80,7 @@ namespace gamtools {
         std::mutex mtx_;
         std::condition_variable not_empty_cv_;
         std::condition_variable not_full_cv_;
+        std::condition_variable order_cv_;
         boost::circular_buffer<T> queue_;
 
     };
