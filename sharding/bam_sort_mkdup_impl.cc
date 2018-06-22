@@ -168,6 +168,9 @@ namespace gamtools {
             delete[] uncompress;
             ifs.close();
         }
+#ifdef DEBUG
+    GLOG_ERROR << "read gam " << partition_data_ptr->order() ;
+#endif
         gam_part_queue_.write(std::move(partition_data_ptr));
     }
 
@@ -233,8 +236,8 @@ namespace gamtools {
         auto &gam_blocks = gam_part->blocks;
         if (gam_blocks.empty()) {
 //            bam_block_ptr->SendEof();
-            quality_control_queue_.write(std::move(qc_sharding_ptr));
             output_bam_queue_.write(std::move(bam_sharding_ptr));
+            quality_control_queue_.write(std::move(qc_sharding_ptr));
             return ;
         }
         if (gam_blocks.size() > 1) {
