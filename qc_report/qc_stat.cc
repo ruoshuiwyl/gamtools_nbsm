@@ -224,7 +224,7 @@ namespace gamtools {
         while (std::get<1>(target_region_[target_depth_idx_][target_depth_reg_]) <= pos) {
             target_depth_reg_++;
         }
-        bed_t &target_bed = target_region_[target_read_idx_][target_read_reg_];
+        bed_t &target_bed = target_region_[target_depth_idx_][target_depth_reg_];
         if (std::get<0>(target_bed) <= pos && std::get<1>(target_bed) > pos) {
             target_depth_[target_depth_idx_][depth >= kMaxDepth? kMaxDepth - 1: depth] ++;
             target_total_depth_ += depth;
@@ -234,7 +234,7 @@ namespace gamtools {
                 target_depth_stat_[target_depth_idx_] += depth;
             }
         }
-        while (std::get<1>(flank_region_[target_depth_idx_][target_depth_reg_]) <= pos) {
+        while (std::get<1>(flank_region_[flank_depth_idx_][flank_depth_reg_]) <= pos) {
             target_depth_reg_++;
         }
         bed_t &flank_bed = flank_region_[flank_depth_idx_][flank_depth_reg_];
