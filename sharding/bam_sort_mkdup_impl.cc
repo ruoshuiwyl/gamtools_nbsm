@@ -53,7 +53,8 @@ namespace gamtools {
               sm_options_(sm_opt),
               gam_part_queue_(20),
               output_bam_queue_(16),
-              quality_control_queue_(32) {
+              quality_control_queue_(16),
+              qc_buffer_queue_(16){
         block_size_ = sm_opt.sort_block_size;
     }
 
@@ -74,6 +75,7 @@ namespace gamtools {
         std::thread output_bam_thread = std::thread(&BAMSortMkdupImpl::OutputBAM, this);
 
         std::thread qc_report_thread = std::thread(&BAMSortMkdupImpl::QCStatics, this);
+        std::thread qc_compute_thread = std::thread(&BAMSortMkdupImpl::QCCompute, this);
         for (auto &read_gam_thread :read_gam_threads ) {
             read_gam_thread.join();
         }
@@ -88,6 +90,7 @@ namespace gamtools {
         GLOG_INFO << "Finish Merge gam block";
         output_bam_thread.join();
         qc_report_thread.join();
+        qc_compute_thread.join();
         GLOG_INFO << "Finish fastAln and QC report";
     }
 
@@ -464,27 +467,34 @@ namespace gamtools {
     }
 
 
+
     void BAMSortMkdupImpl::QCStatics() {
         std::unique_ptr<QCShardingData> qc_data;
+
+        while (quality_control_queue_.read(qc_data)) {
+            qc_buffer_queue_.write(std::move(qc_data));
+        }
+        qc_buffer_queue_.SendEof();
+
+    }
+
+    void BAMSortMkdupImpl::QCCompute() {
         std::unique_ptr<QualityControl> qc_report;
+        std::unique_ptr<QCShardingData> qc_data;
         if (sm_options_.bed_file.empty()) {
             qc_report = std::unique_ptr<QualityControl>(new QualityControl(sm_options_.ref_file, sm_options_.report_file));
         } else {
             qc_report = std::unique_ptr<QualityControl>(new QualityControl(sm_options_.ref_file, sm_options_.bed_file, sm_options_.report_file));
         }
         qc_report->Init();
-        std::list<std::unique_ptr<QCShardingData>> qc_buffer;
-        while (quality_control_queue_.read(qc_data)) {
-            qc_buffer.push_back(std::move(qc_data));
-            if (qc_buffer.size() >= 16) {
-                auto &stat_datas = qc_buffer.front()->stat_datas;
-                for (auto &stat_data : stat_datas) {
-                    qc_report->Statistics(stat_data);
-                }
-                qc_buffer.pop_front();
+        while (qc_buffer_queue_.read(qc_data)) {
+            auto &stat_datas = qc_data->stat_datas;
+            for (auto &stat_data : stat_datas) {
+                qc_report->Statistics(stat_data);
             }
         }
         qc_report->Report();
+
     }
 
     /*

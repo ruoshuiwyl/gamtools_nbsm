@@ -115,6 +115,9 @@ namespace gamtools {
         int flank_extend = 200;
         int kMapq = 10;
         int kMaxDepth = 8192;
+        bed_t target_read_bed_, flank_read_bed_;
+        bed_t target_depth_bed_, flank_depth_bed_;
+
 
     };
 

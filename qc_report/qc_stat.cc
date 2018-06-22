@@ -174,16 +174,21 @@ namespace gamtools {
         if (stat.tid > target_read_idx_) {
             target_read_idx_ = stat.tid;
             target_read_reg_ = 0;
-
+            target_read_bed_ = target_region_[target_read_idx_][target_read_reg_];
             flank_read_idx_ = stat.tid;
             flank_read_reg_ = 0;
+            flank_read_bed_ = flank_region_[flank_read_idx_][flank_read_reg_];
         }
         int overlap_end = stat.pos + stat.rlen;
-        while (std::get<1>(target_region_[target_read_idx_][target_read_reg_]) <= stat.pos) {
-            target_read_reg_++;
+        if (std::get<1>(target_read_bed_) < stat.pos) {
+            while (std::get<1>(target_region_[target_read_idx_][target_read_reg_]) <= stat.pos
+                   && (target_region_[target_read_idx_].size() > target_read_reg_)) {
+                target_read_reg_++;
+            }
+            target_read_bed_ = target_region_[target_read_idx_][target_read_reg_];
         }
-        bed_t &target_bed = target_region_[target_read_idx_][target_read_reg_];
-        if (!(std::get<0>(target_bed) >= overlap_end || std::get<1>(target_bed) <= stat.pos)) {
+
+        if (!(std::get<0>(target_read_bed_) >= overlap_end || std::get<1>(target_read_bed_) <= stat.pos)) {
             target_reads_[target_read_idx_]++;
             target_bases_[target_read_idx_] += stat.qlen;
             target_total_reads_ ++;
@@ -195,11 +200,16 @@ namespace gamtools {
                 mapq10_target_total_bases_ += stat.qlen;
             }
         }
-        while (std::get<1>(target_region_[flank_read_idx_][flank_read_reg_]) <= stat.pos) {
-            flank_read_reg_++;
+
+        if (std::get<1>(flank_read_bed_)) {
+            while (std::get<1>(flank_region_[flank_read_idx_][flank_read_reg_]) <= stat.pos
+                    && (flank_region_[flank_read_idx_].size() > target_read_reg_)) {
+                flank_read_reg_++;
+            }
+            flank_read_bed_ = flank_region_[flank_read_idx_][flank_read_reg_];
         }
-        bed_t &flank_bed = flank_region_[flank_read_idx_][flank_read_reg_];
-        if (!(std::get<0>(flank_bed) >= overlap_end || std::get<1>(flank_bed) <= stat.pos)) {
+
+        if (!(std::get<0>(flank_read_bed_) >= overlap_end || std::get<1>(flank_read_bed_) <= stat.pos)) {
             flank_reads_[flank_read_idx_]++;
             flank_bases_[flank_read_idx_] += stat.qlen;
             flank_total_reads_++;
@@ -220,12 +230,18 @@ namespace gamtools {
             target_depth_reg_ = 0;
             flank_depth_idx_ = tid;
             flank_depth_reg_ = 0;
+            target_depth_bed_ = target_region_[target_depth_idx_][target_depth_reg_];
+            flank_depth_bed_ = flank_region_[target_depth_idx_][target_depth_reg_];
         }
-        while (std::get<1>(target_region_[target_depth_idx_][target_depth_reg_]) <= pos) {
-            target_depth_reg_++;
+        if (std::get<1>(target_depth_bed_) <= pos) {
+            while ((target_region_[target_depth_idx_].size() > target_depth_reg_)
+                   && std::get<1>(target_region_[target_depth_idx_][target_depth_reg_]) <= pos) {
+                target_depth_reg_++;
+            }
+            target_depth_bed_ = target_region_[target_depth_idx_][target_depth_reg_];
         }
-        bed_t &target_bed = target_region_[target_depth_idx_][target_depth_reg_];
-        if (std::get<0>(target_bed) <= pos && std::get<1>(target_bed) > pos) {
+
+        if (std::get<0>(target_depth_bed_) <= pos && std::get<1>(target_depth_bed_) > pos) {
             target_depth_[target_depth_idx_][depth >= kMaxDepth? kMaxDepth - 1: depth] ++;
             target_total_depth_ += depth;
             if (depth > 0 ) {
@@ -234,11 +250,15 @@ namespace gamtools {
                 target_depth_stat_[target_depth_idx_] += depth;
             }
         }
-        while (std::get<1>(flank_region_[flank_depth_idx_][flank_depth_reg_]) <= pos) {
-            target_depth_reg_++;
+        if (std::get<1>(flank_depth_bed_) <= pos) {
+            while ((flank_region_[target_depth_idx_].size() > flank_depth_reg_) &&
+                   std::get<1>(flank_region_[flank_depth_idx_][flank_depth_reg_]) <= pos) {
+                target_depth_reg_++;
+            }
+            flank_depth_bed_ = flank_region_[flank_depth_idx_][flank_depth_reg_];
         }
-        bed_t &flank_bed = flank_region_[flank_depth_idx_][flank_depth_reg_];
-        if (std::get<0>(target_bed) <= pos && std::get<1>(target_bed) > pos) {
+//        bed_t &flank_bed = flank_region_[flank_depth_idx_][flank_depth_reg_];
+        if (std::get<0>(flank_depth_bed_) <= pos && std::get<1>(flank_depth_bed_) > pos) {
             flank_depth_[flank_depth_idx_][depth >= kMaxDepth? kMaxDepth - 1: depth] ++;
             flank_total_depth_ += depth;
             if (depth > 0 ) {
@@ -368,10 +388,7 @@ namespace gamtools {
         target_depth.resize(kMaxDepth, 0);
         flank_depth.resize(kMaxDepth, 0);
         for (int idx = kMaxDepth - 2; idx >= 0; --idx) {
-//            if (idx < kMaxDepth - 1) {
-//                target_depth[idx] += target_depth[idx + 1];
-//                flank_depth[idx] += flank_depth[idx + 1];
-//            }
+
             for (auto chr_idx : stat_chr_) {
                 target_depth_[chr_idx][idx] += target_depth_[chr_idx][idx+1];
                 flank_depth_[chr_idx][idx] += flank_depth_[chr_idx][idx+1];
