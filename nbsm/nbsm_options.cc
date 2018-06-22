@@ -397,7 +397,7 @@ namespace gamtools {
         if (vm.count("sm_read_gam_thread_num")) {
             sm_options.read_gam_thread_num = vm["sm_read_gam_thread_num"].as<int>();
         } else {
-            sm_options.read_gam_thread_num = nbsm_thread_num / 5 > 1 ? nbsm_thread_num / 5 : 1;
+            sm_options.read_gam_thread_num = nbsm_thread_num / 2 > 1 ? nbsm_thread_num / 2 : 1;
         }
 
         if (vm.count("sm_block_sort_thread")) {
@@ -408,12 +408,12 @@ namespace gamtools {
         if (vm.count("sm_merge_thread")) {
             sm_options.merge_sort_thread_num = vm["sm_merge_thread"].as<int>();
         } else {
-            sm_options.merge_sort_thread_num = nbsm_thread_num / 2 > 1 ? nbsm_thread_num / 2 : 1;
+            sm_options.merge_sort_thread_num = nbsm_thread_num  > 1 ? nbsm_thread_num  : 1;
         }
         if (vm.count("sm_compress_bam_thread")) {
             sm_options.bam_output_thread_num = vm["sm_compress_bam_thread"].as<int>();
         } else {
-            sm_options.bam_output_thread_num = nbsm_thread_num / 2 > 1 ? nbsm_thread_num / 2: 1;
+            sm_options.bam_output_thread_num = nbsm_thread_num  > 1 ? nbsm_thread_num : 1;
         }
         if (vm.count("sm_mkdup_thread")) {
             sm_options.mark_dup_thread_num = vm["sm_mkdup_thread"].as<int>();
