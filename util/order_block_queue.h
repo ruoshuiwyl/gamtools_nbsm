@@ -53,7 +53,7 @@ namespace gamtools {
                 return false;
             }
             elem = std::move(queue_.front());
-#ifdef
+#ifdef DEBUG
             GLOG_ERROR << "Order queue size" << queue_.size() << "order : " << order << "queue order" << order_id_.load() <<  std::endl;
 #endif
             queue_.pop_front();
