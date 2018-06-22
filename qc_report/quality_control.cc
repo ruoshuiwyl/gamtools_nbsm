@@ -37,7 +37,7 @@ namespace gamtools {
 
     void QualityControl::Statistics( const StatisticsSlice &stat) {
         base_stat_->StatisticsRead(stat);
-        if (base_stat_->HasStat(stat.tid)) {
+        if (base_stat_->HasStat(stat.tid) && stat.rlen > 0) {
             assert(stat.tid  >= curr_idx_);
             if (stat.tid > curr_idx_) {
                 while(!stat_list_.empty()){

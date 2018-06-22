@@ -82,7 +82,7 @@ namespace gamtools {
 
     void BaseStat::BaseStatisticsRead(const StatisticsSlice &stat) {
         total_reads_++;
-        if (stat.tid >= 0) {
+        if (stat.tid >= 0 && stat.rlen > 0) {
             mapped_reads_++;
             mapped_bases_ += stat.qlen;
             if (stat.mapq >= 10) {
@@ -159,6 +159,9 @@ namespace gamtools {
 
     void TargetStat::StatisticsRead(const StatisticsSlice &stat) {
         BaseStat::BaseStatisticsRead(stat);
+        if (stat.rlen == 0) {
+            return;
+        }
         if (stat.tid > target_read_idx_) {
             target_read_idx_ = stat.tid;
             target_read_reg_ = 0;
@@ -418,6 +421,10 @@ namespace gamtools {
         target_mapped_bases_ = 0;
         mapq10_target_mapped_reads_ = 0;
         mapq10_target_mapped_bases_  = 0;
+        target_total_lens_ = 0;
+        for (auto chr : stat_chr_) {
+            target_total_lens_ += refer_lens_[chr];
+        }
     }
 
     void WGSStat::StatisticsDepth(int tid, int pos, int depth) {
@@ -432,6 +439,9 @@ namespace gamtools {
         BaseStat::BaseStatisticsRead(stat);
         target_mapped_reads_++;
         target_mapped_bases_ += stat.qlen;
+        if (stat.rlen == 0) {
+            return;
+        }
         target_reads_[stat.tid]++;
         target_bases_[stat.tid] += stat.qlen;
         if (stat.mapq >= kMapq) {
@@ -441,10 +451,7 @@ namespace gamtools {
             mapq10_target_mapped_bases_ += stat.qlen;
         }
 
-        target_total_lens_ = 0;
-        for (auto chr : stat_chr_) {
-            target_total_lens_ += refer_lens_[chr];
-        }
+
     }
     std::string WGSStat::Report() {
         std::ostringstream oss;
