@@ -53,7 +53,7 @@ namespace gamtools {
               sm_options_(sm_opt),
               gam_part_queue_(20),
               output_bam_queue_(16),
-              quality_control_queue_(24) {
+              quality_control_queue_(32) {
         block_size_ = sm_opt.sort_block_size;
     }
 
@@ -473,11 +473,15 @@ namespace gamtools {
             qc_report = std::unique_ptr<QualityControl>(new QualityControl(sm_options_.ref_file, sm_options_.bed_file, sm_options_.report_file));
         }
         qc_report->Init();
-
+        std::list<std::unique_ptr<QCShardingData>> qc_buffer;
         while (quality_control_queue_.read(qc_data)) {
-            auto &stat_datas = qc_data->stat_datas;
-            for (auto stat_data : stat_datas) {
-                qc_report->Statistics(stat_data);
+            qc_buffer.push_back(std::move(qc_data));
+            if (qc_buffer.size() >= 16) {
+                auto &stat_datas = qc_buffer.front()->stat_datas;
+                for (auto &stat_data : stat_datas) {
+                    qc_report->Statistics(stat_data);
+                }
+                qc_buffer.pop_front();
             }
         }
         qc_report->Report();

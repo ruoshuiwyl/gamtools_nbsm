@@ -52,7 +52,7 @@ namespace gamtools {
             }
             int end = stat.pos + stat.rlen;
             if (end > curr_end_) {
-                if (stat.pos > curr_end_ + 100) {
+                if (stat.pos > curr_end_ + 100) { // skip larger no data region
                     while (!stat_list_.empty()) {
                         if (stat_list_.front().second > 0) {
                             base_stat_->StatisticsDepth(curr_idx_, stat_list_.front().first, stat_list_.front().second);
