@@ -53,6 +53,9 @@ namespace gamtools {
                 return false;
             }
             elem = std::move(queue_.front());
+#ifdef
+            GLOG_ERROR << "Order queue size" << queue_.size() << "order : " << order << "queue order" << order_id_.load() <<  std::endl;
+#endif
             queue_.pop_front();
             order_id_.fetch_add(1);
             not_full_cv_.notify_one();
@@ -70,7 +73,6 @@ namespace gamtools {
                 return !queue_.full() && (order == order_id_.load() + 1);
             });
             queue_.push_back(std::forward<T>(elem));
-
             not_empty_cv_.notify_one();
         }
 
