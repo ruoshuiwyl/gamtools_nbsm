@@ -168,8 +168,8 @@ namespace gamtools {
 
     void TargetStat::StatisticsRead(const StatisticsSlice &stat) {
         BaseStat::BaseStatisticsRead(stat);
-        if (stat.rlen == 0) {
-            return;
+        if (stat_chr_.count(stat.tid) == 0 || stat.rlen) {
+            return ;
         }
         if (stat.tid > target_read_idx_) {
             target_read_idx_ = stat.tid;
