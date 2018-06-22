@@ -107,6 +107,7 @@ namespace gamtools {
     TargetStat::TargetStat(const std::string &ref_idx_file, const std::string &bed_file)
             : BaseStat(ref_idx_file), bed_filename_(bed_file) {
 
+
     }
 
 
@@ -151,6 +152,11 @@ namespace gamtools {
 
         target_total_coverage_ = 0;
         flank_total_coverage_ = 0;
+
+        target_read_idx_ = 0;
+        target_depth_reg_ = 0;
+        flank_read_idx_ = 0;
+        flank_depth_reg_ = 0;
 
         ReadBedFile();
     }
@@ -425,12 +431,17 @@ namespace gamtools {
         for (auto chr : stat_chr_) {
             target_total_lens_ += refer_lens_[chr];
         }
+
+        total_coverage_ = 0;
+        total_depth_ = 0;
     }
 
     void WGSStat::StatisticsDepth(int tid, int pos, int depth) {
         depth_stat_[tid] += depth;
         if (depth > 0) {
             target_coverage_[tid]++;
+            total_coverage_ ++;
+            total_depth_ += depth;
         }
         target_depth_[tid][depth >= kMaxDepth? kMaxDepth - 1 : depth]++;
     }
@@ -468,7 +479,7 @@ namespace gamtools {
             oss << "Mean depth of target region(X)\t" << std::setprecision(5)
                 << (double) (total_depth_ / target_total_lens_) << std::endl;
             oss << "Coverage of target region(%)\t" << std::setprecision(4)
-                << (double) (total_coverage_ / target_total_lens_) << std::endl;
+                << (double) (100 * total_coverage_ / target_total_lens_) << std::endl;
         } else {
             oss << "Mean depth of target region(X)\t0" << std::endl;
             oss << "Coverage of target region(%)\t 0" << std::endl;
