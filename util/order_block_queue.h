@@ -66,16 +66,16 @@ namespace gamtools {
             GLOG_ERROR << "Order queue size" << queue_.size() << "order : " << order << std::endl;
 #endif
             not_full_cv_.wait(lk, [&] {
-                return !queue_.full() && (order == order_id_ + 1);
+                return !queue_.full() && (order == order_id_.load() + 1);
             });
             queue_.push_back(std::forward<T>(elem));
-            order_id_++;
+            order_id_.fetch_add(1);
             not_empty_cv_.notify_one();
         }
 
     private:
         bool eof_;
-        int order_id_;
+        std::atomic<int> order_id_;
         std::mutex mtx_;
         std::condition_variable not_empty_cv_;
         std::condition_variable not_full_cv_;
