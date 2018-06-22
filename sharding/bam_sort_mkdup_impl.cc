@@ -303,6 +303,7 @@ namespace gamtools {
                 stat_data.rlen = reinterpret_cast<const uint32_t*>(gam_data)[4] >> 16;
                 stat_data.mapq = (reinterpret_cast<const uint32_t*>(bam)[3] >> 8 ) & 0xff;;
                 stat_data.is_dup = markdup_flag;
+                assert(stat_data.rlen > 0);
                 qc_sharding_ptr->InsertStatData(stat_data);
                 bam_heap.pop();
                 ++data.slice_idx;
@@ -347,6 +348,7 @@ namespace gamtools {
                 stat_data.rlen = reinterpret_cast<const uint32_t*>(it->data())[4] >> 16;
                 stat_data.mapq = (reinterpret_cast<const uint32_t*>(bam)[3] >> 8 ) & 0xff;
                 stat_data.is_dup = markdup_flag;
+                assert(stat_data.rlen > 0);
                 qc_sharding_ptr->InsertStatData(stat_data);
                 bam_sharding_ptr->InsertBAMSlice(slice);
             }

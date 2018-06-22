@@ -16,13 +16,6 @@ namespace gamtools {
     typedef std::tuple<int, int, int> bed_t;
     struct StatisticsSlice {
         StatisticsSlice() = default;
-        StatisticsSlice(const Slice &s, bool is_dup) {
-//            tid = s.data()[0];
-//            pos = s.data()[1];
-//            rlen = 0;
-//            qlen = 0;
-//            mapq = 0;
-        }
         bool is_dup;
         int tid;
         int pos;
