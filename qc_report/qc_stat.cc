@@ -171,6 +171,9 @@ namespace gamtools {
         if (stat.tid > target_read_idx_) {
             target_read_idx_ = stat.tid;
             target_read_reg_ = 0;
+
+            flank_read_idx_ = stat.tid;
+            flank_read_reg_ = 0;
         }
         int overlap_end = stat.pos + stat.rlen;
         while (std::get<1>(target_region_[target_read_idx_][target_read_reg_]) <= stat.pos) {
@@ -192,15 +195,15 @@ namespace gamtools {
         while (std::get<1>(target_region_[flank_read_idx_][flank_read_reg_]) <= stat.pos) {
             flank_read_reg_++;
         }
-        bed_t &flank_bed = flank_region_[target_read_idx_][target_read_reg_];
+        bed_t &flank_bed = flank_region_[flank_read_idx_][flank_read_reg_];
         if (!(std::get<0>(flank_bed) >= overlap_end || std::get<1>(flank_bed) <= stat.pos)) {
-            flank_reads_[target_read_idx_]++;
-            flank_bases_[target_read_idx_] += stat.qlen;
+            flank_reads_[flank_read_idx_]++;
+            flank_bases_[flank_read_idx_] += stat.qlen;
             flank_total_reads_++;
             flank_total_bases_ += stat.qlen;
             if (stat.mapq >= kMapq) {
-                mapq10_flank_reads_[target_read_idx_]++;
-                mapq10_flank_bases_[target_read_idx_] +=  stat.qlen;
+                mapq10_flank_reads_[flank_read_idx_]++;
+                mapq10_flank_bases_[flank_read_idx_] +=  stat.qlen;
                 mapq10_flank_total_reads_++;
                 mapq10_flank_total_bases_ += stat.qlen;
             }
