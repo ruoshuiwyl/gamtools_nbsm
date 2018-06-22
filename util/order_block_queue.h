@@ -58,7 +58,7 @@ namespace gamtools {
 #endif
             queue_.pop_front();
             order_id_++;
-            not_full_cv_.notify_one();
+            not_full_cv_.notify_all();
             return true;
         }
 
@@ -73,7 +73,7 @@ namespace gamtools {
                 return !queue_.full() && (order == order_id_ + 1);
             });
             queue_.push_back(std::forward<T>(elem));
-            not_empty_cv_.notify_one();
+            not_empty_cv_.notify_all();
         }
 
     private:
