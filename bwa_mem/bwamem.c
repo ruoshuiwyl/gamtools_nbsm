@@ -942,12 +942,15 @@ void mem_aln2bam(const mem_opt_t *opt, const bntseq_t *bns, kstring_t *str, bseq
 	read_end.read_id = s->read_id;
 	read_end.tid = p->rid;
 	read_end.orientation = p->is_rev? 1 : 0;
+	int bin_idx = 1;
 	if (p->rid >= 0) {
 		core.tid = p->rid;
 		core.pos = p->pos;
 		core.qual = p->mapq;
 		core.n_cigar = p->n_cigar;
 		if (core.n_cigar) {
+			core.rlen = get_rlen(p->n_cigar, p->cigar);
+			core.bin = hts_reg2bin(core.pos, core.pos + core.rlen , 14, 5);
 			for (i = 0; i < p->n_cigar; ++i) {
 				uint32_t cigar_ = p->cigar[i] & 0xfffffff0;
 				int c = p->cigar[i]&0xf;
@@ -988,18 +991,20 @@ void mem_aln2bam(const mem_opt_t *opt, const bntseq_t *bns, kstring_t *str, bseq
 				}
 			}
 		}
+
 	} else {
 		core.tid = -1;
 		core.pos = -1;
 		core.qual = 0;
 		core.n_cigar = 0;
+		core.rlen = 0;
+		core.bin = hts_reg2bin(core.pos, core.pos + 1, 14, 5);
 	}
-//	core.bin = hts_reg2bin(c->pos, c->pos + i, 14, 5);
 
 	if (m && m->rid >= 0) {
 		core.mtid = m->rid;
 		core.mpos = m->pos;
-		core.rlen = get_rlen(p->n_cigar, p->cigar);
+
 		if (p->rid == m->rid) {
 			int64_t p0 = p->pos + (p->is_rev? get_rlen(p->n_cigar, p->cigar) - 1 : 0);
 			int64_t p1 = m->pos + (m->is_rev? get_rlen(m->n_cigar, m->cigar) - 1 : 0);
