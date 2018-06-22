@@ -57,7 +57,7 @@ namespace gamtools {
             GLOG_ERROR << "Read Order queue size" << queue_.size()  << "queue order" << order_id_.load() <<  std::endl;
 #endif
             queue_.pop_front();
-            order_id_.fetch_add(1);
+            order_id_++;
             not_full_cv_.notify_one();
             return true;
         }
@@ -70,7 +70,7 @@ namespace gamtools {
             GLOG_ERROR << "Write Order queue size" << queue_.size() << "order : " << order << "queue order" << order_id_.load() <<  std::endl;
 #endif
             not_full_cv_.wait(lk, [&] {
-                return !queue_.full() && (order == order_id_.load() + 1);
+                return !queue_.full() && (order == order_id_ + 1);
             });
             queue_.push_back(std::forward<T>(elem));
             not_empty_cv_.notify_one();
