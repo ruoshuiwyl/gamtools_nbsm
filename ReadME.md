@@ -19,31 +19,41 @@ compute the sum of quality score of read >= 15, Mark Duplicate low score read An
 
 
 ## Install
+### dependent environment
+gcc support c++11 recomment gcc 5.0 +
+boost 1.60.0 +
+snappy
+
+### Install
 mkdir release
 cd release
 cmake -DCMAKE_BUILD_TYPE=Release ..
 make -j 20 fastAln
 ## Usage
+
+bwa index hg19.fa
+Single fastq files
 ./fastAln -r hg19.fa  -d ./tmp -f  read1.fq -b read2.fq  -l 0 -a 0 -o test.bam -n zerba -i foo -t 1
 Multiple pe files
 ./fastAln -r hg19.fa  -d ./tmp -f  read1_1.fq -b read1_2.fq  -l 0 -a 0 -f read2_1.fq -b read2_2.fq -l 0 -a 1 -o test.bam -n zerba -i foo -t 1
 ## parameter
 
-  -h [ --help ]                        Print CheckHelp message
-  -v [ --version ]                     Print version message
-  -r [ --reference_file ] arg          Reference sequence file Default(null)
-  -d [ --temp_dir ] arg                Temporary directory Storage space size
+  - -h [ --help ]                        Print CheckHelp message
+  - -v [ --version ]                     Print version message
+  - -r [ --reference_file ] arg          Reference sequence file Default(null)
+  - -d [ --temp_dir ] arg                Temporary directory Storage space size
                                        must be twice BAM file size
                                        Default(null)
-  -f [ --input_fastq1_lists ] arg      Input fastq1 file lists
-  -b [ --input_fastq2_lists ] arg      Input fastq2 file lists
-  -l [ --input_library_id_lists ] arg  Input fastq file library ID
-  -a [ --input_lane_id_lists ] arg     Input fastq file lane ID
-  -o [ --output_bam_file ] arg         Output bam file name defalut(null)
-  -n [ --sample_name ] arg (=Zebra)    Sample Name Default(Zebra)
-  -i [ --sample_id ] arg (=Zebra)      Sample Name Default(Zebra)
-  -t [ --thread_number ] arg (=1)      NBSM total thread Default(1)
-  --batch_size arg (=100000)           NBSM process batch read size Default(20
+  - -f [ --input_fastq1_lists ] arg      Input fastq1 file lists
+  - -b [ --input_fastq2_lists ] arg      Input fastq2 file lists
+  - -l [ --input_library_id_lists ] arg  Input fastq file library ID
+  - -a [ --input_lane_id_lists ] arg     Input fastq file lane ID
+  - -o [ --output_bam_file ] arg         Output bam file name defalut(null)
+  - -n [ --sample_name ] arg (=Zebra)    Sample Name Default(Zebra)
+  - -i [ --sample_id ] arg (=Zebra)      Sample Name Default(Zebra)
+  - -t [ --thread_number ] arg (=1)      NBSM total thread Default(1)
+  - -B [ --bed_file ] arg
+  - --batch_size arg (=100000)           NBSM process batch read size Default(20
                                        * 10000000)
   --read_len arg (=100)                NBSM process read length Default(100)
 
@@ -105,11 +115,11 @@ Multiple pe files
                                        save mkdup info Default(1M)
   --sm_block_sort_thread arg           sharding stage block sort thread number
                                        Default(4)
-  --sm_read_gam_thread_num arg         Merge stage read sharding data thread
+  - --sm_read_gam_thread_num arg         Merge stage read sharding data thread
                                        number Default(1)
-  --sm_merge_thread arg                Merge sort thread num Default(1)
-  --sm_compress_bam_thread arg         Compress bam thread number Default(1)
-  --sm_mkdup_thread arg                Mark Duplicate thread number Default (1)
+  - --sm_merge_thread arg                Merge sort thread num Default(1)
+  - --sm_compress_bam_thread arg         Compress bam thread number Default(1)
+  - --sm_mkdup_thread arg                Mark Duplicate thread number Default (1)
 
 ## Performance and Accuracy
 

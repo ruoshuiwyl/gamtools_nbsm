@@ -32,9 +32,9 @@ namespace gamtools {
                 ("sample_name,n", boost::program_options::value<std::string>(&sample_name)->default_value("Zebra"), "Sample Name Default(Zebra)")
                 ("sample_id,i", boost::program_options::value<std::string>(&sample_id)->default_value("Zebra"), "Sample Name Default(Zebra)")
                 ("thread_number,t", boost::program_options::value<int>(&nbsm_thread_num)->default_value(1),"NBSM total thread Default(1)")
+                ("bed_file,B", boost::program_options::value<std::string>(&bed_file), "NBSM process target data bed file")
                 ("batch_size", boost::program_options::value<int>(&batch_size)->default_value(100000), "NBSM process batch read size Default(20 * 10000000)")
-                ("read_len", boost::program_options::value<int>(&read_len)->default_value(100), "NBSM process read length Default(100)")
-                ("bed_file,B", boost::program_options::value<std::string>(&bed_file), "NBSM process target data bed file");
+                ("read_len", boost::program_options::value<int>(&read_len)->default_value(100), "NBSM process read length Default(100)");
 
         // filter fastq options
         filter_des_.add_options()
@@ -238,7 +238,7 @@ namespace gamtools {
             GLOG_INFO << "Default set nbsm batch_size " << batch_size;
         }
 
-        if (vm.count(bed_file)) {
+        if (vm.count("bed_file")) {
             sm_options.bed_file = bed_file;
             GLOG_INFO << "BED file " << bed_file;
         }
