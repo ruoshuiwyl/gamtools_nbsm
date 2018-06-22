@@ -157,7 +157,10 @@ namespace gamtools {
         target_depth_reg_ = 0;
         flank_read_idx_ = 0;
         flank_depth_reg_ = 0;
-
+        target_depth_idx_ = 0;
+        target_depth_reg_ = 0;
+        flank_depth_idx_ = 0;
+        flank_depth_reg_ = 0;
         ReadBedFile();
     }
 
