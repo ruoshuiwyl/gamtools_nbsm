@@ -54,7 +54,7 @@ namespace gamtools {
             }
             elem = std::move(queue_.front());
 #ifdef DEBUG
-            GLOG_ERROR << "Order queue size" << queue_.size()  << "queue order" << order_id_.load() <<  std::endl;
+            GLOG_ERROR << "Read Order queue size" << queue_.size()  << "queue order" << order_id_.load() <<  std::endl;
 #endif
             queue_.pop_front();
             order_id_.fetch_add(1);
@@ -67,7 +67,7 @@ namespace gamtools {
             int order = elem->order();
 
 #ifdef DEBUG
-            GLOG_ERROR << "Order queue size" << queue_.size() << "order : " << order << "queue order" << order_id_.load() <<  std::endl;
+            GLOG_ERROR << "Write Order queue size" << queue_.size() << "order : " << order << "queue order" << order_id_.load() <<  std::endl;
 #endif
             not_full_cv_.wait(lk, [&] {
                 return !queue_.full() && (order == order_id_.load() + 1);
