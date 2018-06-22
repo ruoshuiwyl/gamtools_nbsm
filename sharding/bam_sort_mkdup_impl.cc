@@ -102,10 +102,10 @@ namespace gamtools {
         const int sharding_size = partition_datas_.size();
         while (true) {
             int block_idx = gam_block_idx_.load(std::memory_order::memory_order_seq_cst);
+            gam_block_idx_.fetch_add(1, std::memory_order::memory_order_seq_cst);
             if (block_idx >= sharding_size) {
                 break;
             }
-            gam_block_idx_.fetch_add(1, std::memory_order::memory_order_seq_cst);
             ReadGAMBlock(partition_datas_[block_idx]);
         }
 //        }
