@@ -8,6 +8,7 @@
 #include <condition_variable>
 #include <boost/circular_buffer.hpp>
 #include "block_queue.h"
+#include "util/glogger.h"
 
 namespace gamtools {
     template<typename T>
@@ -60,8 +61,9 @@ namespace gamtools {
         void write(T &&elem) {
             std::unique_lock<std::mutex> lk(mtx_);
             int order = elem->order();
+
 #ifdef DEBUG
-            std::cerr << "Order queue size" << queue_.size() << "order : " << order << std::endl;
+            GLOG_ERROR << "Order queue size" << queue_.size() << "order : " << order << std::endl;
 #endif
             not_full_cv_.wait(lk, [&] {
                 return !queue_.full() && (order == order_id_ + 1);
