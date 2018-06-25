@@ -13,11 +13,13 @@
 #include <util/slice.h>
 #include <deque>
 #include "qc_stat.h"
+#include <mutex>
+#include <util/array_block_queue.h>
 
 namespace gamtools {
-    typedef std::tuple<int, int, int> bed_t;
+//    typedef std::tuple<int, int, int> bed_t;
 
-    struct QCShardingData{
+    struct QCShardingData {
         QCShardingData(int idx): order_(idx){}
         int order() {
             return order_;
@@ -43,13 +45,25 @@ namespace gamtools {
 //        void StatisticsDepth(const StatisticsSlice &stat );
 
 
-        std::deque<std::pair<int,int>> stat_list_;
-        int curr_idx_;
-        int curr_pos_;
-        int curr_end_;
+
         std::string report_filename_;
         std::unique_ptr<BaseStat> base_stat_;
     };
+
+
+//
+//    class QCCompute {
+//
+//        void Init();
+//        QCStatData Compute(std::unique_ptr<QCShardingData> &qc_data_ptr);
+//
+//    public:
+//        std::deque<std::pair<int,int>> stat_list_;
+//        int curr_idx_;
+//        int curr_pos_;
+//        int curr_end_;
+    };
+
 }
 
 

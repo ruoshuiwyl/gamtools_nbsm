@@ -37,6 +37,7 @@ namespace  gamtools {
         // Default : thread number 1;
         int read_gam_thread_num;
 
+        int stat_thread_num;
 
         // Default : thread number 1;
         int merge_sort_thread_num;

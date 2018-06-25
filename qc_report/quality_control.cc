@@ -103,4 +103,36 @@ namespace gamtools {
         }
 
     }
+
+
+    QCStatData QCCompute::Compute(std::unique_ptr<gamtools::QCShardingData> &qc_data_ptr) {
+        auto &stat_datas = qc_data_ptr->stat_datas;
+        for (auto &stat_data : stat_datas) {
+            qc_data_ptr->Statistics(stat_data);
+        }
+    }
+
+//
+//    QCStatImpl::QCStatImpl(ArrayBlockQueue<std::unique_ptr<QCShardingData>> & qc_queue,
+//                const std::string &ref_file,
+//                const std::string &bed_file,
+//                const std::string &report_file)  {
+//
+//    }
+//
+//
+//    void QCStatImpl::DoStatics() {
+//        std::unique_ptr<QCShardingData> qc_data_ptr;
+//        std::unique_ptr<QCCompute> qc_compute;
+//        while (qc_sharind_queue_.read(qc_data_ptr)) {
+//            qc_compute.Init();
+//            auto qc_result = qc_compute.Compute(qc_data_ptr);
+//            std::lock_guard<std::mutex> lck (mtx_);
+//            fastaln_stat_.Insert(qc_result);
+//        }
+//    }
+//
+//    void QCStatImpl::Report() {
+//        fastaln_stat_.
+//    }
 }

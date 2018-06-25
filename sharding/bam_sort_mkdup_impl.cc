@@ -75,7 +75,6 @@ namespace gamtools {
         std::thread output_bam_thread = std::thread(&BAMSortMkdupImpl::OutputBAM, this);
 
         std::thread qc_report_thread = std::thread(&BAMSortMkdupImpl::QCStatics, this);
-        std::thread qc_compute_thread = std::thread(&BAMSortMkdupImpl::QCCompute, this);
         for (auto &read_gam_thread :read_gam_threads ) {
             read_gam_thread.join();
         }
