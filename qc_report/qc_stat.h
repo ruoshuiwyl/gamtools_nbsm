@@ -14,6 +14,7 @@
 namespace gamtools {
     class Slice;
     typedef std::tuple<int, int, int> bed_t;
+    /*
     struct StatisticsSlice {
         StatisticsSlice() = default;
         bool is_dup;
@@ -33,6 +34,7 @@ namespace gamtools {
         double relative_depth;
         int median_depth;
     };
+
     class BaseStat {
     public:
         BaseStat(const std::string &ref_idx_file): ref_filename_(ref_idx_file){
@@ -150,6 +152,7 @@ namespace gamtools {
         int kMaxDepth = 8192;
         int kMapq = 10;
     };
+     */
 }
 
 

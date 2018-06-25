@@ -7,7 +7,7 @@
 #include "qc_stat.h"
 
 namespace gamtools {
-
+/*
     const static std::vector<std::string> kChromosomeName = {
             "chr1",  "chr2",  "chr3",  "chr4",  "chr5",
             "chr6",  "chr7",  "chr8",  "chr9",  "chr10",
@@ -575,5 +575,6 @@ namespace gamtools {
             target_depth_radio[idx] = (double) target_depth[idx]/ target_total_lens_;
         }
     }
+    */
 
 }

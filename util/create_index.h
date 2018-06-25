@@ -19,8 +19,8 @@ namespace  gamtools {
 
     class PartitionData {
     public:
-        explicit PartitionData(int sharding_id, std::string &filename):sharding_id_(sharding_id), filename_(filename){
-
+        explicit PartitionData(int sharding_id, int chromosome_idx,  std::string &filename)
+                :sharding_id_(sharding_id), chromosome_idx_(chromosome_idx), filename_(filename){
         }
         const std::string& filename() const {
             return filename_;
@@ -28,8 +28,12 @@ namespace  gamtools {
         inline const int sharding_id() const {
             return sharding_id_;
         }
+        inline const int chromosome_idx() const {
+            return chromosome_idx_;
+        }
     protected:
         int sharding_id_;
+        int chromosome_idx_;
         std::string filename_;
     };
     struct SMOptions;

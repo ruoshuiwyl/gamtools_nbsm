@@ -14,6 +14,7 @@ std::vector<int> freqs = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 
 std::vector<int> poss = {30, 200, 300, 500, 700, 900, 1100,
                          1300, 1500, 1700, 1900, 2100, 2300, 2500, 2700, 2800  };
 
+/*
 
 void wes_stat() {
 //    std::string ref_file = "/home/ruoshui/data/ucsc.hg19/ucsc.hg19/ucsc.hg19.fasta.fai";
@@ -21,11 +22,11 @@ void wes_stat() {
     std::string bed_file = "/home/ruoshui/test_data/test.bed";
 //    std::string bed_file = "/home/ruoshui/data/ucsc.hg19/ex_region.sort.bed";
     std::string report_file = "test_wes.report";
-    std::unique_ptr<QualityControl> qc_report(new QualityControl(ref_file, bed_file,  report_file));
-    qc_report->Init();
+//    std::unique_ptr<QualityControl> qc_report(new QualityControl(ref_file, bed_file,  report_file));
+//    qc_report->Init();
     {
         int cnt = 0;
-        StatisticsSlice slice_stat;
+//        StatisticsSlice slice_stat;
         for (auto tid : tids) {
             slice_stat.tid = tid;
             for (auto pos : poss) {
@@ -37,7 +38,7 @@ void wes_stat() {
                     slice_stat.rlen = 100;
                     slice_stat.mapq = cnt % 20 == 19 ? 9 : 60;
                     slice_stat.is_dup = cnt % 60 == 59;
-                    qc_report->Statistics(slice_stat);
+//                    qc_report->Statistics(slice_stat);
                 }
             }
         }
@@ -72,11 +73,10 @@ void wgs_stat() {
     }
     qc_report->Report();
 }
+ */
 
 int main() {
-    wgs_stat();
-    wes_stat();
-
-
+//    wgs_stat();
+//    wes_stat();
     return 0;
 }

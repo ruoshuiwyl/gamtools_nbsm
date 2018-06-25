@@ -11,7 +11,7 @@
 
 
 namespace gamtools {
-
+/*
     QualityControl::QualityControl(const std::string &ref_file, const std::string &report_file)
             : report_filename_(report_file),
               curr_idx_(-1),
@@ -135,4 +135,6 @@ namespace gamtools {
 //    void QCStatImpl::Report() {
 //        fastaln_stat_.
 //    }
+
+ */
 }

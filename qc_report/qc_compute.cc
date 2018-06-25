@@ -8,30 +8,38 @@
 
 namespace gamtools {
 
-    void QCCompute::init(int tid) {
+    void QCCompute::Init(int tid) {
         target_result_.reset(tid);
-//        target_result_.tid = tid;
+//        target_results_.tid = tid;
         curr_pos_ = 0;
         curr_end_ = 0;
-        .
         if (target_) {
             flank_result_.reset(tid);
             target_region_ = total_target_region_[tid];
             flank_region_ = total_flank_region_[tid];
             target_depth_reg_ = 0;
             flank_depth_reg_ = 0;
+            target_read_reg_ = 0;
+            flank_read_reg_ = 0;
         }
 
     }
 
 
-    void  QCCompute::Compute(std::unique_ptr<gamtools::QCShardingData> qc_data_ptr) {
-        auto &stat_datas = qc_data_ptr->stat_datas;
+    void QCCompute::Compute(const std::vector<StatisticsSlice> &stat_datas) {
         for (auto &stat_data : stat_datas) {
             Statistics(stat_data);
         }
     }
 
+    void QCCompute::Clear() {
+        while (!stat_list_.empty()) {
+            if (stat_list_.front().second > 0) {
+                StatisticsDepth(stat_list_.front().first, stat_list_.front().second);
+            }
+            stat_list_.pop_front();
+        }
+    }
 
     void QCCompute::Statistics(const gamtools::StatisticsSlice &stat) {
         StatisticsRead(stat);
@@ -78,7 +86,6 @@ namespace gamtools {
                     target_depth_reg_++;
                 }
             }
-
             if (target_region_[target_depth_reg_].first <= pos
                 && target_region_[target_depth_reg_].second > pos) {
                 target_result_.depth_dist[depth < kMaxDepth?depth :  kMaxDepth - 1] ++;
@@ -112,71 +119,53 @@ namespace gamtools {
     void QCCompute::StatisticsRead(const gamtools::StatisticsSlice &stat) {
         mapping_result_.total_reads_num++;
         mapping_result_.total_bases_num += stat.qlen;
+        mapping_result_.dup_reads_num += stat.is_dup? 1 : 0;
         if (stat.rlen == 0) {
             return;
         }
+        mapping_result_.map_reads_num++;
+        mapping_result_.map_bases_num += stat.qlen;
+        if (stat.mapq >= 10) {
+            mapping_result_.mapq10_reads_num++;
+            mapping_result_.mapq10_bases_num += stat.qlen;
+        }
         if (target_ && !target_region_.empty()) {
-            if (stat.tid > target_read_idx_) {
-                target_read_idx_ = stat.tid;
-                target_read_reg_ = 0;
-                target_read_bed_ = target_region_[target_read_reg_];
-                flank_read_idx_ = stat.tid;
-                flank_read_reg_ = 0;
-                flank_read_bed_ = flank_region_[flank_read_idx_][flank_read_reg_];
-            }
             int overlap_end = stat.pos + stat.rlen;
-            if (std::get<1>(target_read_bed_) < stat.pos) {
-                while (std::get<1>(target_region_[target_read_idx_][target_read_reg_]) <= stat.pos
-                       && (target_region_[target_read_idx_].size() > target_read_reg_)) {
+            if (target_region_[target_read_reg_].second < stat.pos) {
+                while (target_region_[target_read_reg_].second <= stat.pos
+                       && (target_region_.size() > target_read_reg_)) {
                     target_read_reg_++;
                 }
-                target_read_bed_ = target_region_[target_read_idx_][target_read_reg_];
             }
-
-            if (!(std::get<0>(target_read_bed_) >= overlap_end || std::get<1>(target_read_bed_) <= stat.pos)) {
-                target_reads_[target_read_idx_]++;
-                target_bases_[target_read_idx_] += stat.qlen;
-                target_total_reads_ ++;
-                target_total_bases_ += stat.qlen;
-                if (stat.mapq >= kMapq ) {
-                    mapq10_target_reads_[target_read_idx_]++;
-                    mapq10_target_bases_[target_read_idx_] +=  stat.qlen;
-                    mapq10_target_total_reads_ ++;
-                    mapq10_target_total_bases_ += stat.qlen;
+            if (!(target_region_[target_read_reg_].first >= overlap_end
+                  || target_region_[target_read_reg_].second <= stat.pos)) {
+                target_result_.reads_num++;
+                target_result_.bases_num += stat.qlen;
+                flank_result_.reads_num++;
+                flank_result_.bases_num += stat.qlen;
+                if (stat.mapq >= 10 ) {
+                    target_result_.mapq10_reads_num++;
+                    target_result_.mapq10_bases_num += stat.qlen;
+                    flank_result_.mapq10_reads_num++;
+                    flank_result_.mapq10_bases_num += stat.qlen;
                 }
+                return ;
             }
-
-            if (std::get<1>(flank_read_bed_)) {
-                while (std::get<1>(flank_region_[flank_read_idx_][flank_read_reg_]) <= stat.pos
-                       && (flank_region_[flank_read_idx_].size() > target_read_reg_)) {
+            if (flank_region_[flank_read_reg_].second < stat.pos) {
+                while (flank_region_[flank_read_reg_].second <= stat.pos
+                       && (flank_region_.size() > target_read_reg_)) {
                     flank_read_reg_++;
                 }
-                flank_read_bed_ = flank_region_[flank_read_idx_][flank_read_reg_];
             }
-
-            if (!(std::get<0>(flank_read_bed_) >= overlap_end || std::get<1>(flank_read_bed_) <= stat.pos)) {
-                flank_reads_[flank_read_idx_]++;
-                flank_bases_[flank_read_idx_] += stat.qlen;
-                flank_total_reads_++;
-                flank_total_bases_ += stat.qlen;
-                if (stat.mapq >= kMapq) {
-                    mapq10_flank_reads_[flank_read_idx_]++;
-                    mapq10_flank_bases_[flank_read_idx_] +=  stat.qlen;
-                    mapq10_flank_total_reads_++;
-                    mapq10_flank_total_bases_ += stat.qlen;
-                }
-            }
-
-
-        } else {
-
-                mapping_result_.map_reads_num++;
-                mapping_result_.map_bases_num += stat.qlen;
+            if (!(flank_region_[flank_read_reg_].first >= overlap_end
+                  || flank_region_[flank_read_reg_].second <= stat.pos)) {
+                flank_result_.reads_num++;
+                flank_result_.bases_num += stat.qlen;
                 if (stat.mapq >= 10) {
-                    mapping_result_.mapq10_reads_num++;
-                    mapping_result_.mapq10_bases_num += stat.qlen;
+                    flank_result_.mapq10_reads_num++;
+                    flank_result_.mapq10_bases_num += stat.qlen;
                 }
-
+            }
         }
     }
 

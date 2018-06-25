@@ -51,11 +51,11 @@ namespace gamtools {
               bam_hdr_(bam_hdr),
               bam_filename_(bam_filename),
               sm_options_(sm_opt),
-              gam_part_queue_(20),
               output_bam_queue_(16),
-              quality_control_queue_(16),
-              qc_buffer_queue_(16){
+              quality_control_queue_(16){
         block_size_ = sm_opt.sort_block_size;
+        qc_stat_impl_ = std::unique_ptr<QCStatImpl>
+                (new QCStatImpl(quality_control_queue_, sm_options_.ref_file, sm_options_.bed_file, sm_options_.report_file));
     }
 
 
@@ -67,29 +67,31 @@ namespace gamtools {
         for (int i = 0; i < sm_options_.read_gam_thread_num; ++i) {
             read_gam_threads.push_back(std::thread(&BAMSortMkdupImpl::ReadGAMPartitionData, this));
         }
-        std::vector<std::thread> sort_threads;
-        for (int i = 0; i < sm_options_.merge_sort_thread_num; ++i) {
-            sort_threads.push_back(std::thread(&BAMSortMkdupImpl::PartitionDecompressMerge, this));
-        }
-
+//        std::vector<std::thread> sort_threads;
+//        for (int i = 0; i < sm_options_.merge_sort_thread_num; ++i) {
+//            sort_threads.push_back(std::thread(&BAMSortMkdupImpl::PartitionDecompressMerge, this));
+//        }
         std::thread output_bam_thread = std::thread(&BAMSortMkdupImpl::OutputBAM, this);
-
-        std::thread qc_report_thread = std::thread(&BAMSortMkdupImpl::QCStatics, this);
+        std::vector<std::thread> qc_threads;
+        for (int i = 0; i < sm_options_.stat_thread_num; ++i) {
+            qc_threads.push_back(qc_stat_impl_->StaticsSpawn());
+        }
+//        std::thread qc_report_thread = std::thread(&BAMSortMkdupImpl::QCStatics, this);
         for (auto &read_gam_thread :read_gam_threads ) {
             read_gam_thread.join();
         }
-        gam_part_queue_.SendEof();
-        GLOG_INFO << "Finish Read gam block";
-        for (auto &th : sort_threads) {
-            th.join();
-        }
+        GLOG_INFO << "Finish Read and Merge gam block";
+//        for (auto &th : sort_threads) {
+//            th.join();
+//        }
 //        output_bam_channel_.SendEof();
         output_bam_queue_.SendEof();
         quality_control_queue_.SendEof();
-        GLOG_INFO << "Finish Merge gam block";
+//        GLOG_INFO << "Finish Merge gam block";
         output_bam_thread.join();
-        qc_report_thread.join();
-        qc_compute_thread.join();
+        for (auto &qc_thread : qc_threads) {
+            qc_thread.join();
+        }
         GLOG_INFO << "Finish fastAln and QC report";
     }
 
@@ -103,7 +105,8 @@ namespace gamtools {
             if (block_idx >= sharding_size) {
                 break;
             }
-            ReadGAMBlock(partition_datas_[block_idx]);
+            auto partition_data = ReadGAMBlock(partition_datas_[block_idx]);
+            MergePartition(partition_data);
         }
 //        }
 
@@ -112,7 +115,8 @@ namespace gamtools {
 
 
 
-    void BAMSortMkdupImpl::ReadGAMBlock(std::unique_ptr<gamtools::ShardingPartitionData> &part_data) {
+    std::unique_ptr<GAMPartitionData> BAMSortMkdupImpl::ReadGAMBlock(
+            std::unique_ptr<gamtools::ShardingPartitionData> &part_data) {
         auto &part = part_data->partition_data();
         std::unique_ptr<GAMPartitionData> partition_data_ptr(new GAMPartitionData(part.sharding_id()));
         auto &filename = part.filename() ;
@@ -168,19 +172,20 @@ namespace gamtools {
 #ifdef DEBUG
     GLOG_ERROR << "read gam " << partition_data_ptr->order() ;
 #endif
-        gam_part_queue_.write(std::move(partition_data_ptr));
+        return partition_data_ptr;
+//        gam_part_queue_.write(std::move(partition_data_ptr));
     }
 
-    void BAMSortMkdupImpl::PartitionDecompressMerge() {
-        std::unique_ptr<GAMPartitionData> partition_data_ptr;
-        while (gam_part_queue_.read(partition_data_ptr)) {
-            GLOG_INFO << "Start merge one sharding idx: " << partition_data_ptr->sharding_idx ;
-//            Decompress(partition_data_ptr);
-            MergePartition(partition_data_ptr);
-            GLOG_INFO << "Finish merge sharding " << partition_data_ptr->sharding_idx;
-        }
-
-    }
+//    void BAMSortMkdupImpl::PartitionDecompressMerge() {
+//        std::unique_ptr<GAMPartitionData> partition_data_ptr;
+//        while (gam_part_queue_.read(partition_data_ptr)) {
+//            GLOG_INFO << "Start merge one sharding idx: " << partition_data_ptr->sharding_idx ;
+////            Decompress(partition_data_ptr);
+//            MergePartition(partition_data_ptr);
+//            GLOG_INFO << "Finish merge sharding " << partition_data_ptr->sharding_idx;
+//        }
+//
+//    }
 
     /*
     void BAMSortMkdupImpl::Decompress(std::unique_ptr<gamtools::GAMPartitionData> &gam_part) {
@@ -352,6 +357,7 @@ namespace gamtools {
         }
 //        bam_block_ptr->SendEof();
         bam_sharding_ptr->End();
+        GLOG_INFO << "Finish read and merge sharding :" << bam_sharding_ptr->sharding_idx ;
         output_bam_queue_.write(std::move(bam_sharding_ptr));
         quality_control_queue_.write(std::move(qc_sharding_ptr));
     }
@@ -435,7 +441,7 @@ namespace gamtools {
             assert(current_sharding_idx == sharding_idx);
 //            finish_sharding_idxs.push(sharding_idx);
 //            while (current_sharding_idx == finish_sharding_idxs.top()) {
-                GLOG_TRACE << "Output BAM sharding idx " << current_sharding_idx ;
+            GLOG_TRACE << "Output BAM sharding idx " << current_sharding_idx ;
 //                OutputShardingBAM(current_sharding_idx);
             OutputShardingBAM(bam_block);
             ++current_sharding_idx;
@@ -467,34 +473,29 @@ namespace gamtools {
 
 
 
-    void BAMSortMkdupImpl::QCStatics() {
-        std::unique_ptr<QCShardingData> qc_data;
-
-        while (quality_control_queue_.read(qc_data)) {
-            qc_buffer_queue_.write(std::move(qc_data));
-        }
-        qc_buffer_queue_.SendEof();
-
-    }
-
-    void BAMSortMkdupImpl::QCCompute() {
-        std::unique_ptr<QualityControl> qc_report;
-        std::unique_ptr<QCShardingData> qc_data;
-        if (sm_options_.bed_file.empty()) {
-            qc_report = std::unique_ptr<QualityControl>(new QualityControl(sm_options_.ref_file, sm_options_.report_file));
-        } else {
-            qc_report = std::unique_ptr<QualityControl>(new QualityControl(sm_options_.ref_file, sm_options_.bed_file, sm_options_.report_file));
-        }
-        qc_report->Init();
-        while (qc_buffer_queue_.read(qc_data)) {
-            auto &stat_datas = qc_data->stat_datas;
-            for (auto &stat_data : stat_datas) {
-                qc_report->Statistics(stat_data);
-            }
-        }
-        qc_report->Report();
-
-    }
+//    void BAMSortMkdupImpl::QCStatics() {
+//
+//
+//    }
+//
+//    void BAMSortMkdupImpl::QCCompute() {
+//        std::unique_ptr<QualityControl> qc_report;
+//        std::unique_ptr<QCShardingData> qc_data;
+//        if (sm_options_.bed_file.empty()) {
+//            qc_report = std::unique_ptr<QualityControl>(new QualityControl(sm_options_.ref_file, sm_options_.report_file));
+//        } else {
+//            qc_report = std::unique_ptr<QualityControl>(new QualityControl(sm_options_.ref_file, sm_options_.bed_file, sm_options_.report_file));
+//        }
+//        qc_report->Init();
+//        while (qc_buffer_queue_.read(qc_data)) {
+//            auto &stat_datas = qc_data->stat_datas;
+//            for (auto &stat_data : stat_datas) {
+//                qc_report->Statistics(stat_data);
+//            }
+//        }
+//        qc_report->Report();
+//
+//    }
 
     /*
     void BAMSortMkdupImpl::OutputShardingBAM(int current_sharding_idx) {

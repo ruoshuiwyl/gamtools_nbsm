@@ -12,6 +12,7 @@
 #include <util/bounded_queue.h>
 #include <util/order_block_queue.h>
 #include <qc_report/quality_control.h>
+#include <qc_report/qc_stat_impl.h>
 #include "nbsm/options.h"
 
 namespace gamtools {
@@ -30,7 +31,6 @@ namespace gamtools {
         }
         void InsertBAMSlice(gamtools::Slice &slice);
         void End();
-
     };
 
     class BAMSortMkdupImpl {
@@ -44,9 +44,8 @@ namespace gamtools {
     private:
         void ReadGAMPartitionData();
         void OutputBAM();
-        void QCStatics();
-        void ReadGAMBlock(std::unique_ptr<ShardingPartitionData> &part_data);
-        void PartitionDecompressMerge();
+        std::unique_ptr<GAMPartitionData> ReadGAMBlock(std::unique_ptr<ShardingPartitionData> &part_data);
+//        void PartitionDecompressMerge();
 //        void Decompress(std::unique_ptr<GAMPartitionData> &gam_part);
         void MergePartition(std::unique_ptr<GAMPartitionData> &gam_part);
 //        void InsertBAMSlice(gamtools::Slice &slice, std::unique_ptr<BAMBlock> &bam_block_ptr);
@@ -54,11 +53,11 @@ namespace gamtools {
         void OutputShardingBAM(std::unique_ptr<GAMPartitionData> &bam_chunk);
         std::vector<std::unique_ptr<ShardingPartitionData>> &partition_datas_;
 //        ArrayBlockQueue<std::unique_ptr<GAMPartitionData>> gam_part_channel_;
-        OrderBlockQueue<std::unique_ptr<GAMPartitionData>> gam_part_queue_;
+//        OrderBlockQueue<std::unique_ptr<GAMPartitionData>> gam_part_queue_;
 //        ArrayBlockQueue<std::unique_ptr<BAMBlock>> output_bam_channel_;
         OrderBlockQueue<std::unique_ptr<GAMPartitionData>> output_bam_queue_;
-
-        OrderBlockQueue<std::unique_ptr<QCShardingData>> quality_control_queue_;
+//        OrderBlockQueue<std::unique_ptr<QCShardingData>> quality_control_queue_;
+        BoundedQueue<std::unique_ptr<QCShardingData>> quality_control_queue_;
 //        std::vector<std::unique_ptr<GAMPartitionData>> bam_chunks_;
 //        std::vector<std::vector<std::unique_ptr<BAMBlock>>> chunks_;
         const SMOptions &sm_options_;
@@ -67,6 +66,7 @@ namespace gamtools {
         const bam_hdr_t *bam_hdr_;
         std::atomic<int> gam_block_idx_;
         std::string bam_filename_;
+        std::unique_ptr<QCStatImpl> qc_stat_impl_;
 
     };
 }
