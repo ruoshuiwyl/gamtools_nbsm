@@ -12,10 +12,10 @@ namespace gamtools {
 
     QCResultAnalysis::QCResultAnalysis(const QCBaseData &qc_base_data): qc_base_data_(qc_base_data) {
         int total_chr = qc_base_data_.refer_dict.size();
-        flank_results_.resize(total_chr);
-        target_results_.resize(total_chr);
-        mapping_results_.resize(total_chr);
-        for (int i = 0; i < total_chr; ++i) {
+        flank_results_.resize(total_chr + 1);
+        target_results_.resize(total_chr + 1);
+        mapping_results_.resize(total_chr + 1);
+        for (int i = 0; i <= total_chr; ++i) {
             flank_results_[i].reset(i);
             target_results_[i].reset(i);
             mapping_results_[i].reset(i);
@@ -178,7 +178,7 @@ namespace gamtools {
             oss << "Mean depth of chrY(X)\t" << 0.0 << std::endl;
             oss << "Gender\t - " <<  std::endl;
         }
-        oss << "Duplicate rate(%d)\t" << std::setprecision(4) << (double) mapping_result_.dup_reads_num / mapping_result_.total_reads_num << std::endl;
+        oss << "Duplicate rate(%)\t" << std::setprecision(4) << (double) 100 * mapping_result_.dup_reads_num / mapping_result_.total_reads_num << std::endl;
         return  oss.str();
     }
 
@@ -230,6 +230,7 @@ namespace gamtools {
             }
         }
         oss << std::endl;
+        return oss.str();
     }
 
     std::string QCResultAnalysis::DepthResultReport() {

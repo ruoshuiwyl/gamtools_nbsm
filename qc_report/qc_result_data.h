@@ -14,6 +14,16 @@ namespace gamtools {
     const int kMaxDepth = 8192;
     const int kMapThreshold = 10;
     struct QCStatResult {
+        QCStatResult() {
+            tid = 0;
+            reads_num = 0;
+            bases_num = 0;
+            mapq10_reads_num = 0;
+            mapq10_bases_num = 0;
+            coverage_pos = 0;
+            depth = 0;
+            depth_dist.resize(kMaxDepth, 0);
+        }
         void reset(int chr_idx) {
             tid = chr_idx;
             reads_num = 0;

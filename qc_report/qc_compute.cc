@@ -8,15 +8,21 @@
 
 namespace gamtools {
 
+
+    QCCompute::QCCompute(bool target, const gamtools::QCBaseData &qc_base_data)
+            :target_(target), qc_base_data_(qc_base_data) {
+
+    }
     void QCCompute::Init(int tid) {
         target_result_.reset(tid);
+        mapping_result_.reset(tid);
 //        target_results_.tid = tid;
         curr_pos_ = 0;
         curr_end_ = 0;
         if (target_) {
             flank_result_.reset(tid);
-            target_region_ = total_target_region_[tid];
-            flank_region_ = total_flank_region_[tid];
+            target_region_ = qc_base_data_.target_region[tid];
+            flank_region_ = qc_base_data_.flank_region[tid];
             target_depth_reg_ = 0;
             flank_depth_reg_ = 0;
             target_read_reg_ = 0;
@@ -129,7 +135,10 @@ namespace gamtools {
             mapping_result_.mapq10_reads_num++;
             mapping_result_.mapq10_bases_num += stat.qlen;
         }
-        if (target_ && !target_region_.empty()) {
+        if (target_ ) {
+            if (target_region_.empty()) {
+                return;
+            }
             int overlap_end = stat.pos + stat.rlen;
             if (target_region_[target_read_reg_].second < stat.pos) {
                 while (target_region_[target_read_reg_].second <= stat.pos
@@ -166,6 +175,14 @@ namespace gamtools {
                     flank_result_.mapq10_bases_num += stat.qlen;
                 }
             }
+        } else {
+            target_result_.reads_num++;
+            target_result_.bases_num += stat.qlen;
+            if (stat.mapq >= kMapThreshold) {
+                target_result_.mapq10_reads_num++;
+                target_result_.mapq10_bases_num += stat.qlen;
+            }
+
         }
     }
 

@@ -14,7 +14,7 @@ namespace gamtools {
 
     class QCCompute {
     public:
-        QCCompute(bool target, const std::vector<std::vector<std::pair<int, int>>> &total_region_);
+        QCCompute(bool target, const QCBaseData &qc_base_data);
         void Init(int tid);
         void Compute(const std::vector<StatisticsSlice> &stat_datas);
         void Clear();
@@ -45,8 +45,9 @@ namespace gamtools {
         QCStatResult target_result_;
         QCStatResult flank_result_;
         QCMappingResult mapping_result_;
-        const std::vector<std::vector<std::pair<int, int>>> &total_target_region_;
-        const std::vector<std::vector<std::pair<int, int>>> &total_flank_region_;
+//        const std::vector<std::vector<std::pair<int, int>>> &total_target_region_;
+//        const std::vector<std::vector<std::pair<int, int>>> &total_flank_region_;
+        const QCBaseData &qc_base_data_;
 
     };
 }

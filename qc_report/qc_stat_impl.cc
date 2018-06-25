@@ -27,7 +27,7 @@ namespace gamtools {
             base_data_.target = false;
         }
         InitBedRegion();
-
+        qc_result_analysis_ = std::unique_ptr<QCResultAnalysis>(new QCResultAnalysis(base_data_));
     }
     void QCStatImpl::InitReferenceIndex() {
         char data[1024];
@@ -107,7 +107,7 @@ namespace gamtools {
 
     void QCStatImpl::DoStatics() {
         std::unique_ptr<QCShardingData> qc_data_ptr;
-        std::unique_ptr<QCCompute> qc_compute;
+        std::unique_ptr<QCCompute> qc_compute( new QCCompute(target_, base_data_));
         while (qc_sharind_queue_.read(qc_data_ptr)) {
             qc_compute->Init(qc_data_ptr->tid);
             qc_compute->Compute(qc_data_ptr->stat_datas);

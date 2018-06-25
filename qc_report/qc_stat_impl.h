@@ -26,7 +26,7 @@ namespace  gamtools {
         int mapq; //
     };
     struct QCShardingData {
-        QCShardingData(int idx): order_(idx){}
+        explicit QCShardingData(int chr_idx, int idx): tid(chr_idx), order_(idx){}
         int order() {
             return order_;
         }

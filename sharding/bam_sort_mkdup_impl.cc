@@ -92,6 +92,7 @@ namespace gamtools {
         for (auto &qc_thread : qc_threads) {
             qc_thread.join();
         }
+        qc_stat_impl_->Report();
         GLOG_INFO << "Finish fastAln and QC report";
     }
 
@@ -118,7 +119,7 @@ namespace gamtools {
     std::unique_ptr<GAMPartitionData> BAMSortMkdupImpl::ReadGAMBlock(
             std::unique_ptr<gamtools::ShardingPartitionData> &part_data) {
         auto &part = part_data->partition_data();
-        std::unique_ptr<GAMPartitionData> partition_data_ptr(new GAMPartitionData(part.sharding_id()));
+        std::unique_ptr<GAMPartitionData> partition_data_ptr(new GAMPartitionData(part.chromosome_idx(), part.sharding_id()));
         auto &filename = part.filename() ;
         int block_cnt = part_data->block_cnt();
         GLOG_TRACE << "Read gam block idx:" << part.sharding_id() << "block num:" << block_cnt;
@@ -233,8 +234,8 @@ namespace gamtools {
 
     void  BAMSortMkdupImpl::MergePartition(std::unique_ptr<GAMPartitionData> &gam_part){
 //        auto bam_block_ptr = std::unique_ptr<BAMBlock>( new BAMBlock(kBAMBlockSize, gam_part->sharding_idx, 0 ,false));
-        auto bam_sharding_ptr = std::unique_ptr<GAMPartitionData>(new GAMPartitionData(gam_part->sharding_idx));
-        auto qc_sharding_ptr = std::unique_ptr<QCShardingData> ( new QCShardingData(gam_part->sharding_idx));
+        auto bam_sharding_ptr = std::unique_ptr<GAMPartitionData>(new GAMPartitionData(gam_part->tid, gam_part->sharding_idx));
+        auto qc_sharding_ptr = std::unique_ptr<QCShardingData> ( new QCShardingData(gam_part->tid, gam_part->sharding_idx));
         auto &gam_blocks = gam_part->blocks;
         if (gam_blocks.empty()) {
 //            bam_block_ptr->SendEof();
