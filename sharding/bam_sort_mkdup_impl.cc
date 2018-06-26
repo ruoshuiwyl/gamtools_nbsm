@@ -52,7 +52,7 @@ namespace gamtools {
               bam_filename_(bam_filename),
               sm_options_(sm_opt),
               output_bam_queue_(16),
-              quality_control_queue_(16){
+              quality_control_queue_(16) {
         block_size_ = sm_opt.sort_block_size;
         qc_stat_impl_ = std::unique_ptr<QCStatImpl>
                 (new QCStatImpl(quality_control_queue_, sm_options_.ref_file, sm_options_.bed_file, sm_options_.report_file));

@@ -106,7 +106,7 @@ namespace gamtools {
             if (flank_region_[flank_depth_reg_].second <= pos) {
                 while ((flank_region_.size() > flank_depth_reg_) &&
                        flank_region_[flank_depth_reg_].second <= pos) {
-                    target_depth_reg_++;
+                    flank_depth_reg_++;
                 }
             }
             if (flank_region_[flank_depth_reg_].first <= pos && flank_region_[flank_depth_reg_].second < pos) {
