@@ -18,7 +18,7 @@ namespace  gamtools{
          block_sort_thread_num(1),
          read_gam_thread_num(1),
          merge_sort_thread_num(1),
-         stat_thread_num(2),
+         stat_thread_num(1),
          bam_output_thread_num(1),
          mark_dup_thread_num(1) {
 

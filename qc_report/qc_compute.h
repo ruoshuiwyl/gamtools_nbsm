@@ -31,8 +31,8 @@ namespace gamtools {
         void StatisticsRead(const StatisticsSlice &stat);
         void StatisticsDepth(int pos, int depth);
         void Statistics(const StatisticsSlice &stat);
-
-        bool target_;
+        std::set<int> poss;
+        const bool target_;
         int curr_pos_;
         int curr_end_;
         int target_depth_reg_;

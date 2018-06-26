@@ -10,7 +10,7 @@
 #include <strings.h>
 #include <nbsm/options.h>
 #include <util/array_block_queue.h>
-#include <util/gam_thread_pool.h>
+
 #include "base_fastq_info.h"
 #include "util/gam_read_buffer.h"
 #include "bwa_mem/gam_read.h"

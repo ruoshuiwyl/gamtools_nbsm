@@ -111,6 +111,7 @@ namespace gamtools {
         while (qc_sharind_queue_.read(qc_data_ptr)) {
             qc_compute->Init(qc_data_ptr->tid);
             qc_compute->Compute(qc_data_ptr->stat_datas);
+            qc_compute->Clear();
             {
                 std::lock_guard<std::mutex> lck(mtx_);
                 qc_result_analysis_->AddMappingResult(qc_compute->MappingResult());
@@ -119,12 +120,11 @@ namespace gamtools {
                     qc_result_analysis_->AddFlankQCResult(qc_compute->FlankResult());
                 }
             }
-            qc_compute->Clear();
         }
     }
 
     void QCStatImpl::Report() {
-        std::ofstream ofs(report_file_);
+        std::ofstream ofs(report_file_, std::ofstream::app);
         if (ofs.is_open()) {
             ofs << qc_result_analysis_->Report();
             ofs.close();

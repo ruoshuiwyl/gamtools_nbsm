@@ -3,6 +3,7 @@
 //
 
 #include <assert.h>
+#include <iostream>
 #include "qc_compute.h"
 
 
@@ -21,8 +22,10 @@ namespace gamtools {
         curr_end_ = 0;
         if (target_) {
             flank_result_.reset(tid);
-            target_region_ = qc_base_data_.target_region[tid];
-            flank_region_ = qc_base_data_.flank_region[tid];
+            if (tid >= 0) {
+                target_region_ = qc_base_data_.target_region[tid];
+                flank_region_ = qc_base_data_.flank_region[tid];
+            }
             target_depth_reg_ = 0;
             flank_depth_reg_ = 0;
             target_read_reg_ = 0;
@@ -86,7 +89,8 @@ namespace gamtools {
 
     void QCCompute::StatisticsDepth( int pos, int depth) {
         if (target_) {
-            if (target_region_[target_depth_reg_].second <= pos) {
+            if (target_region_[target_depth_reg_].second <= pos
+                    && target_depth_reg_  + 1< target_region_.size()) {
                 while ((target_region_.size() > target_depth_reg_)
                        && target_region_[target_depth_reg_].second <= pos) {
                     target_depth_reg_++;
@@ -103,13 +107,14 @@ namespace gamtools {
                 return;
             }
 
-            if (flank_region_[flank_depth_reg_].second <= pos) {
+            if (flank_region_[flank_depth_reg_].second <= pos
+                    && flank_depth_reg_ + 1 < flank_region_.size()) {
                 while ((flank_region_.size() > flank_depth_reg_) &&
                        flank_region_[flank_depth_reg_].second <= pos) {
                     flank_depth_reg_++;
                 }
             }
-            if (flank_region_[flank_depth_reg_].first <= pos && flank_region_[flank_depth_reg_].second < pos) {
+            if (flank_region_[flank_depth_reg_].first <= pos && flank_region_[flank_depth_reg_].second > pos) {
                 flank_result_.depth_dist[depth < kMaxDepth ? depth : kMaxDepth - 1]++;
                 flank_result_.depth += depth;
                 flank_result_.coverage_pos++;
@@ -119,7 +124,6 @@ namespace gamtools {
             target_result_.depth += depth;
             target_result_.depth_dist[depth < kMaxDepth ? depth : kMaxDepth - 1]++;
         }
-
     }
 
     void QCCompute::StatisticsRead(const gamtools::StatisticsSlice &stat) {
@@ -152,7 +156,7 @@ namespace gamtools {
                 target_result_.bases_num += stat.qlen;
                 flank_result_.reads_num++;
                 flank_result_.bases_num += stat.qlen;
-                if (stat.mapq >= 10 ) {
+                if (stat.mapq >= kMapThreshold ) {
                     target_result_.mapq10_reads_num++;
                     target_result_.mapq10_bases_num += stat.qlen;
                     flank_result_.mapq10_reads_num++;

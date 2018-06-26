@@ -43,11 +43,12 @@ namespace gamtools {
         std::string FlankResultReport();
         std::string ChromosomeResultReport();
         std::string DepthResultReport();
-        bool target_;
+        const bool target_;
         std::vector<QCStatResult> target_results_;
         std::vector<QCStatResult> flank_results_;
         std::vector<QCMappingResult> mapping_results_;
         QCMappingResult mapping_result_;
+        QCMappingResult unmapping_result_;
         QCStatResult target_result_;
         QCStatResult flank_result_;
         std::vector<double> target_depth_radio;

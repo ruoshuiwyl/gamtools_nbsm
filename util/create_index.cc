@@ -17,7 +17,6 @@
 
 namespace gamtools {
     CreateIndex::CreateIndex(const bam_hdr_t *head, const SMOptions &options, IndexType type) {
-
         int sharding_idx = 0;
         int file_cnt = 0;
         int dir_cnt= 0;
@@ -42,7 +41,7 @@ namespace gamtools {
             }
         };
         file_name = dir_name + "/sharding_" +  std::to_string(sharding_idx) + file_extension;
-        partition_datas_.push_back(PartitionData(sharding_idx,head->n_targets , file_name)); //add unmap read
+        partition_datas_.push_back(PartitionData(sharding_idx, -1, file_name)); //add unmap read
     }
 
     std::string CreateIndex::CreateIndexDirectory(int dir_id, IndexType type, const std::string &store_dir) {

@@ -950,15 +950,15 @@ void mem_aln2bam(const mem_opt_t *opt, const bntseq_t *bns, kstring_t *str, bseq
 		core.n_cigar = p->n_cigar;
 		if (core.n_cigar) {
 			core.rlen = get_rlen(p->n_cigar, p->cigar);
-			core.bin = hts_reg2bin(core.pos, core.pos + core.rlen , 14, 5);
+			core.bin = hts_reg2bin(core.pos, core.pos + core.rlen, 14, 5);
 			for (i = 0; i < p->n_cigar; ++i) {
 				uint32_t cigar_ = p->cigar[i] & 0xfffffff0;
-				int c = p->cigar[i]&0xf;
-				if (!(opt->flag&MEM_F_SOFTCLIP) && !p->is_alt && (c == 3 || c == 4)) {
+				int c = p->cigar[i] & 0xf;
+				if (!(opt->flag & MEM_F_SOFTCLIP) && !p->is_alt && (c == 3 || c == 4)) {
 					c = which ? 4 : 3; // use hard clipping for supplementary alignments
 				}
 				cigar_ = cigar_ | bam_cigar_int[c];
-				kputsn((char*)&cigar_, sizeof(uint32_t), &bam_data);
+				kputsn((char *) &cigar_, sizeof(uint32_t), &bam_data);
 ////				kputw(p->cigar[i]>>4, str); kputc("MIDSH"[c], str);
 //
 //
@@ -966,30 +966,33 @@ void mem_aln2bam(const mem_opt_t *opt, const bntseq_t *bns, kstring_t *str, bseq
 			read_end.pos = p->pos;
 			if (p->is_rev) {
 				for (i = 0; i < p->n_cigar; ++i) {
-					int c = p->cigar[i]&0xf;
-					if (c == 0 || c == 2){
-						read_end.pos +=  p->cigar[i] >> 4;
+					int c = p->cigar[i] & 0xf;
+					if (c == 0 || c == 2) {
+						read_end.pos += p->cigar[i] >> 4;
 					}
 				}
 				read_end.pos -= 1;
-				for ( i = p->n_cigar - 1; i >= 0; --i){
+				for (i = p->n_cigar - 1; i >= 0; --i) {
 					int c = p->cigar[i] & 0xf;
-					if ( c == 3 || c == 4) { // soft clip and hard clip flag
-						read_end.pos += (p->cigar[i]>>4);
+					if (c == 3 || c == 4) { // soft clip and hard clip flag
+						read_end.pos += (p->cigar[i] >> 4);
 					} else {
 						break;
 					}
 				}
 			} else {
-				for ( i = 0; i < p->n_cigar; ++i){
+				for (i = 0; i < p->n_cigar; ++i) {
 					int c = p->cigar[i] & 0xf;
-					if ( c == 3 || c == 4) { //soft clip and hard clip flag
-						read_end.pos -= (p->cigar[i]>>4);
+					if (c == 3 || c == 4) { //soft clip and hard clip flag
+						read_end.pos -= (p->cigar[i] >> 4);
 					} else {
 						break;
 					}
 				}
 			}
+		} else {
+			core.rlen = 0;
+			core.bin = hts_reg2bin(core.pos, core.pos + 1, 14, 5);
 		}
 
 	} else {
@@ -1000,6 +1003,7 @@ void mem_aln2bam(const mem_opt_t *opt, const bntseq_t *bns, kstring_t *str, bseq
 		core.rlen = 0;
 		core.bin = hts_reg2bin(core.pos, core.pos + 1, 14, 5);
 	}
+
 
 	if (m && m->rid >= 0) {
 		core.mtid = m->rid;

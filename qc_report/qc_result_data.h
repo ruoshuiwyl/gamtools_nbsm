@@ -47,6 +47,16 @@ namespace gamtools {
     };
 
     struct QCMappingResult {
+        QCMappingResult() {
+            tid = 0;
+            dup_reads_num = 0;
+            total_reads_num = 0;
+            total_bases_num = 0;
+            map_reads_num = 0;
+            map_bases_num = 0;
+            mapq10_reads_num = 0;
+            mapq10_bases_num = 0;
+        }
         void reset(int chr_idx) {
             tid = chr_idx;
             dup_reads_num = 0;
@@ -69,6 +79,9 @@ namespace gamtools {
     };
 
     struct QCBaseData {
+        QCBaseData(): target(false),
+                      target_total_lens(0),
+                      flank_total_lens(0) {}
         bool target;
         int64_t target_total_lens;
         int64_t flank_total_lens;

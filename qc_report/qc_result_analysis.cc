@@ -10,7 +10,9 @@
 namespace gamtools {
 
 
-    QCResultAnalysis::QCResultAnalysis(const QCBaseData &qc_base_data): qc_base_data_(qc_base_data) {
+    QCResultAnalysis::QCResultAnalysis(const QCBaseData &qc_base_data)
+            : qc_base_data_(qc_base_data),
+              target_(qc_base_data.target) {
         int total_chr = qc_base_data_.refer_dict.size();
         flank_results_.resize(total_chr + 1);
         target_results_.resize(total_chr + 1);
@@ -23,15 +25,23 @@ namespace gamtools {
     }
 
     void QCResultAnalysis::AddFlankQCResult(const gamtools::QCStatResult &qc_flank) {
-        flank_results_[qc_flank.tid].Add(qc_flank);
+        if (qc_flank.tid >= 0) {
+            flank_results_[qc_flank.tid].Add(qc_flank);
+        }
     }
 
     void QCResultAnalysis::AddTargetQCResult(const gamtools::QCStatResult &qc_target) {
-        target_results_[qc_target.tid].Add(qc_target);
+        if (qc_target.tid >= 0) {
+            target_results_[qc_target.tid].Add(qc_target);
+        }
     }
 
     void QCResultAnalysis::AddMappingResult(const gamtools::QCMappingResult &map_result) {
-        mapping_results_[map_result.tid].Add(map_result);
+        if (map_result.tid >= 0) {
+            mapping_results_[map_result.tid].Add(map_result);
+        } else {
+            unmapping_result_.Add(map_result);
+        }
     }
 
     std::string QCResultAnalysis::Report() {
@@ -55,8 +65,6 @@ namespace gamtools {
         }
         AnalysisChromesomeResult();
         AnalysisDepthResult();
-
-
     }
 
     void QCResultAnalysis::AnalysisMappingResult() {
@@ -67,7 +75,7 @@ namespace gamtools {
 
     void QCResultAnalysis::AnalysisFlankResult() {
         for (auto &result : flank_results_) {
-            flank_result_.Add(flank_result_);
+            flank_result_.Add(result);
         }
     }
 
@@ -88,13 +96,16 @@ namespace gamtools {
                 chr_stat_result.cover_precent = (double) chr_stat_result.cover_pos / chr_stat_result.lens;
                 chr_stat_result.mean_depth = (double) target_results_[chr_idx].depth / chr_stat_result.lens;
                 chr_stat_result.relative_depth = (double)  chr_stat_result.mean_depth / (target_result_.depth / qc_base_data_.target_total_lens);
-                int64_t cnt = 0, pre_cnt = 0;
-                for (int idx = 0; idx < kMaxDepth; ++idx) {
+                int64_t cnt = 0;
+
+                for (int idx = 1; idx < kMaxDepth; ++idx) {
                     cnt += target_results_[chr_idx].depth_dist[idx];
                 }
-                int median = cnt >> 1;
+                int64_t depth0_cnt = qc_base_data_.target_chr_lens[chr_idx] - cnt;
+                int median = (cnt + depth0_cnt) >> 1;
                 cnt = 0;
-                for (int idx = 0; idx < kMaxDepth; ++idx) {
+                int64_t pre_cnt = depth0_cnt;
+                for (int idx = 1; idx < kMaxDepth; ++idx) {
                     cnt += target_results_[chr_idx].depth_dist[idx];
                     if (pre_cnt <= median && median < cnt) {
                         chr_stat_result.median_depth = idx;
@@ -148,8 +159,6 @@ namespace gamtools {
         oss << "\t\t\t\t\tMapping Statistics" << std::endl;
         oss << "Total Reads\t" << mapping_result_.total_reads_num << std::endl;
         oss << "Total Bases\t" << mapping_result_.total_bases_num << std::endl;
-        oss << "Capture specificity(%)\t" << std::setprecision(5) << (double) 100  <<std::endl;
-        oss << "Capture specificity mapq >= 10 (%)\t" << std::setprecision(5) << (double)100 <<  std::endl;
         oss << "Reads mapped to genome\t" << mapping_result_.map_reads_num << std::endl;
         oss << "Bases mapped to genome\t" << mapping_result_.map_bases_num << std::endl;
         oss << "Reads mapped (mapq >= 10) to genome\t" << mapping_result_.mapq10_reads_num <<  std::endl;
@@ -189,7 +198,7 @@ namespace gamtools {
         oss << "Reads mapped to target region\t" << target_result_.reads_num << std::endl;
         oss << "Bases mapped to target region\t" << target_result_.bases_num << std::endl;
         oss << "Reads mapped (mapq >= 10) to target region\t" << target_result_.mapq10_reads_num <<std::endl;
-        oss << "Bases mapped (mapq >= 10) to target region\t" << target_result_.mapq10_reads_num <<std::endl;
+        oss << "Bases mapped (mapq >= 10) to target region\t" << target_result_.mapq10_bases_num <<std::endl;
         oss << "Mean depth of target region(X)\t" << std::setprecision(5) << (double) target_result_.depth / qc_base_data_.target_total_lens  <<std::endl;
         oss << "Coverage of target region(%)\t" << std::setprecision(4) << (double) 100 * target_result_.coverage_pos  / qc_base_data_.target_total_lens << std::endl;
         std::vector<int> depth_stat = {4, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};
@@ -207,7 +216,7 @@ namespace gamtools {
         oss << "Reads mapped to flanking region\t" << flank_result_.reads_num << std::endl;
         oss << "Bases mapped to flanking region\t" << flank_result_.bases_num  << std::endl;
         oss << "Reads mapped (Mapq >= 10) to flanking region\t" << flank_result_.mapq10_reads_num <<std::endl;
-        oss << "Bases mapped (Mapq >= 10) to flanking region\t" << flank_result_.mapq10_reads_num <<std::endl;
+        oss << "Bases mapped (Mapq >= 10) to flanking region\t" << flank_result_.mapq10_bases_num <<std::endl;
         oss << "Mean depth of flanking region(X)\t" << std::setprecision(5) << (double) flank_result_.depth / qc_base_data_.flank_total_lens <<std::endl;
         oss << "Coverage of flanking region(%)\t" << std::setprecision(4) <<  (double) 100 * flank_result_.coverage_pos/ qc_base_data_.flank_total_lens<< std::endl;
         std::vector<int> depth_stat = {4, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100};

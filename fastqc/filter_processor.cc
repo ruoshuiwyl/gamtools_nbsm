@@ -11,7 +11,7 @@
 
 #include <nbsm/options.h>
 #include <util/glogger.h>
-#include <util/thread_pool.h>
+
 #include "filter_processor.h"
 #include "base_fastq_info.h"
 #include "bwa_mem/gam_read.h"

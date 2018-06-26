@@ -55,65 +55,65 @@ Multiple pe files
   - -B [ --bed_file ] arg
   - --batch_size arg (=100000)           NBSM process batch read size Default(20
                                        * 10000000)
-  --read_len arg (=100)                NBSM process read length Default(100)
+  - --read_len arg (=100)                NBSM process read length Default(100)
 
-  --filter_low_qual arg                Filter Read low quality threshold
+  - --filter_low_qual arg                Filter Read low quality threshold
                                        Default(10)
-  --filter_qual_rate arg               Filter Read low quality rate Default(0.5
-  --filter_n_nate arg                  Filter Read N rate threshold Default
+  - --filter_qual_rate arg               Filter Read low quality rate Default(0.5
+  - --filter_n_nate arg                  Filter Read N rate threshold Default
                                        (0.05)
-  --filter_adapter1 arg                3' adapter sequence Default(AAGTCGGAGGCC
+  - --filter_adapter1 arg                3' adapter sequence Default(AAGTCGGAGGCC
                                        AAGCGGTCTTAGGAAGACAA)
-  --filter_adapter2 arg                5' adapter sequence Default(AAGTCGGATCGT
+  - --filter_adapter2 arg                5' adapter sequence Default(AAGTCGGATCGT
                                        AGCCATGTCGTTCTGTGAGCCAAGGAGTTG)
-  --filter_mis_match arg               the max mismatch number when match the
+  - --filter_mis_match arg               the max mismatch number when match the
                                        adapter Default(1)
-  --filter_match_ratio arg             adapter's shortest match ratio
+  - --filter_match_ratio arg             adapter's shortest match ratio
                                        Default(0.5)
-  --filter_qual_system arg             quality system 1:illumina, 2:sanger
+  - --filter_qual_system arg             quality system 1:illumina, 2:sanger
                                        Default(2:illumina)
 
-  --bwamem_thread arg                  bwa mem number of threads Default(nbsm
+  - --bwamem_thread arg                  bwa mem number of threads Default(nbsm
                                        thread)
-  --bawmem_min_seed arg                bwa mem minimum seed length Default(19)
-  --bwamem_band_width arg              bwa mem band width for banded alignment
+  - --bawmem_min_seed arg                bwa mem minimum seed length Default(19)
+  - --bwamem_band_width arg              bwa mem band width for banded alignment
                                        Default(100)
-  --bwamem_x_dropoff arg               bwa mem off-diagonal X-dropoff
+  - --bwamem_x_dropoff arg               bwa mem off-diagonal X-dropoff
                                        Default(100)
-  --bwamem_internal_seed arg           look for internal seeds inside a seed
+  - --bwamem_internal_seed arg           look for internal seeds inside a seed
                                        longer than {-k} * FLOAT Defulat(1.5)
-  --bwamem_skip_number arg             skip seeds with more than INT
+  - --bwamem_skip_number arg             skip seeds with more than INT
                                        occurrences Default(500)
-  --bwamem_drop_chain arg              drop chains shorter than FLOAT fraction
+  - --bwamem_drop_chain arg              drop chains shorter than FLOAT fraction
                                        of the longest overlapping chain
                                        Defulat(0.50)
-  --bwamem_discard_len arg             discard a chain if seeded bases shorter
+  - --bwamem_discard_len arg             discard a chain if seeded bases shorter
                                        than INT Defalut(0)
-  --bwamem_max_rounds arg              perform at most INT rounds of mate
+  - --bwamem_max_rounds arg              perform at most INT rounds of mate
                                        rescues for each read Default(50)
-  --bwamem_skip_mate_rescue arg        bwa mem skip mate rescue
-  --bwamem_skip_pairing arg            bwa mem skip pairing; mate rescue
+  - --bwamem_skip_mate_rescue arg        bwa mem skip mate rescue
+  - --bwamem_skip_pairing arg            bwa mem skip pairing; mate rescue
                                        performed unless -S also in use
-  --bwamem_match_score arg             bwa mem score for a sequence match
+  - --bwamem_match_score arg             bwa mem score for a sequence match
                                        Default(1)
-  --bwamem_minmatch_score arg          bwa mem  penalty for a mismatch
+  - --bwamem_minmatch_score arg          bwa mem  penalty for a mismatch
                                        Default(4)
-  --bwamem_gap_open_penalties arg      gap open penalties for deletions and
+  - --bwamem_gap_open_penalties arg      gap open penalties for deletions and
                                        insertions Default[6,6]
-  --bwamem_gap_extension_score arg     gap extension penalty; a gap of size k
+  - --bwamem_gap_extension_score arg     gap extension penalty; a gap of size k
                                        cost '{-O} + {-E}*k' Default[1,1]
-  --bwamem_clipping_penalty arg         penalty for 5'- and 3'-end clipping
+  - --bwamem_clipping_penalty arg         penalty for 5'- and 3'-end clipping
                                        Default[5,5]
-  --bwamem_unpair_penalty arg          penalty for an unpaired read pair
+  - --bwamem_unpair_penalty arg          penalty for an unpaired read pair
                                        Default(17)
 
-  --sm_sort_sharding_size arg          Sort Sharding size Default(4M)
-  --sm_sort_block_size arg             sort region buffer size to save gam
+  - --sm_sort_sharding_size arg          Sort Sharding size Default(4M)
+  - --sm_sort_block_size arg             sort region buffer size to save gam
                                        record Default(1M)
-  --sm_mkdup_sharding_size arg         Mark Duplicate Sharding size Default(8M)
-  --sm_mkdup_block_size arg            Mark Duplicate block buffer size for to
+  - --sm_mkdup_sharding_size arg         Mark Duplicate Sharding size Default(8M)
+  - --sm_mkdup_block_size arg            Mark Duplicate block buffer size for to
                                        save mkdup info Default(1M)
-  --sm_block_sort_thread arg           sharding stage block sort thread number
+  - --sm_block_sort_thread arg           sharding stage block sort thread number
                                        Default(4)
   - --sm_read_gam_thread_num arg         Merge stage read sharding data thread
                                        number Default(1)
