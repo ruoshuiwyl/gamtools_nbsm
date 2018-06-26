@@ -230,13 +230,13 @@ namespace gamtools {
         std::ostringstream oss;
         oss << "\t\t\t\t\tChromosome Depth" << std::endl;
         oss << "Chromosome\tSize\tTotalBase\tCoverPosition\tCoveragePercent\tMeanDepth\tRelativeDepth\tMedianDepth" << std::endl;
-        for (int chr_idx = 0; chr_idx < qc_base_data_.refer_dict.size(); ++chr_idx) {
-            if (chr_stat_results_[chr_idx].lens > 0) {
-                auto &stat_data = chr_stat_results_[chr_idx];
+        for (auto &stat_data : chr_stat_results_) {
+//            if (chr_stat_results_[chr_idx].lens > 0) {
+//                auto &stat_data = chr_stat_results_[chr_idx];
                 oss << stat_data.chr_name << "\t" << stat_data.lens << "\t" << stat_data.bases << "\t" << stat_data.cover_pos << "\t";
                 oss << std::setprecision(4) << 100 * stat_data.cover_precent << "\t" << stat_data.mean_depth << "\t" <<
                     stat_data.relative_depth << "\t" << stat_data.median_depth << std::endl;
-            }
+//            }
         }
         oss << std::endl;
         return oss.str();
