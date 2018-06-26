@@ -4,7 +4,7 @@ project(gamtools_sm)
 set(CMAKE_CXX_COMPILER /usr/bin/g++-7)
 #set(CMAKE_CXX_FLAGS "-DBOOST_LOG_DYN_LINK" )
 #set(CMAKE_CXX_FLAGS  "-DBOOST_ALL_DYN_LINK -D_GLIBCXX_USE_CXX11_ABI=0 -DDEBUG")
-set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -DBOOST_ALL_DYN_LINK -D_GLIBCXX_USE_CXX11_ABI=0 -DDEBUG -DTESTDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -DBOOST_ALL_DYN_LINK -D_GLIBCXX_USE_CXX11_ABI=1 -DDEBUG -DTESTDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-DBOOST_ALL_DYN_LINK -D_GLIBCXX_USE_CXX11_ABI=0 -O2 ")
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 11)
@@ -47,6 +47,8 @@ set( FASTALN_SOURCE
         "${PROJECT_SOURCE_DIR}/bwa_mem/bwamem_extra.c"
         "${PROJECT_SOURCE_DIR}/bwa_mem/QSufSort.h"
         "${PROJECT_SOURCE_DIR}/bwa_mem/QSufSort.c"
+        "${PROJECT_SOURCE_DIR}/bwa_mem/gam_bwa_mem.cc"
+        "${PROJECT_SOURCE_DIR}/bwa_mem/gam_bwa_mem.h"
         "${PROJECT_SOURCE_DIR}/util/slice.h"
         "${PROJECT_SOURCE_DIR}/util/arena.cc"
         "${PROJECT_SOURCE_DIR}/util/arena.h"
@@ -75,12 +77,14 @@ set( FASTALN_SOURCE
         "${PROJECT_SOURCE_DIR}/sharding/bam_block.h"
         "${PROJECT_SOURCE_DIR}/sharding/bam_sharding_impl.cc"
         "${PROJECT_SOURCE_DIR}/sharding/bam_partition_data.cc"
-               "${PROJECT_SOURCE_DIR}/nbsm/nbsm_impl.cc"
-         "${PROJECT_SOURCE_DIR}/nbsm/nbsm_impl.h"
-         "${PROJECT_SOURCE_DIR}/nbsm/options.h"
-         "${PROJECT_SOURCE_DIR}/nbsm/options.cc"
-         "${PROJECT_SOURCE_DIR}/nbsm/gamtools_sm_impl.h"
-         "${PROJECT_SOURCE_DIR}/nbsm/gamtools_sm_impl.cc"
+        "${PROJECT_SOURCE_DIR}/sharding/bam_sort_mkdup_impl.cc"
+        "${PROJECT_SOURCE_DIR}/sharding/bam_sort_mkdup_impl.h"
+        "${PROJECT_SOURCE_DIR}/nbsm/nbsm_impl.cc"
+        "${PROJECT_SOURCE_DIR}/nbsm/nbsm_impl.h"
+        "${PROJECT_SOURCE_DIR}/nbsm/options.h"
+        "${PROJECT_SOURCE_DIR}/nbsm/options.cc"
+        "${PROJECT_SOURCE_DIR}/nbsm/gamtools_sm_impl.h"
+        "${PROJECT_SOURCE_DIR}/nbsm/gamtools_sm_impl.cc"
         "${PROJECT_SOURCE_DIR}/nbsm/nbsm_impl.cc"
         "${PROJECT_SOURCE_DIR}/nbsm/nbsm_impl.h"
         "${PROJECT_SOURCE_DIR}/nbsm/nbsm_options.cc"
@@ -89,11 +93,10 @@ set( FASTALN_SOURCE
         "${PROJECT_SOURCE_DIR}/mkdup/gam_mark_duplicate_impl.cc"
         "${PROJECT_SOURCE_DIR}/mkdup/mark_duplicate_region.cc"
         "${PROJECT_SOURCE_DIR}/mkdup/mark_duplicate_read_ends.cc"
-         "${PROJECT_SOURCE_DIR}/qc_report/qc_compute.cc"
-         "${PROJECT_SOURCE_DIR}/qc_report/qc_result_analysis.cc"
-         "${PROJECT_SOURCE_DIR}/qc_report/qc_result_data.cc"
-         "${PROJECT_SOURCE_DIR}/qc_report/qc_stat_impl.cc"
-
+        "${PROJECT_SOURCE_DIR}/qc_report/qc_compute.cc"
+        "${PROJECT_SOURCE_DIR}/qc_report/qc_result_analysis.cc"
+        "${PROJECT_SOURCE_DIR}/qc_report/qc_result_data.cc"
+        "${PROJECT_SOURCE_DIR}/qc_report/qc_stat_impl.cc"
         "${PROJECT_SOURCE_DIR}/fastqc/gam_fastq_file.cc"
         "${PROJECT_SOURCE_DIR}/fastqc/gam_fastq_file.h"
         "${PROJECT_SOURCE_DIR}/fastqc/gam_fastq_read_impl.cc"
@@ -107,8 +110,6 @@ set( FASTALN_SOURCE
         "${PROJECT_SOURCE_DIR}/mkdup/mark_duplicate_frag_end.cc"
         "${PROJECT_SOURCE_DIR}/mkdup/mark_duplicate_frag_end.h"
 
-        "${PROJECT_SOURCE_DIR}/sharding/bam_sort_mkdup_impl.cc"
-        "${PROJECT_SOURCE_DIR}/sharding/bam_sort_mkdup_impl.h"
 
 )
 
