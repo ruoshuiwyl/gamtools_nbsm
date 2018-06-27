@@ -7,7 +7,7 @@
 
 #include <vector>
 
-#include <htslib/sam.h>
+#include <hts/htslib/sam.h>
 #include <string>
 
 

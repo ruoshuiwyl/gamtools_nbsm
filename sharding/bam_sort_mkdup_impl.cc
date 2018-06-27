@@ -11,8 +11,8 @@
 #include <nbsm/options.h>
 #include <snappy.h>
 #include <mkdup/gam_mark_duplicate_impl.h>
-#include <htslib/bgzf.h>
-#include <lib/htslib-1.3.1/htslib/sam.h>
+#include <hts/htslib/bgzf.h>
+#include <hts/htslib/sam.h>
 #include "bam_sort_mkdup_impl.h"
 #include "sharding/bam_partition_data.h"
 #include "sharding/bam_block.h"

@@ -9,7 +9,7 @@
 #include <iostream>
 #include <algorithm>
 #include <util/glogger.h>
-#include <lib/htslib-1.3.1/htslib/sam.h>
+#include <htslib/sam.h>
 #include <util/debug_util.h>
 #include "util/slice.h"
 

@@ -5,7 +5,7 @@
 #include "debug_util.h"
 
 #ifdef DEBUG
-#include <htslib/sam.h>
+#include <hts/htslib/sam.h>
 #include <cstring>
 #include "glogger.h"
 #endif

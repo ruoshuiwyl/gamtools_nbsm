@@ -6,7 +6,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <unistd.h>
-#include <htslib/sam.h>
+#include <hts/htslib/sam.h>
 
 
 #include "create_index.h"

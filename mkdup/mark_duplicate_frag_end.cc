@@ -2,7 +2,7 @@
 // Created by ruoshui on 5/9/18.
 //
 
-#include <lib/htslib-1.3.1/htslib/sam.h>
+#include <htslib/sam.h>
 #include <fstream>
 #include <cassert>
 #include <cstring>

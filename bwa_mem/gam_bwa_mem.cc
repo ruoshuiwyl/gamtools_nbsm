@@ -2,7 +2,7 @@
 // Created by ruoshui on 5/10/18.
 //
 
-#include <lib/htslib-1.3.1/htslib/sam.h>
+#include <htslib/sam.h>
 #include <cstring>
 #include <util/glogger.h>
 #include "gam_bwa_mem.h"

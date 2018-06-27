@@ -8,7 +8,7 @@
 #include <cstddef>
 #include <string>
 #include <memory>
-#include <htslib/sam.h>
+#include <hts/htslib/sam.h>
 #include <util/create_index.h>
 #include <util/array_block_queue.h>
 #include <sharding/bam_sharding_impl.h>

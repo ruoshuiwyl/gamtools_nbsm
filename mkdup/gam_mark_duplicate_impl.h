@@ -9,7 +9,7 @@
 #include <cstdint>
 #include <vector>
 #include <memory>
-#include <htslib/sam.h>
+#include <hts/htslib/sam.h>
 #include <nbsm/options.h>
 #include <bwa_mem/gam_read.h>
 #include "mark_duplicate_region.h"

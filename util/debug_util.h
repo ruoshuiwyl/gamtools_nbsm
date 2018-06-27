@@ -5,7 +5,7 @@
 #ifndef GAMTOOLS_SM_DEBUG_UTIL_H
 #define GAMTOOLS_SM_DEBUG_UTIL_H
 #ifdef DEBUG
-#include <htslib/sam.h>
+#include <hts/htslib/sam.h>
 #include "slice.h"
 #endif
 

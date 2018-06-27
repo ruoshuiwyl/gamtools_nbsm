@@ -24,7 +24,6 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.  */
 
 #include <config.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,7 +32,7 @@ DEALINGS IN THE SOFTWARE.  */
 #include <zlib.h>
 #include "htslib/sam.h"
 #include "htslib/bgzf.h"
-#include "cram/cram.h"
+//#include "cram/cram.h"
 #include "hts_internal.h"
 #include "htslib/hfile.h"
 
@@ -515,9 +514,9 @@ int sam_index_build2(const char *fn, const char *fnidx, int min_shift)
 
     if ((fp = hts_open(fn, "r")) == 0) return -2;
     switch (fp->format.format) {
-    case cram:
-        ret = cram_index_build(fp->fp.cram, fn, fnidx);
-        break;
+//    case cram:
+//        ret = cram_index_build(fp->fp.cram, fn, fnidx);
+//        break;
 
     case bam:
         idx = bam_index(fp->fp.bgzf, min_shift);
@@ -562,12 +561,12 @@ static int bam_readrec(BGZF *fp, void *ignored, void *bv, int *tid, int *beg, in
 }
 
 // This is used only with read_rest=1 iterators, so need not set tid/beg/end.
-static int cram_readrec(BGZF *ignored, void *fpv, void *bv, int *tid, int *beg, int *end)
-{
-    htsFile *fp = fpv;
-    bam1_t *b = bv;
-    return cram_get_bam_seq(fp->fp.cram, &b);
-}
+//static int cram_readrec(BGZF *ignored, void *fpv, void *bv, int *tid, int *beg, int *end)
+//{
+//    htsFile *fp = fpv;
+//    bam1_t *b = bv;
+//    return cram_get_bam_seq(fp->fp.cram, &b);
+//}
 
 // This is used only with read_rest=1 iterators, so need not set tid/beg/end.
 static int sam_bam_cram_readrec(BGZF *bgzfp, void *fpv, void *bv, int *tid, int *beg, int *end)
@@ -576,7 +575,7 @@ static int sam_bam_cram_readrec(BGZF *bgzfp, void *fpv, void *bv, int *tid, int 
     bam1_t *b = bv;
     switch (fp->format.format) {
     case bam:   return bam_read1(bgzfp, b);
-    case cram:  return cram_get_bam_seq(fp->fp.cram, &b);
+//    case cram:  return cram_get_bam_seq(fp->fp.cram, &b);
     default:
         // TODO Need headers available to implement this for SAM files
         fprintf(stderr, "[sam_bam_cram_readrec] Not implemented for SAM files -- Exiting\n");
@@ -590,15 +589,15 @@ hts_idx_t *sam_index_load2(htsFile *fp, const char *fn, const char *fnidx)
     case bam:
         return fnidx? hts_idx_load2(fn, fnidx) : hts_idx_load(fn, HTS_FMT_BAI);
 
-    case cram: {
-        if (cram_index_load(fp->fp.cram, fn, fnidx) < 0) return NULL;
-        // Cons up a fake "index" just pointing at the associated cram_fd:
-        hts_cram_idx_t *idx = malloc(sizeof (hts_cram_idx_t));
-        if (idx == NULL) return NULL;
-        idx->fmt = HTS_FMT_CRAI;
-        idx->cram = fp->fp.cram;
-        return (hts_idx_t *) idx;
-        }
+//    case cram: {
+//        if (cram_index_load(fp->fp.cram, fn, fnidx) < 0) return NULL;
+//        // Cons up a fake "index" just pointing at the associated cram_fd:
+//        hts_cram_idx_t *idx = malloc(sizeof (hts_cram_idx_t));
+//        if (idx == NULL) return NULL;
+//        idx->fmt = HTS_FMT_CRAI;
+//        idx->cram = fp->fp.cram;
+//        return (hts_idx_t *) idx;
+//        }
 
     default:
         return NULL; // TODO Would use tbx_index_load if it returned hts_idx_t
@@ -610,6 +609,7 @@ hts_idx_t *sam_index_load(htsFile *fp, const char *fn)
     return sam_index_load2(fp, fn, NULL);
 }
 
+/*
 static hts_itr_t *cram_itr_query(const hts_idx_t *idx, int tid, int beg, int end, hts_readrec_func *readrec)
 {
     const hts_cram_idx_t *cidx = (const hts_cram_idx_t *) idx;
@@ -665,30 +665,33 @@ static hts_itr_t *cram_itr_query(const hts_idx_t *idx, int tid, int beg, int end
 
     return iter;
 }
+ */
 
 hts_itr_t *sam_itr_queryi(const hts_idx_t *idx, int tid, int beg, int end)
 {
     const hts_cram_idx_t *cidx = (const hts_cram_idx_t *) idx;
     if (idx == NULL)
         return hts_itr_query(NULL, tid, beg, end, sam_bam_cram_readrec);
-    else if (cidx->fmt == HTS_FMT_CRAI)
-        return cram_itr_query(idx, tid, beg, end, cram_readrec);
+//    else if (cidx->fmt == HTS_FMT_CRAI)
+//        return cram_itr_query(idx, tid, beg, end, cram_readrec);
     else
         return hts_itr_query(idx, tid, beg, end, bam_readrec);
 }
 
+/*
 static int cram_name2id(void *fdv, const char *ref)
 {
     cram_fd *fd = (cram_fd *) fdv;
     return sam_hdr_name2ref(fd->header, ref);
 }
+ */
 
 hts_itr_t *sam_itr_querys(const hts_idx_t *idx, bam_hdr_t *hdr, const char *region)
 {
     const hts_cram_idx_t *cidx = (const hts_cram_idx_t *) idx;
-    if (cidx->fmt == HTS_FMT_CRAI)
-        return hts_itr_querys(idx, region, cram_name2id, cidx->cram, cram_itr_query, cram_readrec);
-    else
+//    if (cidx->fmt == HTS_FMT_CRAI)
+//        return hts_itr_querys(idx, region, cram_name2id, cidx->cram, cram_itr_query, cram_readrec);
+//    else
         return hts_itr_querys(idx, region, (hts_name2id_f)(bam_name2id), hdr, hts_itr_query, bam_readrec);
 }
 
@@ -743,8 +746,8 @@ bam_hdr_t *sam_hdr_read(htsFile *fp)
     case bam:
         return bam_hdr_read(fp->fp.bgzf);
 
-    case cram:
-        return cram_header_to_bam(fp->fp.cram->header);
+//    case cram:
+//        return cram_header_to_bam(fp->fp.cram->header);
 
     case sam: {
         kstring_t str;
@@ -790,16 +793,16 @@ int sam_hdr_write(htsFile *fp, const bam_hdr_t *h)
         if (bam_hdr_write(fp->fp.bgzf, h) < 0) return -1;
         break;
 
-    case cram: {
-        cram_fd *fd = fp->fp.cram;
-        SAM_hdr *hdr = bam_header_to_cram((bam_hdr_t *)h);
-        if (! hdr) return -1;
-        if (cram_set_header(fd, hdr) < 0) return -1;
-        if (fp->fn_aux)
-            cram_load_reference(fd, fp->fn_aux);
-        if (cram_write_SAM_hdr(fd, fd->header) < 0) return -1;
-        }
-        break;
+//    case cram: {
+//        cram_fd *fd = fp->fp.cram;
+//        SAM_hdr *hdr = bam_header_to_cram((bam_hdr_t *)h);
+//        if (! hdr) return -1;
+//        if (cram_set_header(fd, hdr) < 0) return -1;
+//        if (fp->fn_aux)
+//            cram_load_reference(fd, fp->fn_aux);
+//        if (cram_write_SAM_hdr(fd, fd->header) < 0) return -1;
+//        }
+//        break;
 
     case text_format:
         fp->format.category = sequence_data;
@@ -1040,12 +1043,12 @@ int sam_read1(htsFile *fp, bam_hdr_t *h, bam1_t *b)
         return r;
         }
 
-    case cram: {
-        int ret = cram_get_bam_seq(fp->fp.cram, &b);
-        return ret >= 0
-            ? ret
-            : (cram_eof(fp->fp.cram) ? -1 : -2);
-    }
+//    case cram: {
+//        int ret = cram_get_bam_seq(fp->fp.cram, &b);
+//        return ret >= 0
+//            ? ret
+//            : (cram_eof(fp->fp.cram) ? -1 : -2);
+//    }
 
     case sam: {
         int ret;
@@ -1206,9 +1209,9 @@ int sam_write1(htsFile *fp, const bam_hdr_t *h, const bam1_t *b)
         /* fall-through */
     case bam:
         return bam_write1(fp->fp.bgzf, b);
-
-    case cram:
-        return cram_put_bam_seq(fp->fp.cram, (bam1_t *)b);
+//
+//    case cram:
+//        return cram_put_bam_seq(fp->fp.cram, (bam1_t *)b);
 
     case text_format:
         fp->format.category = sequence_data;

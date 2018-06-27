@@ -5,7 +5,7 @@
 #ifndef GAMTOOLS_SM_NBSM_IMPL_H
 #define GAMTOOLS_SM_NBSM_IMPL_H
 
-#include <htslib/sam.h>
+#include <hts/htslib/sam.h>
 #include <util/gam_read_buffer.h>
 #include <util/array_block_queue.h>
 #include <util/bounded_queue.h>

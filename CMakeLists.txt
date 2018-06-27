@@ -4,7 +4,7 @@ project(gamtools_sm)
 set(CMAKE_CXX_COMPILER /usr/bin/g++-7)
 #set(CMAKE_CXX_FLAGS "-DBOOST_LOG_DYN_LINK" )
 #set(CMAKE_CXX_FLAGS  "-DBOOST_ALL_DYN_LINK -D_GLIBCXX_USE_CXX11_ABI=0 -DDEBUG")
-set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -DBOOST_ALL_DYN_LINK -D_GLIBCXX_USE_CXX11_ABI=1 -DDEBUG -DTESTDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "-g -O0 -DBOOST_ALL_DYN_LINK -D_GLIBCXX_USE_CXX11_ABI=0 -DDEBUG -DTESTDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-DBOOST_ALL_DYN_LINK -D_GLIBCXX_USE_CXX11_ABI=0 -O2 ")
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 11)
@@ -17,13 +17,14 @@ option(SM_BUILD_TESTS "Build GAMTOOLS SM's unit tests" OFF)
 include_directories(
         "${Boost_INCLUDE_DIR}"
         "${PROJECT_SOURCE_DIR}"
-        "${PROJECT_SOURCE_DIR}/lib/htslib-1.3.1"
+        "${PROJECT_SOURCE_DIR}/hts"
+#        "${PROJECT_SOURCE_DIR}/lib/htslib-1.3.1"
 #        "${PROJECT_SOURCE_DIR}/lib/bwa-0.7.15"
 )
 
 link_libraries(
         ${Boost_LIBRARY_DIR}
-        "${PROJECT_SOURCE_DIR}/lib/htslib-1.3.1"
+#        "${PROJECT_SOURCE_DIR}/lib/htslib-1.3.1"
 #        "${PROJECT_SOURCE_DIR}/lib/bwa-0.7.15"
         )
 
@@ -49,6 +50,16 @@ set( FASTALN_SOURCE
         "${PROJECT_SOURCE_DIR}/bwa_mem/QSufSort.c"
         "${PROJECT_SOURCE_DIR}/bwa_mem/gam_bwa_mem.cc"
         "${PROJECT_SOURCE_DIR}/bwa_mem/gam_bwa_mem.h"
+#
+
+        "${PROJECT_SOURCE_DIR}/hts/bgzf.c"
+        "${PROJECT_SOURCE_DIR}/hts/hfile.c"
+        "${PROJECT_SOURCE_DIR}/hts/hfile_net.c"
+        "${PROJECT_SOURCE_DIR}/hts/hts.c"
+        "${PROJECT_SOURCE_DIR}/hts/sam.c"
+        "${PROJECT_SOURCE_DIR}/hts/knetfile.c"
+
+
         "${PROJECT_SOURCE_DIR}/util/slice.h"
         "${PROJECT_SOURCE_DIR}/util/arena.cc"
         "${PROJECT_SOURCE_DIR}/util/arena.h"
@@ -69,8 +80,6 @@ set( FASTALN_SOURCE
         "${PROJECT_SOURCE_DIR}/util/bounded_queue.h"
         "${PROJECT_SOURCE_DIR}/util/block_queue.h"
         "${PROJECT_SOURCE_DIR}/util/order_block_queue.h"
-        "${PROJECT_SOURCE_DIR}/util/gam_thread_pool.h"
-        "${PROJECT_SOURCE_DIR}/util/gam_thread_pool.cc"
         "${PROJECT_SOURCE_DIR}/sharding/gam_block.cc"
         "${PROJECT_SOURCE_DIR}/sharding/gam_block.h"
         "${PROJECT_SOURCE_DIR}/sharding/bam_block.cc"
@@ -168,8 +177,6 @@ target_sources(gam_sm PRIVATE
         "${PROJECT_SOURCE_DIR}/mkdup/gam_mark_duplicate_impl.cc"
         "${PROJECT_SOURCE_DIR}/mkdup/mark_duplicate_region.cc"
         "${PROJECT_SOURCE_DIR}/mkdup/mark_duplicate_read_ends.cc"
-        "${PROJECT_SOURCE_DIR}/util/gam_thread_pool.h"
-        "${PROJECT_SOURCE_DIR}/util/gam_thread_pool.cc"
 
         "${PROJECT_SOURCE_DIR}/bwa_mem/kstring.c"
         "${PROJECT_SOURCE_DIR}/bwa_mem/kstring.h"
@@ -247,4 +254,5 @@ target_sources(gam_sm PRIVATE
 #target_link_libraries(qc_test ${Boost_LIBRARIES} pthread)
 
 add_executable(fastaln nbsm/main.cc ${FASTALN_SOURCE})
-target_link_libraries(fastaln  pthread ${Boost_LIBRARIES} ${PROJECT_SOURCE_DIR}/lib/htslib-1.3.1/libhts.a z snappy )
+#target_link_libraries(fastaln  pthread ${Boost_LIBRARIES} ${PROJECT_SOURCE_DIR}/lib/htslib-1.3.1/libhts.a z snappy )
+target_link_libraries(fastaln  pthread ${Boost_LIBRARIES}  z snappy )

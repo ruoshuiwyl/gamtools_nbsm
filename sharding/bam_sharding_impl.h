@@ -10,9 +10,9 @@
 #include <thread>
 
 
-#include <htslib/sam.h>
-#include <htslib/bgzf.h>
-#include <htslib/hts.h>
+#include <hts/htslib/sam.h>
+#include <hts/htslib/bgzf.h>
+#include <hts/htslib/hts.h>
 
 #include <nbsm/options.h>
 #include <sharding/bam_partition_data.h>

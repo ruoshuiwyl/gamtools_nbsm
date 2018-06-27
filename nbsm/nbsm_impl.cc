@@ -5,8 +5,8 @@
 #include <cstring>
 #include <cstdlib>
 
-#include <htslib/kstring.h>
-#include <htslib/sam.h>
+#include <hts/htslib/kstring.h>
+#include <hts/htslib/sam.h>
 #include <sharding/bam_sort_mkdup_impl.h>
 
 #include "bwa_mem/gam_bwa_mem.h"

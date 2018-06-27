@@ -13,7 +13,7 @@
 #include <util/skiplist.h>
 
 #ifdef DEBUG
-#include <htslib/sam.h>
+#include <hts/htslib/sam.h>
 #endif
 
 namespace gamtools {

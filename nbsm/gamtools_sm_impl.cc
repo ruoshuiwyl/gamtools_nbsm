@@ -2,7 +2,7 @@
 // Created by ruoshui on 4/23/18.
 //
 
-#include <htslib/sam.h>
+#include <hts/htslib/sam.h>
 #include <util/slice.h>
 #include <util/glogger.h>
 #include <util/nbsm_static.h>

@@ -3,7 +3,7 @@
 //
 
 
-#include <htslib/hts.h>
+#include <hts/htslib/hts.h>
 #include <cassert>
 #include <util/glogger.h>
 

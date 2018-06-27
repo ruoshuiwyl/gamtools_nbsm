@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <util/array_block_queue.h>
 #include <util/gam_read_buffer.h>
-#include <lib/htslib-1.3.1/htslib/sam.h>
+#include <htslib/sam.h>
 #include "bwamem.h"
 
 namespace gamtools {

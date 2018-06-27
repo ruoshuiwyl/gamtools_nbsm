@@ -34,9 +34,10 @@ DEALINGS IN THE SOFTWARE.  */
 #include <fcntl.h>
 #include <errno.h>
 #include <sys/stat.h>
+#include <hts/htslib/kstring.h>
 #include "htslib/bgzf.h"
 #include "htslib/hts.h"
-#include "cram/cram.h"
+//#include "cram/cram.h"
 #include "htslib/hfile.h"
 #include "version.h"
 #include "hts_internal.h"
@@ -759,13 +760,13 @@ htsFile *hts_hopen(struct hFILE *hfile, const char *fn, const char *mode)
         fp->is_bin = 1;
         break;
 
-    case cram:
-        fp->fp.cram = cram_dopen(hfile, fn, simple_mode);
-        if (fp->fp.cram == NULL) goto error;
-        if (!fp->is_write)
-            cram_set_option(fp->fp.cram, CRAM_OPT_DECODE_MD, 1);
-        fp->is_cram = 1;
-        break;
+//    case cram:
+//        fp->fp.cram = cram_dopen(hfile, fn, simple_mode);
+//        if (fp->fp.cram == NULL) goto error;
+//        if (!fp->is_write)
+//            cram_set_option(fp->fp.cram, CRAM_OPT_DECODE_MD, 1);
+//        fp->is_cram = 1;
+//        break;
 
     case text_format:
     case sam:
@@ -821,19 +822,19 @@ int hts_close(htsFile *fp)
         ret = bgzf_close(fp->fp.bgzf);
         break;
 
-    case cram:
-        if (!fp->is_write) {
-            switch (cram_eof(fp->fp.cram)) {
-            case 2:
-                fprintf(stderr, "[W::%s] EOF marker is absent. The input is probably truncated.\n", __func__);
-                break;
-            case 0:  /* not at EOF, but may not have wanted all seqs */
-            default: /* case 1, expected EOF */
-                break;
-            }
-        }
-        ret = cram_close(fp->fp.cram);
-        break;
+//    case cram:
+//        if (!fp->is_write) {
+//            switch (cram_eof(fp->fp.cram)) {
+//            case 2:
+//                fprintf(stderr, "[W::%s] EOF marker is absent. The input is probably truncated.\n", __func__);
+//                break;
+//            case 0:  /* not at EOF, but may not have wanted all seqs */
+//            default: /* case 1, expected EOF */
+//                break;
+//            }
+//        }
+//        ret = cram_close(fp->fp.cram);
+//        break;
 
     case text_format:
     case sam:
@@ -907,9 +908,9 @@ int hts_set_opt(htsFile *fp, enum hts_fmt_option opt, ...) {
     if (fp->format.format != cram)
         return 0;
 
-    va_start(args, opt);
-    r = cram_set_voption(fp->fp.cram, opt, args);
-    va_end(args);
+//    va_start(args, opt);
+//    r = cram_set_voption(fp->fp.cram, opt, args);
+//    va_end(args);
 
     return r;
 }
@@ -933,9 +934,9 @@ int hts_set_fai_filename(htsFile *fp, const char *fn_aux)
     }
     else fp->fn_aux = NULL;
 
-    if (fp->format.format == cram)
-        if (cram_set_option(fp->fp.cram, CRAM_OPT_REFERENCE, fp->fn_aux))
-            return -1;
+//    if (fp->format.format == cram)
+//        if (cram_set_option(fp->fp.cram, CRAM_OPT_REFERENCE, fp->fn_aux))
+//            return -1;
 
     return 0;
 }
@@ -1378,12 +1379,12 @@ void hts_idx_destroy(hts_idx_t *idx)
     if (idx == 0) return;
 
     // For HTS_FMT_CRAI, idx actually points to a different type -- see sam.c
-    if (idx->fmt == HTS_FMT_CRAI) {
-        hts_cram_idx_t *cidx = (hts_cram_idx_t *) idx;
-        cram_index_free(cidx->cram);
-        free(cidx);
-        return;
-    }
+//    if (idx->fmt == HTS_FMT_CRAI) {
+//        hts_cram_idx_t *cidx = (hts_cram_idx_t *) idx;
+//        cram_index_free(cidx->cram);
+//        free(cidx);
+//        return;
+//    }
 
     for (i = 0; i < idx->m; ++i) {
         bidx_t *bidx = idx->bidx[i];

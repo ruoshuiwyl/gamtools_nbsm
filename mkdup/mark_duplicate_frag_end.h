@@ -7,7 +7,7 @@
 
 
 #include <vector>
-#include <lib/htslib-1.3.1/htslib/sam.h>
+#include <htslib/sam.h>
 #include <bwa_mem/gam_read.h>
 #include <thread>
 #include <util/create_index.h>
