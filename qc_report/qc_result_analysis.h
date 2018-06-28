@@ -23,7 +23,7 @@ namespace gamtools {
             std::string chr_name;
             int tid;
             int lens;
-            int bases;
+            int64_t bases;
             int cover_pos;
             double cover_precent;
             double mean_depth;

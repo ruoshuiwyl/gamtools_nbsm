@@ -113,6 +113,9 @@ namespace gamtools {
 
     }
 
+    void NBSMImpl::Usage() {
+        nbsm_options_.usage();
+    }
 
 
 }

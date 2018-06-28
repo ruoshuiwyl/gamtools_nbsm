@@ -4,6 +4,7 @@
 
 #include <assert.h>
 #include <iostream>
+#include <util/glogger.h>
 #include "qc_compute.h"
 
 
@@ -52,6 +53,9 @@ namespace gamtools {
 
     void QCCompute::Statistics(const gamtools::StatisticsSlice &stat) {
         StatisticsRead(stat);
+        if (stat.rlen > 1000) {
+            GLOG_ERROR << "Error reference length too long";
+        }
         if (stat.rlen > 0) {
             int end = stat.pos + stat.rlen;
             if (end > curr_end_) {
@@ -90,7 +94,7 @@ namespace gamtools {
     void QCCompute::StatisticsDepth( int pos, int depth) {
         if (target_) {
             if (target_region_[target_depth_reg_].second <= pos
-                    && target_depth_reg_  + 1< target_region_.size()) {
+                    && target_depth_reg_  + 1 < target_region_.size()) {
                 while ((target_region_.size() > target_depth_reg_)
                        && target_region_[target_depth_reg_].second <= pos) {
                     target_depth_reg_++;
@@ -98,10 +102,10 @@ namespace gamtools {
             }
             if (target_region_[target_depth_reg_].first <= pos
                 && target_region_[target_depth_reg_].second > pos) {
-                target_result_.depth_dist[depth < kMaxDepth?depth :  kMaxDepth - 1] ++;
+                target_result_.depth_dist[depth < kMaxDepth ? depth :  kMaxDepth - 1] ++;
                 target_result_.coverage_pos++;
                 target_result_.depth += depth;
-                flank_result_.depth_dist[depth < kMaxDepth? depth : kMaxDepth - 1]++;
+                flank_result_.depth_dist[depth < kMaxDepth ? depth : kMaxDepth - 1]++;
                 flank_result_.coverage_pos++;
                 flank_result_.depth += depth;
                 return;

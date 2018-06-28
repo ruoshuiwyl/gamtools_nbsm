@@ -50,7 +50,7 @@ Multiple pe files
   - -a [ --input_lane_id_lists ] arg     Input fastq file lane ID
   - -o [ --output_bam_file ] arg         Output bam file name defalut(null)
   - -n [ --sample_name ] arg (=Zebra)    Sample Name Default(Zebra)
-  - -i [ --sample_id ] arg (=Zebra)      Sample Name Default(Zebra)
+  - -g [ --read_group ] arg (=Zebra)      Sample Name Default(Zebra)
   - -t [ --thread_number ] arg (=1)      NBSM total thread Default(1)
   - -B [ --bed_file ] arg
   - --batch_size arg (=100000)           NBSM process batch read size Default(20

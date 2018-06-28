@@ -30,6 +30,7 @@ namespace gamtools {
        */
         int ParserCommandLine(int argc, char *argv[]);
         int CheckHelp();
+        void usage();
 //        BaseOptions base_options;
         FilterOptions filter_options;
         SMOptions sm_options;

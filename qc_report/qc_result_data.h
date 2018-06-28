@@ -22,7 +22,7 @@ namespace gamtools {
             mapq10_bases_num = 0;
             coverage_pos = 0;
             depth = 0;
-            depth_dist.resize(kMaxDepth, 0);
+            depth_dist.assign(kMaxDepth, 0);
         }
         void reset(int chr_idx) {
             tid = chr_idx;
@@ -32,7 +32,7 @@ namespace gamtools {
             mapq10_bases_num = 0;
             coverage_pos = 0;
             depth = 0;
-            depth_dist.resize(kMaxDepth, 0);
+            depth_dist.assign(kMaxDepth, 0);
         }
         void Add(const QCStatResult &lhs);
         int tid;

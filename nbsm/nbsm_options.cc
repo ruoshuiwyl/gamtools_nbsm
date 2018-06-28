@@ -30,7 +30,7 @@ namespace gamtools {
                 ("input_lane_id_lists,a",   po::value<std::vector<int>>(&input_lane_ids_),      "Input fastq file lane ID")
                 ("output_bam_file,o", po::value<std::string>(&output_bam_file), "Output bam file name defalut(null)")
                 ("sample_name,n", boost::program_options::value<std::string>(&sample_name)->default_value("Zebra"), "Sample Name Default(Zebra)")
-                ("sample_id,i", boost::program_options::value<std::string>(&sample_id)->default_value("Zebra"), "Sample Name Default(Zebra)")
+                ("read_group,g", boost::program_options::value<std::string>(&sample_id)->default_value("Zebra"), "Sample Name Default(Zebra)")
                 ("thread_number,t", boost::program_options::value<int>(&nbsm_thread_num)->default_value(1),"NBSM total thread Default(1)")
                 ("bed_file,B", boost::program_options::value<std::string>(&bed_file), "NBSM process target data bed file")
                 ("batch_size", boost::program_options::value<int>(&batch_size)->default_value(100000), "NBSM process batch read size Default(20 * 10000000)")
@@ -219,7 +219,7 @@ namespace gamtools {
             return 2;
         }
 
-        if (vm.count("sample_id")) {
+        if (vm.count("read_group")) {
             GLOG_INFO << "Set Sample ID: " << sample_id;
         } else {
             GLOG_ERROR << "Not Set Sample ID" ;
@@ -227,17 +227,16 @@ namespace gamtools {
         }
 
         if (vm.count("thread_number")) {
-            GLOG_INFO << "Set nbsm thread number";
+            sm_options.merge_sort_thread_num = nbsm_thread_num / 3 > 1 ? nbsm_thread_num /3 : 1;
         } else {
             GLOG_INFO << " nbsm thread number default 20";
         }
-
+        GLOG_INFO <<  "Set nbsm thread number" <<  nbsm_thread_num;
         if (vm.count("batch_size")) {
             GLOG_INFO << "Set nbsm batch_size " << batch_size;
         } else {
             GLOG_INFO << "Default set nbsm batch_size " << batch_size;
         }
-
         if (vm.count("bed_file")) {
             sm_options.bed_file = bed_file;
             GLOG_INFO << "BED file " << bed_file;
@@ -446,7 +445,9 @@ namespace gamtools {
         return status;
     }
 
-
+    void NBSMOptions::usage() {
+        std::cout << opt_des_;
+    }
 
 
 }

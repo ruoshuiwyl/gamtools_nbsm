@@ -19,9 +19,27 @@ namespace gamtools {
         void Compute(const std::vector<StatisticsSlice> &stat_datas);
         void Clear();
         const QCStatResult& TargetResult(){
+#ifdef DEBUG
+            int64_t cnt_depth = 0;
+            for (int depth = 0; depth < kMaxDepth; ++depth) {
+                cnt_depth += target_result_.depth_dist[depth] * depth;
+            }
+            if  (cnt_depth > target_result_.depth) {
+                abort();
+            }
+#endif
             return target_result_;
         }
         const QCStatResult& FlankResult() {
+#ifdef DEBUG
+            int64_t cnt_depth = 0;
+            for (int depth = 0; depth < kMaxDepth; ++depth) {
+                cnt_depth += flank_result_.depth_dist[depth] * depth;
+            }
+            if  (cnt_depth > flank_result_.depth) {
+                abort();
+            }
+#endif
             return flank_result_;
         }
         const QCMappingResult& MappingResult() {
@@ -31,7 +49,6 @@ namespace gamtools {
         void StatisticsRead(const StatisticsSlice &stat);
         void StatisticsDepth(int pos, int depth);
         void Statistics(const StatisticsSlice &stat);
-        std::set<int> poss;
         const bool target_;
         int curr_pos_;
         int curr_end_;

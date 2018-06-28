@@ -11,6 +11,10 @@ using  namespace gamtools;
 int main(int argc, char *argv[] ) {
     NBSMImpl nbsm;
     int err_code;
+    if (argc == 1) {
+        nbsm.Usage();
+        return 0;
+    }
     if (!nbsm.ParseProgramOptions(argc, argv)) {
         nbsm.Initialization();
         nbsm.ProcessNBSM();
@@ -19,8 +23,4 @@ int main(int argc, char *argv[] ) {
         err_code = 1;
     }
     return err_code;
-
-
-
-    return 0;
 }
