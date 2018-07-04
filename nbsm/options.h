@@ -72,7 +72,7 @@ namespace  gamtools {
         // Default : quality system sanger
         int qual_sys;
 
-        // Default : 10
+        // Default : 5
         int low_qual;    //low quality
         // Default : 0.5
         float qual_rate;

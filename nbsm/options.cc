@@ -33,7 +33,7 @@ namespace  gamtools{
                is_adpt_list(false),
                qual_sys(33),
                n_base_rate(0.05),
-               low_qual(10),
+               low_qual(5),
                qual_rate(0.5),
                adapter_mis_match(1),
                adapter_match_ratio(0.5),
