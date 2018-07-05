@@ -156,7 +156,7 @@ namespace gamtools {
         }
 
         if (vm.count("input_fastq2_lists")) {
-            GLOG_INFO << "Input Fastq1 File Lists:";
+            GLOG_INFO << "Input Fastq2 File Lists:";
             int file_num = 0;
             for (auto file : input_fastq2_lists_) {
                 GLOG_INFO << "file id:" << file_num++ << ":" << file ;
@@ -204,6 +204,14 @@ namespace gamtools {
             GLOG_INFO << "Set Output bam filename " << output_bam_file;
             boost::filesystem::path output_bam_path(output_bam_file);
             boost::filesystem::path qc_path = boost::filesystem::change_extension(output_bam_path, "qc");
+            auto parent_pathname = output_bam_path.parent_path();
+            if (!boost::filesystem::exists(parent_pathname)) {
+                if (boost::filesystem::create_directories(parent_pathname)) {
+                    GLOG_INFO << "Create Output path OK";
+                } else {
+                    GLOG_ERROR << "Create output Path Failed";
+                }
+            }
             statistics_file = qc_path.string();
             sm_options.report_file = statistics_file;
             GLOG_INFO << "Set output QC filename " << statistics_file;
@@ -448,6 +456,4 @@ namespace gamtools {
     void NBSMOptions::usage() {
         std::cout << opt_des_;
     }
-
-
 }
