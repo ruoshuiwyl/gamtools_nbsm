@@ -1070,10 +1070,12 @@ void mem_aln2bam(const mem_opt_t *opt, const bntseq_t *bns, kstring_t *str, bseq
 		uint8_t  *t = bam_data.s + bam_data.l;
 		bam_data.l += seq_len;
 		memset(t, 0, seq_len);
+		int req_idx = 0;
 		for (i = qe-1; i >= qb; --i) {
 //			str->s[str->l++] = "TGCAN"[(int)s->seq[i]];
-			int idx = i - qb;
-			t[idx>>1] |= (int)bam_seq_int[s->seq[i]] << ((~idx&1)<<2);
+			t[req_idx>>1] |= (int)bam_seq_int[s->seq[i]] << ((~req_idx&1)<<2);
+			assert (t[req_idx>>1] >> ((~req_idx & 1) << 2) == bam_seq_int[s->seq[i]]);
+			req_idx++;
 //			bam_data
 		}
 //		ks_resize(str, str->l + (qe - qb) + 1);

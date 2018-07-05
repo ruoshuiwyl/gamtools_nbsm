@@ -423,7 +423,7 @@ namespace gamtools {
         if (!hts_set_threads(bam_file_, sm_options_.bam_output_thread_num)) {
             GLOG_ERROR << "Write bam set compress thread failed ";
         }
-        if (!bam_hdr_write(bam_file_->fp.bgzf, bam_hdr_)) {
+        if (bam_hdr_write(bam_file_->fp.bgzf, bam_hdr_) == 0) {
             GLOG_ERROR << "Write bam head failed";
         }
 //        std::unique_ptr<BAMBlock> bam_block;
