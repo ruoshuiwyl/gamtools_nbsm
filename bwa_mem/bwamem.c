@@ -908,6 +908,7 @@ static void put_bam_data(kstring_t *bam, const bseq1_t *s, const gam1_core_t *co
 
 
 static int bam_seq_int[5] = {1, 2, 4, 8, 15};
+static int bam_req_int[5] = {8, 4, 2, 1, 15};
 static int bam_cigar_int[5] = {0, 1, 2, 4, 5};
 
 void mem_aln2bam(const mem_opt_t *opt, const bntseq_t *bns, kstring_t *str, bseq1_t *s, int n, const mem_aln_t *list, int which, const mem_aln_t *m_)
@@ -1027,6 +1028,7 @@ void mem_aln2bam(const mem_opt_t *opt, const bntseq_t *bns, kstring_t *str, bseq
 		core.mpos = -1;
 		core.isize = 0;
 	}
+	int seq_idx = 0;
 	if (!p->is_rev) {// the forward strand
 		int i, qb = 0, qe = s->l_seq;
 		if (p->n_cigar && which && !(opt->flag&MEM_F_SOFTCLIP) && !p->is_alt) { // have cigar && not the primary alignment && not softclip all
@@ -1040,8 +1042,8 @@ void mem_aln2bam(const mem_opt_t *opt, const bntseq_t *bns, kstring_t *str, bseq
 		bam_data.l += seq_len;
 		memset(t, 0, seq_len);
 		for (i = qb; i < qe; ++i) {
-			int idx = i - qb;
-			t[idx>>1] |= bam_seq_int[s->seq[i]] << ((~idx&1)<<2);
+			t[seq_idx>>1] |= bam_seq_int[s->seq[i]] << ((~seq_idx&1)<<2);
+            seq_idx++;
 		}
 
 //		for (i = qb; i < qe; ++i) str->s[str->l++] = "ACGTN"[(int)s->seq[i]];
@@ -1070,12 +1072,11 @@ void mem_aln2bam(const mem_opt_t *opt, const bntseq_t *bns, kstring_t *str, bseq
 		uint8_t  *t = bam_data.s + bam_data.l;
 		bam_data.l += seq_len;
 		memset(t, 0, seq_len);
-		int req_idx = 0;
 		for (i = qe-1; i >= qb; --i) {
 //			str->s[str->l++] = "TGCAN"[(int)s->seq[i]];
-			t[req_idx>>1] |= (int)bam_seq_int[s->seq[i]] << ((~req_idx&1)<<2);
+			t[seq_idx>>1] |= (int)bam_req_int[s->seq[i]] << ((~seq_idx&1)<<2);
 //			assert ((t[req_idx>>1] >> ((~req_idx & 1) << 2) & 0xf) == bam_seq_int[s->seq[i]]);
-			req_idx++;
+            seq_idx++;
 //			bam_data
 		}
 //		ks_resize(str, str->l + (qe - qb) + 1);
