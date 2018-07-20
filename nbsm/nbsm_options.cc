@@ -30,11 +30,11 @@ namespace gamtools {
                 ("input_lane_id_lists,a",   po::value<std::vector<int>>(&input_lane_ids_),      "Input fastq file lane ID")
                 ("output_bam_file,o", po::value<std::string>(&output_bam_file), "Output bam file name defalut(null)")
                 ("sample_name,n", boost::program_options::value<std::string>(&sample_name)->default_value("Zebra"), "Sample Name Default(Zebra)")
-                ("read_group,g", boost::program_options::value<std::string>(&sample_id)->default_value("Zebra"), "Sample Name Default(Zebra)")
-                ("thread_number,t", boost::program_options::value<int>(&nbsm_thread_num)->default_value(1),"NBSM total thread Default(1)")
-                ("bed_file,B", boost::program_options::value<std::string>(&bed_file), "NBSM process target data bed file")
-                ("batch_size", boost::program_options::value<int>(&batch_size)->default_value(100000), "NBSM process batch read size Default(20 * 10000000)")
-                ("read_len", boost::program_options::value<int>(&read_len)->default_value(100), "NBSM process read length Default(100)");
+                ("read_group,g", boost::program_options::value<std::string>(&sample_id)->default_value("Zebra"), "Read Group Default(Zebra)")
+                ("thread_number,t", boost::program_options::value<int>(&nbsm_thread_num)->default_value(1),"fastAln total thread Default(1)")
+                ("bed_file,B", boost::program_options::value<std::string>(&bed_file), "fastAln process target data bed file")
+                ("batch_size", boost::program_options::value<int>(&batch_size)->default_value(100000), "fastAln process batch read size Default(20 * 10000000)")
+                ("read_len", boost::program_options::value<int>(&read_len)->default_value(100), "fastAln process read length Default(100)");
 
         // filter fastq options
         filter_des_.add_options()
@@ -45,17 +45,17 @@ namespace gamtools {
                 ("filter_adapter2", po::value<std::string>(), "5' adapter sequence Default(AAGTCGGATCGTAGCCATGTCGTTCTGTGAGCCAAGGAGTTG)")
                 ("filter_mis_match", po::value<int>(), "the max mismatch number when match the adapter Default(1)")
                 ("filter_match_ratio", po::value<float>(), "adapter's shortest match ratio Default(0.5)")
-                ("filter_qual_system", po::value<int>(), "quality system 1:illumina, 2:sanger Default(2:illumina)");
+                ("filter_qual_system", po::value<int>(), "quality system 1:illumina(64), 2:sanger(33) Default(2:sanger)");
             // bwa mem options
         bwamem_des_.add_options()
-                ("bwamem_thread", po::value<int>(), "bwa mem number of threads Default(nbsm thread)")
+                ("bwamem_thread", po::value<int>(), "bwa mem number of threads Default(thread_number)")
                 ("bawmem_min_seed", po::value<int>(), "bwa mem minimum seed length Default(19)")
                 ("bwamem_band_width",po::value<int>(), "bwa mem band width for banded alignment Default(100)")
                 ("bwamem_x_dropoff", po::value<int>(), "bwa mem off-diagonal X-dropoff Default(100)")
                 ("bwamem_internal_seed", po::value<float>(), "look for internal seeds inside a seed longer than {-k} * FLOAT Defulat(1.5)")
                 ("bwamem_skip_number", po::value<int>(), "skip seeds with more than INT occurrences Default(500)")
                 ("bwamem_drop_chain", po::value<float>(), "drop chains shorter than FLOAT fraction of the longest overlapping chain Defulat(0.50)")
-                ("bwamem_discard_len", po::value<int>(), "discard a chain if seeded bases shorter than INT Defalut(0)")
+                ("bwamem_discard_len", po::value<int>(), "discard a chain if seeded bases shorter than INT Default(0)")
                 ("bwamem_max_rounds", po::value<int>(), "perform at most INT rounds of mate rescues for each read Default(50)")
                 ("bwamem_skip_mate_rescue", po::value<int>(), "bwa mem skip mate rescue")
                 ("bwamem_skip_pairing", po::value<int>(), "bwa mem skip pairing; mate rescue performed unless -S also in use")
