@@ -54,8 +54,8 @@ namespace gamtools {
             for (auto &fq_info :fastq_infos_) {
                 uint64_t raw_base_num = fq_info.first.raw_base_num + fq_info.second.raw_base_num;
                 uint64_t clean_base_num = fq_info.first.clean_base_num + fq_info.second.clean_base_num;
-                oss << "Propotions of lane_id" << lane_id++ << ":\t " << std::setprecision(4)
-                    << (float)(100 * raw_base_num/sample_raw_base_num) << "\t " << (float)(100 * clean_base_num/sample_clean_base_num) << std::endl;
+                oss << "Propotions of lane_id" << lane_id++ << ":\t " << std::setw(5)
+                    << 100.0 * raw_base_num/sample_raw_base_num << "\t " << 100.0 * clean_base_num/sample_clean_base_num << std::endl;
             }
             std::string head;
             oss << PrintBaseFqInfo(&sample_fastq_info.first, &sample_fastq_info.second) << std::endl;

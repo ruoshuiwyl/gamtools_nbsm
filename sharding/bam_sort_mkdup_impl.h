@@ -11,7 +11,6 @@
 #include <atomic>
 #include <util/bounded_queue.h>
 #include <util/order_block_queue.h>
-#include <qc_report/quality_control.h>
 #include <qc_report/qc_stat_impl.h>
 #include "nbsm/options.h"
 

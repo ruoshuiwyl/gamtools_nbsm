@@ -28,7 +28,7 @@ namespace gamtools {
             return fq_info1_;
         };
         const BaseFqInfo& fq_info2() const {
-            return fq_info1_;
+            return fq_info2_;
         };
         const int lane_id() const {
             return lane_id_;

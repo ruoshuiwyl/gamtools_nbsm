@@ -6,7 +6,6 @@
 #define GAMTOOLS_SM_QC_COMPUTE_H
 
 
-#include "quality_control.h"
 #include "qc_result_data.h"
 #include "qc_stat_impl.h"
 
