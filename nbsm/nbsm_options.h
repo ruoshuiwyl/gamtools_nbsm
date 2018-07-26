@@ -10,7 +10,8 @@
 
 namespace gamtools {
 
-    const std::string kNBSMVersion = "0.1.3";
+    const std::string kNBSMVersion = "0.1.3-r0002";
+
     const std::string kBWAMEMVersion = "0.7.15-r1140";
 
     class GAMFastqFileInfo;
