@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(gamtools_sm)
+project(fastaln)
 
 set(CMAKE_CXX_COMPILER /usr/bin/g++-7)
 #set(CMAKE_CXX_FLAGS "-DBOOST_LOG_DYN_LINK" )
@@ -59,7 +59,6 @@ set( FASTALN_SOURCE
         "${PROJECT_SOURCE_DIR}/hts/sam.c"
         "${PROJECT_SOURCE_DIR}/hts/knetfile.c"
 
-
         "${PROJECT_SOURCE_DIR}/util/slice.h"
         "${PROJECT_SOURCE_DIR}/util/arena.cc"
         "${PROJECT_SOURCE_DIR}/util/arena.h"
@@ -118,9 +117,7 @@ set( FASTALN_SOURCE
         "${PROJECT_SOURCE_DIR}/fastqc/fastq_info_statistics.h"
         "${PROJECT_SOURCE_DIR}/mkdup/mark_duplicate_frag_end.cc"
         "${PROJECT_SOURCE_DIR}/mkdup/mark_duplicate_frag_end.h"
-
-
-)
+        )
 
 add_library(gam_sm ""
         "${PROJECT_SOURCE_DIR}/bwa_mem/gam_bwa_mem.cc"
@@ -256,3 +253,6 @@ target_sources(gam_sm PRIVATE
 add_executable(fastaln nbsm/main.cc ${FASTALN_SOURCE})
 #target_link_libraries(fastaln  pthread ${Boost_LIBRARIES} ${PROJECT_SOURCE_DIR}/lib/htslib-1.3.1/libhts.a z snappy )
 target_link_libraries(fastaln  pthread ${Boost_LIBRARIES}  z snappy )
+
+add_executable(bam_out nbsm/bam_output_test.cc )
+target_link_libraries(bam_out /home/ruoshui/code/samtools/samtools-1.3.1/htslib-1.3.1/libhts.a z pthread)
