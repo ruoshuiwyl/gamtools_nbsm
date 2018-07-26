@@ -56,7 +56,10 @@ namespace gamtools {
         if (stat.rlen > 1000) {
             GLOG_ERROR << "Error reference length too long";
         }
-        if (stat.rlen > 0) {
+        if (stat.rlen > 0 && !stat.is_dup) {
+//            if (stat.is_dup) {
+//                std::cerr << "Error" << std::endl;
+//            }
             int end = stat.pos + stat.rlen;
             if (end > curr_end_) {
                 if (stat.pos > curr_end_ + 100) { // skip larger no data region
