@@ -25,6 +25,7 @@ namespace gamtools {
         bwaidx_t *mem_idx_;
         bam_hdr_t *bam_hdr_;
         NBSMOptions nbsm_options_;
+        std::string command_string_;
 //        ArrayBlockQueue<std::unique_ptr<GAMReadBuffer>> read_fastq_channel_;
         BoundedQueue<std::unique_ptr<GAMReadBuffer>> read_fastq_queue_;
         BoundedQueue<std::unique_ptr<BWAReadBuffer>> input_read_queue_;

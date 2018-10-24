@@ -33,6 +33,9 @@ namespace gamtools {
         const int lane_id() const {
             return lane_id_;
         }
+        bool check() const {
+            return fq_info1_.raw_read_num == size_ && fq_info2_.raw_read_num == size_;
+        }
     private:
         int size_;
         int lane_id_;

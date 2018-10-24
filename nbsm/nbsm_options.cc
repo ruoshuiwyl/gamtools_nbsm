@@ -29,8 +29,8 @@ namespace gamtools {
                 ("input_library_id_lists,l",po::value<std::vector<int>>(&input_library_ids_), "Input fastq file library ID" )
                 ("input_lane_id_lists,a",   po::value<std::vector<int>>(&input_lane_ids_),      "Input fastq file lane ID")
                 ("output_bam_file,o", po::value<std::string>(&output_bam_file), "Output bam file name defalut(null)")
-                ("sample_name,n", boost::program_options::value<std::string>(&sample_name)->default_value("Zebra"), "Sample Name Default(Zebra)")
-                ("read_group,g", boost::program_options::value<std::string>(&sample_id)->default_value("Zebra"), "Read Group Default(Zebra)")
+//                ("sample_name,n", boost::program_options::value<std::string>(&sample_name)->default_value("Zebra"), "Sample Name Default(Zebra)")
+                ("read_group,g", boost::program_options::value<std::string>(&read_group)->default_value("@RG\t@ID:foo\tSM:bar\tLB:Zebra\tPL:BGI\tCN:BGI500"), "Read Group Default(Zebra)")
                 ("thread_number,t", boost::program_options::value<int>(&nbsm_thread_num)->default_value(1),"fastAln total thread Default(1)")
                 ("bed_file,B", boost::program_options::value<std::string>(&bed_file), "fastAln process target data bed file")
                 ("batch_size", boost::program_options::value<int>(&batch_size)->default_value(100000), "fastAln process batch read size Default(20 * 10000000)")
@@ -220,17 +220,17 @@ namespace gamtools {
             return 2;
         }
 
-        if (vm.count("sample_name")) {
-            GLOG_INFO << "Set Sample Name " << sample_name;
-        } else {
-            GLOG_ERROR << "Not Set Sample Name" ;
-            return 2;
-        }
+//        if (vm.count("sample_name")) {
+//            GLOG_INFO << "Set Sample Name " << sample_name;
+//        } else {
+//            GLOG_ERROR << "Not Set Sample Name" ;
+//            return 2;
+//        }
 
         if (vm.count("read_group")) {
-            GLOG_INFO << "Set Sample ID: " << sample_id;
+            GLOG_INFO << "Set Read Group " << read_group;
         } else {
-            GLOG_ERROR << "Not Set Sample ID" ;
+            GLOG_ERROR << "Not Set Read Group" ;
             return 2;
         }
 
@@ -444,7 +444,7 @@ namespace gamtools {
             std::cout << opt_des_;
             status = 0;
         } else if (vm.count("version")) {
-            std::cout << "GAMTOOLS NBSM\tVersion: " << kNBSMVersion << std::endl;
+            std::cout << "fastAln\tVersion: " << kfastAlnVersion << std::endl;
             std::cout << "BWA MEM\tVersion: " << kBWAMEMVersion << std::endl;
             status = 0;
         } else {

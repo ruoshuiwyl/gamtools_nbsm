@@ -38,6 +38,9 @@ namespace gamtools {
 
     }
     int NBSMImpl::ParseProgramOptions(int argc, char **argv) {
+        for (int i = 0; i < argc; ++i){
+            command_string_ += argv[i];
+        }
         return nbsm_options_.ParserCommandLine(argc, argv);
     }
     void NBSMImpl::Initialization() {
@@ -52,8 +55,10 @@ namespace gamtools {
         bam_hdr_->n_targets = mem_idx_->bns->n_seqs;
         bam_hdr_->target_len = (uint32_t *) malloc(bam_hdr_->n_targets * sizeof(uint32_t));
         bam_hdr_->target_name = (char **) malloc(bam_hdr_->n_targets * sizeof(char *));
-        char bam_header[512];
+        char *bam_header = new char[8192];
         kstring_t str = {0, 0, nullptr};
+        sprintf(bam_header, "@HD\tVN:1.4\tSO:coordinate\n");
+        kputsn(bam_header, strlen(bam_header), &str);
         for (int i = 0; i < bam_hdr_->n_targets; ++i) {
             bam_hdr_->target_len[i] = mem_idx_->bns->anns[i].len;
             bam_hdr_->target_name[i] = (char *) malloc (strlen(mem_idx_->bns->anns[i].name) + 1);
@@ -62,12 +67,17 @@ namespace gamtools {
             kputsn(bam_header, strlen(bam_header), &str);
         }
 //        char *read_group_line;
-        sprintf(bam_header, "@RG\tID:%s\tSM:%s", nbsm_options_.sample_id.c_str(), nbsm_options_.sample_name.c_str());
+//        sprintf(bam_header, "@RG\tID:%s\tSM:%s\tLB:%s\tPL:%s\tCN:%s", nbsm_options_.sample_id.c_str(), nbsm_options_.sample_name.c_str());
+        sprintf(bam_header, "%s", nbsm_options_.read_group.c_str());
         char * rg_line = bwa_set_rg(bam_header);
+        if (command_string_.size() < 7936){
+            sprintf(bam_header, "@PG\tID:bwa\tPN:bwa\tVN:%s\tCL:%s\n", kBWAMEMVersion, command_string_ );
+        } else {
+            sprintf(bam_header, "@PG\tID:bwa\tPN:bwa\tVN:%s\tCL:%s\n", kBWAMEMVersion, command_string_.substr(0, 7936));
+        }
 
-        sprintf(bam_header, "@PG\tID:bwa\tPN:bwa\tVN:%s\tCL:%s\n", "v0.7.15","gamtools" );
         kputsn(bam_header, strlen(bam_header), &str);
-        sprintf(bam_header, "@PG\tID:NBSM\tPN:GAMTOOLS_NBSM\tVN:%s\n", "v0.1.0");
+        sprintf(bam_header, "@PG\tID:fastAln \tPN:GAMTOOLS_NBSM\tVN:%s\n", kfastAlnVersion);
         kputsn(bam_header, strlen(bam_header), &str);
 
         sprintf(bam_header, "%s\n", rg_line);
@@ -75,6 +85,7 @@ namespace gamtools {
         kputsn(bam_header, strlen(bam_header), &str);
         bam_hdr_->l_text = str.l;
         bam_hdr_->text = str.s;
+        delete [] bam_header;
 #ifdef DEBUG
         g_bam_hdr = bam_hdr_;
 #endif

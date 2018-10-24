@@ -10,7 +10,7 @@
 
 namespace gamtools {
 
-    const std::string kNBSMVersion = "0.1.3-r0002";
+    const std::string kfastAlnVersion = "0.1.3-r0002";
 
     const std::string kBWAMEMVersion = "0.7.15-r1140";
 
@@ -39,10 +39,11 @@ namespace gamtools {
         std::vector<GAMFastqFileInfo> fastq_file_lists;
         std::string output_bam_file;
         std::string reference_file;
-        std::string sample_id;
-        std::string sample_name;
+//        std::string sample_id;
+//        std::string sample_name;
         std::string statistics_file;
         std::string bed_file;
+        std::string read_group;
         int batch_size;
         int read_len;
         int nbsm_thread_num;
