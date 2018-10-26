@@ -30,7 +30,7 @@ namespace gamtools {
                 ("input_lane_id_lists,a",   po::value<std::vector<int>>(&input_lane_ids_),      "Input fastq file lane ID")
                 ("output_bam_file,o", po::value<std::string>(&output_bam_file), "Output bam file name defalut(null)")
 //                ("sample_name,n", boost::program_options::value<std::string>(&sample_name)->default_value("Zebra"), "Sample Name Default(Zebra)")
-                ("read_group,g", boost::program_options::value<std::string>(&read_group)->default_value("@RG\t@ID:foo\tSM:bar\tLB:Zebra\tPL:BGI\tCN:BGI500"), "Read Group Default(Zebra)")
+                ("read_group,g", boost::program_options::value<std::string>(&read_group)->default_value("@RG\tID:foo\tSM:bar\tLB:Zebra\tPL:BGI\tCN:BGI500"), "Read Group Default(Zebra)")
                 ("thread_number,t", boost::program_options::value<int>(&nbsm_thread_num)->default_value(1),"fastAln total thread Default(1)")
                 ("bed_file,B", boost::program_options::value<std::string>(&bed_file), "fastAln process target data bed file")
                 ("batch_size", boost::program_options::value<int>(&batch_size)->default_value(100000), "fastAln process batch read size Default(20 * 10000000)")
